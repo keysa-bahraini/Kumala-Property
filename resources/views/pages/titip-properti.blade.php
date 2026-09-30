@@ -16,11 +16,11 @@
 
     <!-- Header Section -->
     <div style="margin-bottom: 40px; max-width: 880px;">
-        <div class="badge-pill-header">LAYANAN KONSINYASI & PEMASARAN RESMI</div>
-        <h1 style="font-size: clamp(2.2rem, 4vw, 3rem); color: var(--primary-navy); margin-bottom: 14px; line-height: 1.2;">
+        <span class="badge-tag badge-tag-teal" style="margin-bottom: 16px;">LAYANAN KONSINYASI & PEMASARAN RESMI</span>
+        <h1 style="font-size: clamp(2.2rem, 4vw, 3rem); color: var(--primary-navy); margin-bottom: 14px; line-height: 1.2; font-weight: 800;">
             Titipkan Properti Anda, Jangkau Pembeli & Penyewa Berkualitas
         </h1>
-        <p style="font-size: 1.1rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 24px;">
+        <p style="font-size: 1.05rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 24px;">
             Tim kurator Kumala Property siap mendampingi proses valuasi presisi, produksi visual arsitektural berkelas, hingga finalisasi legalitas transaksi tuntas tanpa biaya di muka.
         </p>
 
@@ -464,7 +464,7 @@
     background: #FFFFFF;
     border: 1px solid var(--border-color);
     padding: 8px 14px;
-    border-radius: 999px;
+    border-radius: 8px;
     font-size: 0.82rem;
     font-weight: 600;
     color: var(--primary-navy);
@@ -476,9 +476,9 @@
 
 .step-card {
     background: #FFFFFF;
-    border-radius: 16px;
+    border-radius: 12px;
     border: 1px solid var(--border-color);
-    padding: 30px;
+    padding: 28px;
     margin-bottom: 24px;
     box-shadow: var(--shadow-sm);
 }
@@ -487,7 +487,7 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 24px;
+    margin-bottom: 22px;
     padding-bottom: 16px;
     border-bottom: 1px solid var(--border-light);
 }

@@ -37,14 +37,14 @@
     <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 20px;">
         <div style="max-width: 780px;">
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
-                <span class="badge-tag badge-tag-navy">{{ $property['transaction_type'] === 'Jual' ? 'DIJUAL' : 'DISEWAKAN' }}</span>
+                <span class="badge-tag {{ $property['transaction_type'] === 'Jual' ? 'badge-tag-navy' : 'badge-tag-teal' }}">{{ $property['transaction_type'] === 'Jual' ? 'DIJUAL' : 'DISEWAKAN' }}</span>
                 <span class="badge-tag" style="background: #E2E8F0; color: #0E2238;">{{ $property['legal_status'] }}</span>
                 <span class="badge-tag badge-tag-teal">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
                     <span>Verifikasi Tim Kumala</span>
                 </span>
             </div>
-            <h1 style="font-size: clamp(2rem, 3.5vw, 2.8rem); color: var(--primary-navy); margin-bottom: 8px; line-height: 1.2;">
+            <h1 style="font-size: clamp(2rem, 3.5vw, 2.75rem); color: var(--primary-navy); margin-bottom: 8px; line-height: 1.25; font-weight: 800;">
                 {{ $property['title'] }}
             </h1>
             <p style="display: flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 0.95rem;">
@@ -53,50 +53,50 @@
             </p>
         </div>
 
-        <div style="text-align: right; background: #FFFFFF; padding: 16px 24px; border-radius: 14px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
+        <div style="text-align: right; background: #FFFFFF; padding: 18px 24px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
             <span style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">{{ $property['price_label'] }}</span>
-            <div style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: 800; color: var(--primary-navy); line-height: 1.15;">
+            <div style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: 800; color: var(--primary-navy); line-height: 1.15; letter-spacing: -0.02em;">
                 {{ $property['price_formatted'] }}
             </div>
-            <span style="font-size: 0.8rem; color: #059669; font-weight: 600;">{{ $property['price_notes'] }}</span>
+            <span style="font-size: 0.82rem; color: #059669; font-weight: 600;">{{ $property['price_notes'] }}</span>
         </div>
     </div>
 
     <!-- Interactive Media Gallery Grid -->
-    <div class="gallery-grid" style="display: grid; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 230px 230px; gap: 16px; margin-bottom: 30px; border-radius: 20px; overflow: hidden;">
+    <div class="gallery-grid" style="display: grid; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 230px 230px; gap: 14px; margin-bottom: 32px; border-radius: 14px; overflow: hidden; border: 1px solid var(--border-color);">
         <!-- Main Image -->
         <div style="grid-column: 1 / 2; grid-row: 1 / 3; position: relative; overflow: hidden; background: #0E2238;">
-            <img src="{{ $property['images'][0] ?? $property['image_main'] }}" alt="Fasad Depan" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease;" class="gallery-hover-img">
-            <div style="position: absolute; bottom: 16px; left: 16px; background: rgba(14, 34, 56, 0.85); backdrop-filter: blur(8px); padding: 8px 14px; border-radius: 8px; color: #FFFFFF; font-size: 0.8rem; font-weight: 600;">
-                PANORAMIC CLIFFSIDE VIEW • Pemandangan Samudra Hindia 180 Derajat
+            <img src="{{ $property['images'][0] ?? $property['image_main'] }}" alt="{{ $property['title'] }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;" class="gallery-hover-img">
+            <div style="position: absolute; bottom: 16px; left: 16px; background: rgba(14, 34, 56, 0.9); padding: 8px 14px; border-radius: 6px; color: #FFFFFF; font-size: 0.82rem; font-weight: 600; border: 1px solid rgba(255,255,255,0.15);">
+                {{ $property['location_area'] }} • Dokumentasi Asli Tim Kumala
             </div>
         </div>
 
         <!-- Sub 1 -->
         <div style="position: relative; overflow: hidden; background: #0E2238;">
-            <img src="{{ $property['images'][1] ?? $property['image_main'] }}" alt="Living Pavillion" style="width: 100%; height: 100%; object-fit: cover;" class="gallery-hover-img">
-            <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(14, 34, 56, 0.75); padding: 4px 10px; border-radius: 6px; color: #FFFFFF; font-size: 0.75rem; font-weight: 600;">Living Pavillion</div>
+            <img src="{{ $property['images'][1] ?? $property['image_main'] }}" alt="Area Utama" style="width: 100%; height: 100%; object-fit: cover;" class="gallery-hover-img">
+            <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(14, 34, 56, 0.85); padding: 4px 10px; border-radius: 4px; color: #FFFFFF; font-size: 0.75rem; font-weight: 600;">Area Ruang Tamu</div>
         </div>
 
         <!-- Sub 2 -->
         <div style="position: relative; overflow: hidden; background: #0E2238;">
-            <img src="{{ $property['images'][2] ?? $property['image_main'] }}" alt="Master Suite" style="width: 100%; height: 100%; object-fit: cover;" class="gallery-hover-img">
-            <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(14, 34, 56, 0.75); padding: 4px 10px; border-radius: 6px; color: #FFFFFF; font-size: 0.75rem; font-weight: 600;">Master Suite</div>
+            <img src="{{ $property['images'][2] ?? $property['image_main'] }}" alt="Kamar Utama" style="width: 100%; height: 100%; object-fit: cover;" class="gallery-hover-img">
+            <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(14, 34, 56, 0.85); padding: 4px 10px; border-radius: 4px; color: #FFFFFF; font-size: 0.75rem; font-weight: 600;">Kamar Utama (Ensuite)</div>
         </div>
 
         <!-- Sub 3 -->
         <div style="position: relative; overflow: hidden; background: #0E2238;">
-            <img src="{{ $property['images'][3] ?? $property['image_main'] }}" alt="Ensuite Spa Bath" style="width: 100%; height: 100%; object-fit: cover;" class="gallery-hover-img">
-            <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(14, 34, 56, 0.75); padding: 4px 10px; border-radius: 6px; color: #FFFFFF; font-size: 0.75rem; font-weight: 600;">Ensuite Spa Bath</div>
+            <img src="{{ $property['images'][3] ?? $property['image_main'] }}" alt="Interior & Sanitasi" style="width: 100%; height: 100%; object-fit: cover;" class="gallery-hover-img">
+            <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(14, 34, 56, 0.85); padding: 4px 10px; border-radius: 4px; color: #FFFFFF; font-size: 0.75rem; font-weight: 600;">Kamar Mandi / Sanitasi</div>
         </div>
 
         <!-- Sub 4 / Gallery Action Overlay -->
-        <div style="position: relative; overflow: hidden; background: #0E2238; cursor: pointer;" onclick="showToast('Membuka Galeri 18 Foto Beresolusi Tinggi & Video Tour...')">
-            <img src="{{ $property['images'][4] ?? $property['image_main'] }}" alt="Sun Deck & Lounge" style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.7);" class="gallery-hover-img">
-            <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(14, 34, 56, 0.5); backdrop-filter: blur(2px);">
-                <div style="background: rgba(255, 255, 255, 0.95); color: var(--primary-navy); padding: 10px 18px; border-radius: 999px; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 8px; box-shadow: var(--shadow-md);">
+        <div style="position: relative; overflow: hidden; background: #0E2238; cursor: pointer;" onclick="showToast('Membuka Galeri Foto Lengkap...')">
+            <img src="{{ $property['images'][4] ?? $property['image_main'] }}" alt="Eksterior Lingkungan" style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.65);" class="gallery-hover-img">
+            <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(14, 34, 56, 0.45);">
+                <div style="background: #FFFFFF; color: var(--primary-navy); padding: 10px 18px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 8px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                    <span>Lihat Semua 18 Foto & Video Tour</span>
+                    <span>Lihat Semua Foto ({{ count($property['images'] ?? [1,2,3,4,5]) }})</span>
                 </div>
             </div>
         </div>
@@ -296,8 +296,8 @@
 
                 <!-- Inquiry Tab Selector -->
                 <div style="display: flex; background: #F1F5F9; border-radius: 8px; padding: 4px; margin-bottom: 20px; gap: 4px;">
-                    <button type="button" class="btn-inquiry-tab active" id="tab-beli" onclick="setInquiryTab('beli')">Ajukan Minat Beli (Aktif)</button>
-                    <button type="button" class="btn-inquiry-tab" id="tab-sewa" onclick="setInquiryTab('sewa')">Preview: Minat Sewa</button>
+                    <button type="button" class="btn-inquiry-tab active" id="tab-beli" onclick="setInquiryTab('beli')">Minat Beli</button>
+                    <button type="button" class="btn-inquiry-tab" id="tab-sewa" onclick="setInquiryTab('sewa')">Minat Sewa</button>
                 </div>
 
                 <!-- Inquiry Form -->
