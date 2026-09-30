@@ -45,6 +45,22 @@ Route::post('/admin/logout', [\App\Http\Controllers\AdminController::class, 'log
 
 // Halaman 8: Admin Operational Dashboard
 Route::get('/admin/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
+
+// Halaman 9: Manajemen Properti (Master)
+Route::get('/admin/properti', [\App\Http\Controllers\AdminController::class, 'properties'])->name('admin.properties');
+
+// Halaman 10: Manajemen Listing Masuk (Gatekeeper Verification)
+Route::get('/admin/listing-masuk', [\App\Http\Controllers\AdminController::class, 'submissions'])->name('admin.submissions');
+
+// Halaman 11: Riwayat Terjual & Tersewa (Closing Archive)
+Route::get('/admin/riwayat-transaksi', [\App\Http\Controllers\AdminController::class, 'transactions'])->name('admin.transactions');
+
+// Halaman 12: Manajemen Data Inquiry (Lead Pipeline CRM)
+Route::get('/admin/inquiry', [\App\Http\Controllers\AdminController::class, 'inquiries'])->name('admin.inquiries');
+
+// Halaman 13: Pengaturan Sistem & Master Data
+Route::get('/admin/pengaturan', [\App\Http\Controllers\AdminController::class, 'settings'])->name('admin.settings');
+
 Route::get('/admin', function() {
     return redirect()->route('admin.dashboard');
 });

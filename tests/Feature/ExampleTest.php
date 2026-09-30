@@ -93,4 +93,59 @@ class ExampleTest extends TestCase
         $response->assertSee('KUMALA ADMIN');
         $response->assertSee('Perlu Ditindaklanjuti Segera');
     }
+
+    /**
+     * Test Page 9: Manajemen Properti (Master)
+     */
+    public function test_admin_properties_page_returns_successful_response(): void
+    {
+        $response = $this->get('/admin/properti');
+        $response->assertStatus(200);
+        $response->assertSee('Manajemen Properti');
+        $response->assertSee('INVENTORY HUB');
+    }
+
+    /**
+     * Test Page 10: Manajemen Listing Masuk (Gatekeeper)
+     */
+    public function test_admin_submissions_page_returns_successful_response(): void
+    {
+        $response = $this->get('/admin/listing-masuk');
+        $response->assertStatus(200);
+        $response->assertSee('Manajemen Listing Masuk');
+        $response->assertSee('SLA GATEKEEPER VERIFICATION');
+    }
+
+    /**
+     * Test Page 11: Riwayat Terjual & Tersewa (Closing Archive)
+     */
+    public function test_admin_transactions_page_returns_successful_response(): void
+    {
+        $response = $this->get('/admin/riwayat-transaksi');
+        $response->assertStatus(200);
+        $response->assertSee('Riwayat Terjual & Tersewa');
+        $response->assertSee('CLOSING ARCHIVE');
+    }
+
+    /**
+     * Test Page 12: Manajemen Data Inquiry (CRM)
+     */
+    public function test_admin_inquiries_page_returns_successful_response(): void
+    {
+        $response = $this->get('/admin/inquiry');
+        $response->assertStatus(200);
+        $response->assertSee('Manajemen Data Inquiry');
+        $response->assertSee('LEAD PIPELINE', false);
+    }
+
+    /**
+     * Test Page 13: Pengaturan Sistem & Master Data
+     */
+    public function test_admin_settings_page_returns_successful_response(): void
+    {
+        $response = $this->get('/admin/pengaturan');
+        $response->assertStatus(200);
+        $response->assertSee('Pengaturan Sistem & Master Data');
+        $response->assertSee('SYSTEM CONFIGURATION', false);
+    }
 }
