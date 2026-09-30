@@ -49,4 +49,48 @@ class ExampleTest extends TestCase
         $response->assertSee('Titipkan Properti Anda');
         $response->assertSee('Data Pemilik Properti');
     }
+
+    /**
+     * Test Page 5: Properti Favorit Saya
+     */
+    public function test_favorites_page_returns_successful_response(): void
+    {
+        $response = $this->get('/favorit');
+        $response->assertStatus(200);
+        $response->assertSee('Properti Favorit Saya');
+        $response->assertSee('Bandingkan Spek');
+    }
+
+    /**
+     * Test Page 6: Tentang Kami & Kontak
+     */
+    public function test_about_page_returns_successful_response(): void
+    {
+        $response = $this->get('/tentang-kami');
+        $response->assertStatus(200);
+        $response->assertSee('Kurasi Presisi untuk Koleksi Aset Bernilai Abadi');
+        $response->assertSee('Tiga Pilar Layanan Kumala');
+    }
+
+    /**
+     * Test Page 7: Login Admin
+     */
+    public function test_admin_login_page_returns_successful_response(): void
+    {
+        $response = $this->get('/admin/login');
+        $response->assertStatus(200);
+        $response->assertSee('Masuk ke Portal Internal');
+        $response->assertSee('admin@kumalaproperty.com');
+    }
+
+    /**
+     * Test Page 8: Admin Dashboard
+     */
+    public function test_admin_dashboard_page_returns_successful_response(): void
+    {
+        $response = $this->get('/admin/dashboard');
+        $response->assertStatus(200);
+        $response->assertSee('KUMALA ADMIN');
+        $response->assertSee('Perlu Ditindaklanjuti Segera');
+    }
 }

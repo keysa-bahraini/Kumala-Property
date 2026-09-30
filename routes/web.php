@@ -22,5 +22,29 @@ Route::get('/properti/{slug}', [PropertyController::class, 'detail'])->name('pro
 Route::get('/titip-properti', [PropertyController::class, 'titipProperti'])->name('titip-properti');
 Route::post('/titip-properti', [PropertyController::class, 'submitTitipProperti'])->name('titip-properti.submit');
 
+// Halaman 5: Properti Favorit Saya
+Route::get('/favorit', [PropertyController::class, 'favorites'])->name('favorites');
+
+// Halaman 6: Tentang Kami & Kontak
+Route::get('/tentang-kami', [PropertyController::class, 'about'])->name('about');
+
 // Inquiry API for Detail Page Concierge
 Route::post('/inquiry', [PropertyController::class, 'submitInquiry'])->name('inquiry.submit');
+
+/*
+|--------------------------------------------------------------------------
+| Admin Suite Routes (Internal Control Portal)
+|--------------------------------------------------------------------------
+*/
+
+// Halaman 7: Login Admin & Security
+Route::get('/admin/login', [\App\Http\Controllers\AdminController::class, 'login'])->name('admin.login');
+Route::post('/admin/login', [\App\Http\Controllers\AdminController::class, 'authenticate'])->name('admin.authenticate');
+Route::get('/admin/logout', [\App\Http\Controllers\AdminController::class, 'logout'])->name('admin.logout');
+Route::post('/admin/logout', [\App\Http\Controllers\AdminController::class, 'logout'])->name('admin.logout.post');
+
+// Halaman 8: Admin Operational Dashboard
+Route::get('/admin/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
+Route::get('/admin', function() {
+    return redirect()->route('admin.dashboard');
+});

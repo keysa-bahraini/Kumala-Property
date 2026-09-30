@@ -72,6 +72,23 @@ class PropertyController extends Controller
     }
 
     /**
+     * Page 5: Properti Favorit Saya
+     */
+     public function favorites(Request $request)
+     {
+         $allProperties = PropertyDataService::getAll();
+         return view('pages.favorites', compact('allProperties'));
+     }
+
+     /**
+      * Page 6: Tentang Kami & Kontak
+      */
+     public function about()
+     {
+         return view('pages.about');
+     }
+
+    /**
      * Submit Inquiry Form
      */
     public function submitInquiry(Request $request)
