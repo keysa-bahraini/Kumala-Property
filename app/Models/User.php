@@ -21,6 +21,8 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'role',
+        'avatar',
         'password',
     ];
 
@@ -45,5 +47,33 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function getRoleLabelAttribute(): string
+    {
+        return match ($this->role) {
+            'super_admin' => 'Super Admin',
+            'curator' => 'Curator & Appraiser',
+            'sales_advisor' => 'Sales Advisor',
+            default => 'Staff Manajemen',
+        };
+    }
+
+    public function getInitialsAttribute(): string
+    {
+        if (!empty($this->avatar) && strlen($this->avatar) <= 3) {
+            return $this->avatar;
+        }
+        $words = explode(' ', trim($this->name));
+        $initials = '';
+        foreach (array_slice($words, 0, 2) as $w) {
+            $initials .= strtoupper(substr($w, 0, 1));
+        }
+        return $initials ?: 'AP';
+    }
+
+    public function isAdmin(): bool
+    {
+        return in_array($this->role, ['super_admin', 'curator', 'sales_advisor']);
     }
 }

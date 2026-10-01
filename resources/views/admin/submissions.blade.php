@@ -62,7 +62,10 @@
             <span style="font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">Antrean Berkas Masuk (3)</span>
 
             @foreach($submissions as $sub)
-            <div class="submission-queue-card {{ $loop->first ? 'active' : '' }}" onclick="selectSubmission(this, '{{ $sub['id'] }}')">
+            <div class="submission-queue-card {{ ($selectedSubmission && $selectedSubmission['id'] === $sub['id']) ? 'active' : '' }}" 
+                 data-status="{{ $sub['status'] }}" 
+                 data-sub='@json($sub)' 
+                 onclick="selectSubmission(this)">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
                     <span class="badge-tag badge-tag-navy" style="font-size: 0.7rem; padding: 2px 6px;">{{ $sub['id'] }}</span>
                     <span style="font-size: 0.72rem; color: #D97706; font-weight: 700; background: #FEF3C7; padding: 2px 6px; border-radius: 4px;">{{ $sub['priority'] }}</span>
@@ -214,19 +217,19 @@
                 </h3>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; font-size: 0.82rem;">
                     <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: #F8FAFC; border-radius: 6px; border: 1px solid var(--border-light); cursor: pointer;">
-                        <input type="checkbox" checked style="accent-color: #00B488;">
+                        <input type="checkbox" id="deck-chk-identity" {{ !empty($selectedSubmission['checklist']['identity']) ? 'checked' : '' }} onchange="saveChecklist()" style="accent-color: #00B488;">
                         <span>Identitas pemilik & no WA terverifikasi</span>
                     </label>
                     <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: #F8FAFC; border-radius: 6px; border: 1px solid var(--border-light); cursor: pointer;">
-                        <input type="checkbox" checked style="accent-color: #00B488;">
+                        <input type="checkbox" id="deck-chk-maps" {{ !empty($selectedSubmission['checklist']['maps']) ? 'checked' : '' }} onchange="saveChecklist()" style="accent-color: #00B488;">
                         <span>Koordinat Maps & zonasi PBG akurat</span>
                     </label>
                     <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: #F8FAFC; border-radius: 6px; border: 1px solid var(--border-light); cursor: pointer;">
-                        <input type="checkbox" checked style="accent-color: #00B488;">
+                        <input type="checkbox" id="deck-chk-shm" {{ !empty($selectedSubmission['checklist']['shm_match']) ? 'checked' : '' }} onchange="saveChecklist()" style="accent-color: #00B488;">
                         <span>Sertifikat SHM cocok data BPN resmi</span>
                     </label>
                     <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: #FFF1F2; border-radius: 6px; border: 1px solid #FECDD3; cursor: pointer; color: #9F1239;">
-                        <input type="checkbox" style="accent-color: #00B488;">
+                        <input type="checkbox" id="deck-chk-photos" {{ !empty($selectedSubmission['checklist']['photos_hd']) ? 'checked' : '' }} onchange="saveChecklist()" style="accent-color: #00B488;">
                         <span>Foto memenuhi standar estetika HD Kumala</span>
                     </label>
                 </div>
@@ -235,25 +238,25 @@
             <!-- Section 5: Catatan Internal Kurator -->
             <div style="margin-bottom: 26px;">
                 <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 6px;">Catatan Privat Tim Kurator</label>
-                <textarea rows="2" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; color: var(--primary-navy);" placeholder="Tuliskan catatan privat untuk kurator lain...">Aset lokasi sangat prime dekat Echo Beach. Foto interior dapur perlu peningkatan pencahayaan standar Kumala sebelum diterbitkan.</textarea>
+                <textarea id="deck-notes" rows="2" onblur="saveChecklist()" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; color: var(--primary-navy);" placeholder="Tuliskan catatan privat untuk kurator lain...">{{ $selectedSubmission['notes'] ?? '' }}</textarea>
             </div>
 
             <!-- Section 6: Action Footer Toolbar -->
             <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 20px; border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 12px;">
                 <div style="display: flex; gap: 8px;">
-                    <button type="button" class="btn-fav-danger" style="padding: 10px 16px; font-size: 0.85rem; border-radius: 6px;" onclick="showToast('Pengajuan ditolak. Notifikasi email terkirim ke pemilik.')">
+                    <button type="button" class="btn-fav-danger" style="padding: 10px 16px; font-size: 0.85rem; border-radius: 6px;" onclick="rejectCurrentSubmission()">
                         Tolak Pengajuan
                     </button>
-                    <button type="button" class="btn-fav-tool" style="padding: 10px 16px; font-size: 0.85rem; border-radius: 6px; color: #D97706; border-color: #FDE68A; background: #FFFBEB;" onclick="showToast('Permintaan revisi dokumen telah dikirim via WhatsApp.')">
+                    <button type="button" class="btn-fav-tool" style="padding: 10px 16px; font-size: 0.85rem; border-radius: 6px; color: #D97706; border-color: #FDE68A; background: #FFFBEB;" onclick="revisionCurrentSubmission()">
                         Minta Revisi
                     </button>
                 </div>
 
                 <div style="display: flex; gap: 10px;">
-                    <button type="button" class="btn-fav-tool" style="padding: 10px 16px; font-size: 0.85rem; border-radius: 6px;" onclick="showToast('Membuka form penyesuaian data teknis...')">
+                    <button type="button" class="btn-fav-tool" style="padding: 10px 16px; font-size: 0.85rem; border-radius: 6px;" onclick="editCurrentSubmission()">
                         Edit Data Standar
                     </button>
-                    <button type="button" class="btn-teal" style="padding: 10px 22px; font-size: 0.85rem; border-radius: 6px;" onclick="showToast('Listing #TP-204 berhasil disetujui & langsung diterbitkan ke katalog publik!')">
+                    <button type="button" class="btn-teal" style="padding: 10px 22px; font-size: 0.85rem; border-radius: 6px;" onclick="approveCurrentSubmission()">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                         <span>Setujui & Publikasikan</span>
                     </button>
@@ -333,17 +336,147 @@
 
 @section('scripts')
 <script>
-function selectSubmission(card, id) {
+let currentSubmission = @json($selectedSubmission);
+const csrfToken = '{{ csrf_token() }}';
+
+function selectSubmission(card) {
     document.querySelectorAll('.submission-queue-card').forEach(c => c.classList.remove('active'));
     card.classList.add('active');
-    document.getElementById('deck-id').textContent = id;
-    showToast(`Memuat data inspeksi berkas ${id}...`);
+    const sub = JSON.parse(card.getAttribute('data-sub'));
+    currentSubmission = sub;
+    
+    document.getElementById('deck-id').textContent = sub.id;
+    document.getElementById('deck-title').textContent = sub.title;
+    document.getElementById('deck-address').textContent = sub.address;
+    document.getElementById('deck-price').textContent = sub.price;
+    document.getElementById('deck-owner').textContent = sub.owner;
+    document.getElementById('deck-phone').textContent = sub.phone;
+    document.getElementById('deck-email').textContent = sub.email;
+    document.getElementById('deck-notes').value = sub.notes || '';
+    
+    const chk = sub.checklist || {};
+    document.getElementById('deck-chk-identity').checked = !!chk.identity;
+    document.getElementById('deck-chk-maps').checked = !!chk.maps;
+    document.getElementById('deck-chk-shm').checked = !!chk.shm_match;
+    document.getElementById('deck-chk-photos').checked = !!chk.photos_hd;
 }
 
 function filterQueue(type, btn) {
     document.querySelectorAll('.queue-tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    showToast(`Memfilter antrean: ${type}`);
+    const cards = document.querySelectorAll('.submission-queue-card');
+    cards.forEach(card => {
+        const status = card.getAttribute('data-status');
+        if (type === 'all' || status === type) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+async function saveChecklist() {
+    if (!currentSubmission) return;
+    const payload = {
+        _token: csrfToken,
+        identity: document.getElementById('deck-chk-identity').checked ? 1 : 0,
+        maps: document.getElementById('deck-chk-maps').checked ? 1 : 0,
+        shm_match: document.getElementById('deck-chk-shm').checked ? 1 : 0,
+        photos_hd: document.getElementById('deck-chk-photos').checked ? 1 : 0,
+        notes: document.getElementById('deck-notes').value
+    };
+    try {
+        const res = await fetch(`/admin/submissions/${encodeURIComponent(currentSubmission.id)}/checklist`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) showToast(data.message);
+    } catch (e) {
+        showToast('Gagal menyimpan checklist');
+    }
+}
+
+async function approveCurrentSubmission() {
+    if (!currentSubmission) return;
+    if (!confirm(`Setujui pengajuan ${currentSubmission.id} dan terbitkan unit aktif ke katalog publik?`)) return;
+    try {
+        const res = await fetch(`/admin/submissions/${encodeURIComponent(currentSubmission.id)}/approve`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({ _token: csrfToken })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast(data.message);
+            setTimeout(() => window.location.reload(), 1200);
+        }
+    } catch (e) {
+        showToast('Gagal memproses persetujuan');
+    }
+}
+
+async function rejectCurrentSubmission() {
+    if (!currentSubmission) return;
+    const reason = prompt('Alasan penolakan pengajuan:', 'Dokumen tidak memenuhi kriteria Kumala');
+    if (reason === null) return;
+    try {
+        const res = await fetch(`/admin/submissions/${encodeURIComponent(currentSubmission.id)}/reject`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({ _token: csrfToken, notes: reason })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast(data.message);
+            setTimeout(() => window.location.reload(), 1200);
+        }
+    } catch (e) {
+        showToast('Gagal memproses penolakan');
+    }
+}
+
+async function revisionCurrentSubmission() {
+    if (!currentSubmission) return;
+    const reason = prompt('Catatan permintaan revisi:', 'Dokumen foto denah arsitektur belum terbaca jelas');
+    if (reason === null) return;
+    try {
+        const res = await fetch(`/admin/submissions/${encodeURIComponent(currentSubmission.id)}/revision`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({ _token: csrfToken, notes: reason })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast(data.message);
+            setTimeout(() => window.location.reload(), 1200);
+        }
+    } catch (e) {
+        showToast('Gagal mengirim permintaan revisi');
+    }
+}
+
+async function editCurrentSubmission() {
+    if (!currentSubmission) return;
+    const newTitle = prompt('Judul Properti:', currentSubmission.title);
+    if (!newTitle) return;
+    const newPrice = prompt('Harga Penawaran (contoh: Rp 2.850.000.000):', currentSubmission.price);
+    if (!newPrice) return;
+    try {
+        const res = await fetch(`/admin/submissions/${encodeURIComponent(currentSubmission.id)}/update`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({ _token: csrfToken, title: newTitle, asking_price: newPrice })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast(data.message);
+            setTimeout(() => window.location.reload(), 1000);
+        }
+    } catch (e) {
+        showToast('Gagal memperbarui data');
+    }
 }
 </script>
 @endsection

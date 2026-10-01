@@ -263,10 +263,10 @@
 
         <div class="admin-sidebar-footer">
             <div class="admin-user-profile">
-                <div class="admin-avatar">AP</div>
+                <div class="admin-avatar">{{ Auth::user()->initials ?? 'AP' }}</div>
                 <div style="flex: 1; min-width: 0;">
-                    <strong style="display: block; font-size: 0.85rem; color: #FFFFFF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Aditya Pratama</strong>
-                    <span style="font-size: 0.72rem; color: #94A3B8;">Super Admin</span>
+                    <strong style="display: block; font-size: 0.85rem; color: #FFFFFF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ Auth::user()->name ?? 'Aditya Pratama' }}</strong>
+                    <span style="font-size: 0.72rem; color: #94A3B8;">{{ Auth::user()->role_label ?? 'Super Admin' }}</span>
                 </div>
             </div>
 
@@ -274,9 +274,12 @@
                 <a href="{{ route('home') }}" target="_blank" style="flex: 1; padding: 6px 10px; background: rgba(255, 255, 255, 0.08); border-radius: 6px; font-size: 0.75rem; color: #CBD5E1; text-align: center; text-decoration: none;">
                     Web Publik
                 </a>
-                <a href="{{ route('admin.logout') }}" style="padding: 6px 10px; background: rgba(225, 29, 72, 0.15); border-radius: 6px; font-size: 0.75rem; color: #FDA4AF; text-decoration: none;">
-                    Keluar
-                </a>
+                <form action="{{ route('admin.logout.post') }}" method="POST" style="margin: 0;">
+                    @csrf
+                    <button type="submit" style="padding: 6px 10px; background: rgba(225, 29, 72, 0.15); border: none; border-radius: 6px; font-size: 0.75rem; color: #FDA4AF; text-decoration: none; cursor: pointer; font-family: inherit; font-weight: inherit;">
+                        Keluar
+                    </button>
+                </form>
             </div>
         </div>
     </aside>
@@ -290,15 +293,31 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                 </button>
 
-                <div class="admin-search-box">
-                    <span class="admin-search-icon">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    </span>
-                    <input type="text" placeholder="Cari ID #KP-xxx, nama klien, atau lokasi...">
-                </div>
+                <form action="{{ route('admin.search') }}" method="GET" style="margin: 0;">
+                    <div class="admin-search-box">
+                        <span class="admin-search-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        </span>
+                        <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari ID #KP-xxx, nama klien, atau lokasi...">
+                    </div>
+                </form>
             </div>
 
             <div style="display: flex; align-items: center; gap: 14px;">
+                @php
+                    $pendingSubmissionsCount = \App\Models\Submission::where('status', 'pending')->count();
+                    $newInquiriesCount = \App\Models\Lead::where('stage', 'Baru')->count();
+                    $totalPendingAction = $pendingSubmissionsCount + $newInquiriesCount;
+                @endphp
+                <a href="{{ route('admin.submissions') }}" style="position: relative; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; background: #F8FAFC; border: 1px solid #E2E8F0; color: #475569; text-decoration: none;" title="Kotak Masuk ({{ $totalPendingAction }} butuh aksi)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    @if($totalPendingAction > 0)
+                        <span style="position: absolute; top: -4px; right: -4px; background: #EF4444; color: #FFF; font-size: 0.65rem; font-weight: 700; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #FFF;">
+                            {{ $totalPendingAction > 99 ? '99+' : $totalPendingAction }}
+                        </span>
+                    @endif
+                </a>
+
                 <div style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #059669; font-weight: 600; background: #E6FBF5; padding: 6px 12px; border-radius: 6px;">
                     <span style="width: 8px; height: 8px; border-radius: 50%; background: #059669; display: inline-block;"></span>
                     <span>SLA Hijau (Normal)</span>

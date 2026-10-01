@@ -43,10 +43,16 @@
                         <label class="form-label-field">2. Kategori Properti</label>
                         <select name="category" class="form-input-field" style="height: 44px; cursor: pointer;">
                             <option value="Semua Tipe Properti">Semua Kategori</option>
-                            <option value="Rumah Mewah">Rumah Mewah</option>
-                            <option value="Villa">Villa Tropis</option>
-                            <option value="Apartemen / Penthouse">Apartemen & Penthouse</option>
-                            <option value="Komersial">Ruko & Komersial</option>
+                            @if(!empty($activeCategories) && count($activeCategories) > 0)
+                                @foreach($activeCategories as $cat)
+                                    <option value="{{ $cat->name }}">{{ $cat->name }}</option>
+                                @endforeach
+                            @else
+                                <option value="Rumah Mewah">Rumah Mewah</option>
+                                <option value="Villa">Villa Tropis</option>
+                                <option value="Apartemen / Penthouse">Apartemen & Penthouse</option>
+                                <option value="Komersial">Ruko & Komersial</option>
+                            @endif
                         </select>
                     </div>
 
@@ -55,10 +61,16 @@
                         <label class="form-label-field">3. Wilayah Strategis</label>
                         <select name="location" class="form-input-field" style="height: 44px; cursor: pointer;">
                             <option value="Semua Wilayah">Semua Wilayah</option>
-                            <option value="Bali">Bali (Uluwatu, Canggu, Nusa Dua)</option>
-                            <option value="Jakarta Selatan">Jakarta Selatan (Kemang, Pondok Indah)</option>
-                            <option value="BSD City">BSD City Tangerang</option>
-                            <option value="Surabaya">Surabaya Barat</option>
+                            @if(!empty($activeRegions) && count($activeRegions) > 0)
+                                @foreach($activeRegions as $reg)
+                                    <option value="{{ $reg->city ?: $reg->name }}">{{ $reg->name }}</option>
+                                @endforeach
+                            @else
+                                <option value="Bali">Bali (Uluwatu, Canggu, Nusa Dua)</option>
+                                <option value="Jakarta Selatan">Jakarta Selatan (Kemang, Pondok Indah)</option>
+                                <option value="BSD City">BSD City Tangerang</option>
+                                <option value="Surabaya">Surabaya Barat</option>
+                            @endif
                         </select>
                     </div>
 

@@ -20,7 +20,7 @@
             </p>
         </div>
 
-        <button type="button" class="btn-primary" style="padding: 10px 18px; font-size: 0.85rem; border-radius: 8px;" onclick="showToast('Membuka formulir input lead manual...')">
+        <button type="button" class="btn-primary" style="padding: 10px 18px; font-size: 0.85rem; border-radius: 8px;" onclick="openManualLeadPrompt()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             <span>+ Input Lead Manual</span>
         </button>
@@ -56,7 +56,7 @@
         <!-- Left: Inquiry Cards Feed -->
         <div style="display: flex; flex-direction: column; gap: 16px;">
             @foreach($inquiries as $inq)
-            <div style="background: #FFFFFF; border: 1px solid var(--border-color); border-radius: 12px; padding: 22px; box-shadow: var(--shadow-sm);">
+            <div class="inquiry-card" data-stage="{{ $inq['stage'] }}" style="background: #FFFFFF; border: 1px solid var(--border-color); border-radius: 12px; padding: 22px; box-shadow: var(--shadow-sm);">
                 
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
                     <div>
@@ -98,7 +98,7 @@
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                             <span>Hubungi Klien via WA</span>
                         </a>
-                        <button type="button" class="btn-outline-navy" style="padding: 7px 14px; font-size: 0.8rem; border-radius: 6px;" onclick="showToast('Membuka kalender survei lokasi...')">
+                        <button type="button" class="btn-outline-navy" style="padding: 7px 14px; font-size: 0.8rem; border-radius: 6px;" onclick="scheduleSurveyPrompt('{{ $inq['id'] }}', '{{ $inq['client_name'] }}', '{{ $inq['property_id'] }}', '{{ $inq['property_title'] }}')">
                             Jadwalkan Survei
                         </button>
                     </div>
@@ -146,30 +146,30 @@
                     <div>
                         <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
                             <span style="color: var(--text-muted);">Inquiry Masuk ke Respon (&lt; 15 mnt)</span>
-                            <strong style="color: var(--primary-navy);">96% (38/40)</strong>
+                            <strong style="color: var(--primary-navy);">{{ $funnelMetrics['resp_pct'] ?? 96 }}% ({{ $funnelMetrics['resp_ratio'] ?? '38/40' }})</strong>
                         </div>
                         <div style="height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden;">
-                            <div style="width: 96%; height: 100%; background: #059669; border-radius: 4px;"></div>
+                            <div style="width: {{ $funnelMetrics['resp_pct'] ?? 96 }}%; height: 100%; background: #059669; border-radius: 4px;"></div>
                         </div>
                     </div>
 
                     <div>
                         <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
                             <span style="color: var(--text-muted);">Respon ke Jadwal Survei Fisik</span>
-                            <strong style="color: var(--primary-navy);">48% (18/38)</strong>
+                            <strong style="color: var(--primary-navy);">{{ $funnelMetrics['survey_pct'] ?? 48 }}% ({{ $funnelMetrics['survey_ratio'] ?? '18/38' }})</strong>
                         </div>
                         <div style="height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden;">
-                            <div style="width: 48%; height: 100%; background: var(--accent-teal); border-radius: 4px;"></div>
+                            <div style="width: {{ $funnelMetrics['survey_pct'] ?? 48 }}%; height: 100%; background: var(--accent-teal); border-radius: 4px;"></div>
                         </div>
                     </div>
 
                     <div>
                         <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
                             <span style="color: var(--text-muted);">Survei Fisik ke Closing Transaksi</span>
-                            <strong style="color: var(--primary-navy);">28% (5/18)</strong>
+                            <strong style="color: var(--primary-navy);">{{ $funnelMetrics['closing_pct'] ?? 28 }}% ({{ $funnelMetrics['closing_ratio'] ?? '5/18' }})</strong>
                         </div>
                         <div style="height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden;">
-                            <div style="width: 28%; height: 100%; background: var(--primary-navy); border-radius: 4px;"></div>
+                            <div style="width: {{ $funnelMetrics['closing_pct'] ?? 28 }}%; height: 100%; background: var(--primary-navy); border-radius: 4px;"></div>
                         </div>
                     </div>
                 </div>
@@ -188,10 +188,72 @@
 
 @section('scripts')
 <script>
+const csrfToken = '{{ csrf_token() }}';
+
 function filterInquiryStage(stage, btn) {
     document.querySelectorAll('.queue-tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    showToast(`Memfilter pipeline tahap: ${stage}`);
+    const cards = document.querySelectorAll('.inquiry-card');
+    cards.forEach(card => {
+        const cardStage = card.getAttribute('data-stage').toLowerCase();
+        if (stage === 'all') {
+            card.style.display = 'block';
+        } else if (stage === 'new' && (cardStage.includes('baru') || cardStage === 'new')) {
+            card.style.display = 'block';
+        } else if (stage === 'follow_up' && (cardStage.includes('follow') || cardStage.includes('proses'))) {
+            card.style.display = 'block';
+        } else if (stage === 'survey' && cardStage.includes('survei')) {
+            card.style.display = 'block';
+        } else if (stage === 'closing' && cardStage.includes('closing')) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+async function scheduleSurveyPrompt(inqId, clientName, propId, propTitle) {
+    const sDate = prompt(`Tanggal Survei untuk ${clientName} (YYYY-MM-DD):`, '{{ date('Y-m-d', strtotime('+1 day')) }}');
+    if (!sDate) return;
+    const sTime = prompt('Waktu Survei (contoh: 10:30 WIB):', '10:30 WIB');
+    if (!sTime) return;
+    try {
+        const res = await fetch(`/admin/inquiry/${encodeURIComponent(inqId)}/survey`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({ _token: csrfToken, survey_date: sDate, survey_time: sTime, property_id: propId, property_title: propTitle, client_name: clientName })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast(data.message);
+            setTimeout(() => window.location.reload(), 1200);
+        }
+    } catch (e) {
+        showToast('Gagal menjadwalkan survei');
+    }
+}
+
+async function openManualLeadPrompt() {
+    const name = prompt('Nama Klien HNWIs:');
+    if (!name) return;
+    const phone = prompt('Nomor WhatsApp Klien:');
+    if (!phone) return;
+    const prop = prompt('Unit Properti yang Diminati:', 'Villa Cliffside Horizon Uluwatu');
+    if (!prop) return;
+    try {
+        const res = await fetch('/admin/inquiry/manual', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({ _token: csrfToken, client_name: name, client_phone: phone, property_title: prop })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast(data.message);
+            setTimeout(() => window.location.reload(), 1200);
+        }
+    } catch (e) {
+        showToast('Gagal menambahkan lead baru');
+    }
 }
 </script>
 @endsection

@@ -21,10 +21,10 @@
         </div>
 
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <button type="button" class="btn-outline-white" style="padding: 10px 18px; font-size: 0.85rem; border-radius: 8px; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2);" onclick="showToast('Mengunduh Laporan Operasional Harian (.CSV)...')">
+            <a href="{{ route('admin.export.daily') }}" class="btn-outline-white" style="padding: 10px 18px; font-size: 0.85rem; border-radius: 8px; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
                 <span>Ekspor Laporan Harian</span>
-            </button>
+            </a>
             <a href="{{ route('titip-properti') }}" target="_blank" class="btn-teal" style="padding: 10px 18px; font-size: 0.85rem; border-radius: 8px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 <span>+ Input Properti Baru</span>
@@ -107,10 +107,10 @@
 
             <!-- Inbox Tabs -->
             <div style="display: flex; background: #F1F5F9; border-radius: 8px; padding: 4px; gap: 4px;">
-                <button type="button" class="inbox-filter-tab active" data-type="all" onclick="filterInbox('all', this)">Semua (4)</button>
-                <button type="button" class="inbox-filter-tab" data-type="listing" onclick="filterInbox('listing', this)">Listing (2)</button>
-                <button type="button" class="inbox-filter-tab" data-type="inquiry" onclick="filterInbox('inquiry', this)">Inquiry (1)</button>
-                <button type="button" class="inbox-filter-tab" data-type="closing" onclick="filterInbox('closing', this)">Closing (1)</button>
+                <button type="button" class="inbox-filter-tab active" data-type="all" onclick="filterInbox('all', this)">Semua ({{ count($priorityActions) }})</button>
+                <button type="button" class="inbox-filter-tab" data-type="listing" onclick="filterInbox('listing', this)">Listing ({{ collect($priorityActions)->where('type', 'listing')->count() }})</button>
+                <button type="button" class="inbox-filter-tab" data-type="inquiry" onclick="filterInbox('inquiry', this)">Inquiry ({{ collect($priorityActions)->where('type', 'inquiry')->count() }})</button>
+                <button type="button" class="inbox-filter-tab" data-type="closing" onclick="filterInbox('closing', this)">Closing ({{ collect($priorityActions)->where('type', 'closing')->count() }})</button>
             </div>
         </div>
 
@@ -136,12 +136,12 @@
                 </div>
 
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                    <button type="button" class="btn-outline-navy" style="padding: 8px 14px; font-size: 0.82rem; border-radius: 6px;" onclick="showToast('Aksi {{ $item['btn_action_1'] }} diproses...')">
+                    <a href="{{ $item['url_1'] ?? '#' }}" target="_blank" class="btn-outline-navy" style="text-decoration: none; display: inline-flex; align-items: center; padding: 8px 14px; font-size: 0.82rem; border-radius: 6px;">
                         {{ $item['btn_action_1'] }}
-                    </button>
-                    <button type="button" class="btn-primary" style="padding: 8px 14px; font-size: 0.82rem; border-radius: 6px;" onclick="showToast('Membuka {{ $item['btn_action_2'] }}...')">
+                    </a>
+                    <a href="{{ $item['url_2'] ?? '#' }}" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; padding: 8px 14px; font-size: 0.82rem; border-radius: 6px;">
                         {{ $item['btn_action_2'] }}
-                    </button>
+                    </a>
                 </div>
             </div>
             @endforeach

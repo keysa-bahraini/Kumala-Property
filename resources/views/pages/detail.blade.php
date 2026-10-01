@@ -304,6 +304,7 @@
                 <form id="inquiry-form" onsubmit="handleInquirySubmit(event)">
                     @csrf
                     <input type="hidden" name="property_id" value="{{ $property['id'] }}">
+                    <input type="hidden" name="inquiry_type" id="inquiry-type-input" value="beli">
 
                     <div style="margin-bottom: 14px;">
                         <label class="form-label-field">Nama Lengkap *</label>
@@ -563,30 +564,61 @@ function setInquiryTab(type) {
     const tabBeli = document.getElementById('tab-beli');
     const tabSewa = document.getElementById('tab-sewa');
     const btnSubmit = document.getElementById('btn-submit-inquiry');
+    const typeInput = document.getElementById('inquiry-type-input');
 
     if (type === 'beli') {
         tabBeli.classList.add('active');
         tabSewa.classList.remove('active');
+        if (typeInput) typeInput.value = 'beli';
         btnSubmit.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><span>Kirim Pengajuan Minat Beli</span>`;
     } else {
         tabSewa.classList.add('active');
         tabBeli.classList.remove('active');
+        if (typeInput) typeInput.value = 'sewa';
         btnSubmit.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><span>Kirim Pengajuan Minat Sewa</span>`;
     }
 }
 
 function handleInquirySubmit(e) {
     e.preventDefault();
+    const form = e.target;
     const btn = document.getElementById('btn-submit-inquiry');
     btn.disabled = true;
     btn.innerHTML = '<span>Mengirim permohonan...</span>';
 
-    setTimeout(() => {
-        showToast('Pengajuan minat & permohonan survei Anda berhasil dikirim! Private Client Concierge kami akan menghubungi Anda segera (SLA < 15 menit).');
-        document.getElementById('inquiry-form').reset();
+    const formData = new FormData(form);
+
+    fetch('{{ route('inquiry.submit') }}', {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        body: formData
+    })
+    .then(async response => {
+        const data = await response.json();
+        if (!response.ok) {
+            let errorMsg = data.message || 'Terjadi kesalahan saat mengirim pengajuan.';
+            if (data.errors) {
+                const firstErr = Object.values(data.errors)[0];
+                if (firstErr && firstErr[0]) errorMsg = firstErr[0];
+            }
+            throw new Error(errorMsg);
+        }
+        return data;
+    })
+    .then(data => {
+        showToast(data.message || 'Pengajuan minat & permohonan survei Anda berhasil dikirim!');
+        form.reset();
         btn.disabled = false;
         btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><span>Pengajuan Berhasil Terkirim ✓</span>`;
-    }, 800);
+    })
+    .catch(err => {
+        showToast(err.message || 'Gagal mengirim pengajuan.');
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><span>Kirim Pengajuan</span>`;
+    });
 }
 </script>
 @endsection

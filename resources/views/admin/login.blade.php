@@ -223,7 +223,7 @@
         <div class="demo-box">
             <div>
                 <strong style="display: block; color: var(--primary-navy);">Kredensial Demo Admin</strong>
-                <span>admin@kumalaproperty.com • kata sandi bebas</span>
+                <span>admin@kumalaproperty.com • kata sandi: @adminkumala</span>
             </div>
             <button type="button" class="btn-quick-fill" onclick="quickFillCredentials()">Isi Cepat</button>
         </div>
@@ -245,13 +245,13 @@
             <div class="input-group">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                     <label for="admin-password" style="margin-bottom: 0;">Kata Sandi Resmi *</label>
-                    <a href="javascript:void(0)" onclick="alert('Silakan hubungi IT Security Hotline Kumala Property di ext. 104 atau gunakan password demo apapun.')" style="font-size: 0.75rem; color: var(--accent-teal-dark); font-weight: 600;">Bantuan Akses?</a>
+                    <a href="javascript:void(0)" onclick="alert('Silakan hubungi IT Security Hotline Kumala Property di ext. 104 atau gunakan password demo.')" style="font-size: 0.75rem; color: var(--accent-teal-dark); font-weight: 600;">Bantuan Akses?</a>
                 </div>
                 <div class="input-wrapper">
                     <span class="input-icon">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                     </span>
-                    <input type="password" id="admin-password" name="password" value="kumala2026" placeholder="Masukkan kata sandi..." required>
+                    <input type="password" id="admin-password" name="password" value="@adminkumala" placeholder="Masukkan kata sandi..." required>
                     <button type="button" class="toggle-password" onclick="togglePasswordVisibility()" title="Tampilkan / Sembunyikan Kata Sandi">
                         <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                     </button>
@@ -303,7 +303,7 @@
 
         function quickFillCredentials() {
             document.getElementById('admin-email').value = 'admin@kumalaproperty.com';
-            document.getElementById('admin-password').value = 'kumala2026';
+            document.getElementById('admin-password').value = '@adminkumala';
         }
     </script>
 </body>

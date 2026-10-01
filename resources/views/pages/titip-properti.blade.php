@@ -141,11 +141,17 @@
                     <div>
                         <label class="form-label-field">Provinsi & Kota / Kabupaten *</label>
                         <select name="city_region" class="form-input-field" required>
-                            <option value="Bali - Badung">Bali - Badung (Canggu, Seminyak, Kuta)</option>
-                            <option value="Jakarta Selatan">DKI Jakarta - Jakarta Selatan</option>
-                            <option value="Tangerang Selatan">Banten - Tangerang Selatan (BSD City)</option>
-                            <option value="Surabaya">Jawa Timur - Surabaya Barat</option>
-                            <option value="Bandung">Jawa Barat - Bandung Utara</option>
+                            @if(!empty($activeRegions) && count($activeRegions) > 0)
+                                @foreach($activeRegions as $reg)
+                                    <option value="{{ $reg->city ?: $reg->name }}">{{ $reg->name }}</option>
+                                @endforeach
+                            @else
+                                <option value="Bali - Badung">Bali - Badung (Canggu, Seminyak, Kuta)</option>
+                                <option value="Jakarta Selatan">DKI Jakarta - Jakarta Selatan</option>
+                                <option value="Tangerang Selatan">Banten - Tangerang Selatan (BSD City)</option>
+                                <option value="Surabaya">Jawa Timur - Surabaya Barat</option>
+                                <option value="Bandung">Jawa Barat - Bandung Utara</option>
+                            @endif
                         </select>
                     </div>
                     <div>
@@ -312,7 +318,7 @@
 
                 <!-- Drag & Drop Uploader Box -->
                 <div class="upload-dropzone" onclick="document.getElementById('file-upload-input').click()">
-                    <input type="file" id="file-upload-input" multiple accept="image/png, image/jpeg, image/webp" style="display: none;" onchange="handleFileSelect(this)">
+                    <input type="file" id="file-upload-input" name="photos[]" multiple accept="image/png, image/jpeg, image/webp" style="display: none;" onchange="handleFileSelect(this)">
                     <div style="width: 52px; height: 52px; border-radius: 50%; background: #E6FBF5; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #00B488;">
                         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
                     </div>
@@ -719,16 +725,44 @@ function handleFileSelect(input) {
 
 function handleTitipSubmit(e) {
     e.preventDefault();
+    const form = e.target;
     const btn = document.getElementById('btn-submit-titip');
     btn.disabled = true;
     btn.innerHTML = '<span>Memverifikasi & Mengirim Data...</span>';
 
-    setTimeout(() => {
-        showToast('Pengajuan konsinyasi properti Anda berhasil dikirim! Tim kurator Kumala Property akan menghubungi Anda dalam waktu < 4 jam.');
-        document.getElementById('form-titip-properti').reset();
+    const formData = new FormData(form);
+
+    fetch('{{ route('titip-properti.submit') }}', {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        body: formData
+    })
+    .then(async response => {
+        const data = await response.json();
+        if (!response.ok) {
+            let errorMsg = data.message || 'Terjadi kesalahan validasi data.';
+            if (data.errors) {
+                const firstErr = Object.values(data.errors)[0];
+                if (firstErr && firstErr[0]) errorMsg = firstErr[0];
+            }
+            throw new Error(errorMsg);
+        }
+        return data;
+    })
+    .then(data => {
+        showToast(data.message || 'Pengajuan konsinyasi properti Anda berhasil dikirim!');
+        form.reset();
         btn.disabled = false;
         btn.innerHTML = `<span>Pengajuan Berhasil Dikirim ✓</span>`;
-    }, 1000);
+    })
+    .catch(err => {
+        showToast(err.message || 'Gagal mengirim pengajuan. Silakan periksa formulir.');
+        btn.disabled = false;
+        btn.innerHTML = `<span>Kirim Data Properti untuk Review</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>`;
+    });
 }
 </script>
 @endsection

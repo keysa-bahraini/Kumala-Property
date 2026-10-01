@@ -2,12 +2,104 @@
 
 namespace App\Services;
 
+use App\Models\Property;
+
 class PropertyDataService
 {
     /**
-     * Get all properties
+     * Transform Eloquent Property model to exact array structure
+     */
+    public static function transform(Property $p): array
+    {
+        $images = [];
+        if ($p->relationLoaded('photos') && $p->photos->isNotEmpty()) {
+            $images = $p->photos->pluck('photo_url')->toArray();
+        } elseif ($p->photos()->exists()) {
+            $images = $p->photos()->pluck('photo_url')->toArray();
+        }
+        if (empty($images) && $p->image_main) {
+            $images = [$p->image_main];
+        }
+
+        $features = [];
+        if ($p->relationLoaded('features') && $p->features->isNotEmpty()) {
+            $features = $p->features->map(fn($f) => [
+                'title' => $f->title,
+                'desc' => $f->desc,
+                'icon' => $f->icon ?: 'star',
+            ])->toArray();
+        } elseif ($p->features()->exists()) {
+            $features = $p->features()->get()->map(fn($f) => [
+                'title' => $f->title,
+                'desc' => $f->desc,
+                'icon' => $f->icon ?: 'star',
+            ])->toArray();
+        }
+
+        return [
+            'id' => $p->id,
+            'slug' => $p->slug,
+            'title' => $p->title,
+            'category' => $p->category,
+            'transaction_type' => $p->transaction_type,
+            'price' => (int) $p->price,
+            'price_formatted' => $p->price_formatted ?: 'Rp ' . number_format($p->price, 0, ',', '.'),
+            'price_short' => $p->price_short ?: ('Rp ' . ($p->price >= 1000000000 ? round($p->price / 1000000000, 1) . ' Miliar' : round($p->price / 1000000) . ' Jt')),
+            'price_label' => $p->price_label ?: ($p->transaction_type === 'Sewa' ? 'Biaya Sewa' : 'Harga Penawaran'),
+            'price_notes' => $p->price_notes,
+            'location_city' => $p->location_city,
+            'location_area' => $p->location_area,
+            'location_address' => $p->location_address,
+            'legal_status' => $p->legal_status,
+            'verified' => (bool) $p->verified,
+            'featured' => (bool) $p->featured,
+            'highlight_badge' => $p->highlight_badge,
+            'land_size' => (int) $p->land_size,
+            'building_size' => (int) $p->building_size,
+            'floors' => (int) $p->floors,
+            'bedrooms' => (int) $p->bedrooms,
+            'bathrooms' => (int) $p->bathrooms,
+            'orientation' => $p->orientation,
+            'electricity' => $p->electricity,
+            'water_source' => $p->water_source,
+            'garage' => $p->garage,
+            'year_built' => $p->year_built,
+            'furnishing' => $p->furnishing,
+            'specs_tags' => is_array($p->specs_tags) ? $p->specs_tags : (json_decode($p->specs_tags ?? '[]', true) ?: []),
+            'image_main' => $p->image_main,
+            'images' => $images,
+            'description' => $p->description,
+            'features' => $features,
+            'distance_points' => is_array($p->distance_points) ? $p->distance_points : (json_decode($p->distance_points ?? '[]', true) ?: []),
+            'status' => $p->status,
+        ];
+    }
+
+    /**
+     * Get all active properties from database
      */
     public static function getAll(): array
+    {
+        try {
+            $properties = Property::with(['photos', 'features'])
+                ->where('status', 'ACTIVE')
+                ->orderBy('id', 'asc')
+                ->get();
+
+            if ($properties->isEmpty()) {
+                return self::getStaticProperties();
+            }
+
+            return $properties->map(fn($item) => self::transform($item))->toArray();
+        } catch (\Throwable $e) {
+            return self::getStaticProperties();
+        }
+    }
+
+    /**
+     * Static initial dataset fallback
+     */
+    public static function getStaticProperties(): array
     {
         return [
             [
@@ -411,25 +503,94 @@ class PropertyDataService
     }
 
     /**
-     * Find property by slug
+     * Find property by slug from database (status ACTIVE)
      */
     public static function findBySlug(string $slug): ?array
     {
-        $all = self::getAll();
-        foreach ($all as $property) {
-            if ($property['slug'] === $slug) {
-                return $property;
+        try {
+            $p = Property::with(['photos', 'features'])
+                ->where('status', 'ACTIVE')
+                ->where('slug', $slug)
+                ->first();
+
+            if ($p) {
+                return self::transform($p);
             }
+
+            // Fallback to first active if not found (matching legacy behavior)
+            $first = Property::with(['photos', 'features'])
+                ->where('status', 'ACTIVE')
+                ->first();
+
+            if ($first) {
+                return self::transform($first);
+            }
+
+            return self::getStaticProperties()[0] ?? null;
+        } catch (\Throwable $e) {
+            $all = self::getStaticProperties();
+            foreach ($all as $property) {
+                if ($property['slug'] === $slug) {
+                    return $property;
+                }
+            }
+            return $all[0] ?? null;
         }
-        return $all[0] ?? null;
     }
 
     /**
-     * Filter properties
+     * Filter properties directly via database query
      */
     public static function filter(?string $type = null, ?string $category = null, ?string $location = null, ?string $priceRange = null): array
     {
-        $items = self::getAll();
+        try {
+            $query = Property::with(['photos', 'features'])->where('status', 'ACTIVE');
+
+            if ($type && $type !== 'Semua') {
+                $query->whereRaw('LOWER(transaction_type) = ?', [strtolower($type)]);
+            }
+
+            if ($category && $category !== 'Semua Tipe Properti' && $category !== 'Semua') {
+                $query->where('category', 'like', "%{$category}%");
+            }
+
+            if ($location && $location !== 'Semua Wilayah' && $location !== 'Semua') {
+                $query->where(function ($q) use ($location) {
+                    $q->where('location_city', 'like', "%{$location}%")
+                      ->orWhere('location_area', 'like', "%{$location}%");
+                });
+            }
+
+            if ($priceRange && $priceRange !== 'Semua Rentang Harga') {
+                if ($priceRange === '< 5 Miliar') {
+                    $query->where('price', '<', 5000000000);
+                } elseif ($priceRange === '5 - 15 Miliar') {
+                    $query->whereBetween('price', [5000000000, 15000000000]);
+                } elseif ($priceRange === '15 - 30 Miliar') {
+                    $query->whereBetween('price', [15000000000, 30000000000]);
+                } elseif ($priceRange === '> 30 Miliar') {
+                    $query->where('price', '>', 30000000000);
+                }
+            }
+
+            $results = $query->orderBy('id', 'asc')->get();
+
+            if ($results->isEmpty() && Property::count() === 0) {
+                return self::filterStatic($type, $category, $location, $priceRange);
+            }
+
+            return $results->map(fn($item) => self::transform($item))->toArray();
+        } catch (\Throwable $e) {
+            return self::filterStatic($type, $category, $location, $priceRange);
+        }
+    }
+
+    /**
+     * Fallback in-memory filter on static properties array
+     */
+    public static function filterStatic(?string $type = null, ?string $category = null, ?string $location = null, ?string $priceRange = null): array
+    {
+        $items = self::getStaticProperties();
 
         return array_values(array_filter($items, function ($item) use ($type, $category, $location, $priceRange) {
             if ($type && $type !== 'Semua') {
@@ -458,3 +619,4 @@ class PropertyDataService
         }));
     }
 }
+
