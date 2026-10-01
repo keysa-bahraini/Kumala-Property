@@ -1,331 +1,503 @@
 @extends('layouts.admin')
 
-@section('title', 'Manajemen Listing Masuk (Gatekeeper) - Kumala Admin')
+@section('title', 'Manajemen Listing Masuk (Titip Properti) - Kumala Admin')
 
 @section('content')
-<div>
+<div style="display: flex; flex-direction: column; gap: 20px;">
 
-    <!-- Header Section -->
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
+    <!-- Top Header -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
         <div>
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                <span class="badge-tag badge-tag-teal" style="font-size: 0.72rem;">SLA GATEKEEPER VERIFICATION</span>
-                <span style="font-size: 0.78rem; color: var(--text-muted);">Sistem Kurasi Konsinyasi & Audit Legalitas BPN</span>
+                <span style="background: #E0F7FA; color: #00838F; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
+                    GATEKEEPER LISTING
+                </span>
+                <span style="font-size: 0.76rem; color: #64748B;">SLA Tinjau: &lt; 4 Jam</span>
             </div>
-            <h1 style="font-size: 1.65rem; color: var(--primary-navy); margin-bottom: 4px; font-weight: 800;">
-                Manajemen Listing Masuk
+            <h1 style="font-size: 1.75rem; color: #0E1E2E; margin: 0 0 4px 0; font-weight: 800; letter-spacing: -0.01em;">
+                Manajemen Listing Masuk (Titip Properti)
             </h1>
-            <p style="font-size: 0.88rem; color: var(--text-muted);">
-                Verifikasi keabsahan dokumen, kualitas fotografi, dan penaksiran valuasi objektif dengan target SLA &lt; 4 jam.
+            <p style="font-size: 0.85rem; color: #64748B; margin: 0;">
+                Verifikasi kelengkapan berkas, data fisik, dan legalitas pengajuan pemilik unit sebelum diterbitkan ke katalog publik.
             </p>
         </div>
 
-        <!-- SLA Status Pill -->
-        <div style="background: #E6FBF5; border: 1px solid rgba(0, 180, 136, 0.3); border-radius: 8px; padding: 10px 16px; display: flex; align-items: center; gap: 10px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <!-- Priority Queue Badge Card -->
+        <div style="background: #EAF4F9; border: 1px solid #D6E8F2; border-radius: 10px; padding: 10px 18px; display: flex; align-items: center; gap: 14px;">
             <div>
-                <span style="display: block; font-size: 0.72rem; color: #065F46; font-weight: 700; text-transform: uppercase;">Rata-rata Respon Verifikasi</span>
-                <strong style="color: #059669; font-size: 0.95rem;">2 Jam 15 Menit (SLA Hijau Aman)</strong>
+                <span style="display: block; font-size: 0.68rem; font-weight: 800; color: #64748B; letter-spacing: 0.6px; text-transform: uppercase;">ANTRIAN PRIORITAS</span>
+                <strong style="font-size: 1.15rem; color: #0E1E2E;" id="pending-count-text">{{ $queueCounts['pending'] ?? 0 }} Menunggu</strong>
+            </div>
+            <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(0, 131, 143, 0.12); color: #00838F; display: flex; align-items: center; justify-content: center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="m9 14 2 2 4-4"/></svg>
             </div>
         </div>
     </div>
 
-    <!-- Queue Counters Bar (Tabs) -->
-    <div style="display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap;">
-        <button type="button" class="queue-tab-btn" onclick="filterQueue('all', this)">
-            <span>Semua Pengajuan</span>
-            <span class="queue-count">{{ $queueCounts['all'] }}</span>
+    <!-- Status Tabs -->
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button type="button" class="sub-tab-btn active" onclick="filterSubmissions('all', this)">
+            Semua Pengajuan <span style="background: rgba(255,255,255,0.2); padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['all'] ?? count($submissions) }}</span>
         </button>
-        <button type="button" class="queue-tab-btn active" onclick="filterQueue('pending', this)">
-            <span>Menunggu Review</span>
-            <span class="queue-count" style="background: #D97706; color: #FFFFFF;">{{ $queueCounts['pending'] }}</span>
+        <button type="button" class="sub-tab-btn" onclick="filterSubmissions('pending', this)">
+            <span style="width: 6px; height: 6px; border-radius: 50%; background: #D97706; display: inline-block; margin-right: 6px;"></span>
+            Menunggu Review <span style="background: #FEF3C7; color: #D97706; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['pending'] ?? 0 }}</span>
         </button>
-        <button type="button" class="queue-tab-btn" onclick="filterQueue('revision', this)">
-            <span>Perlu Revisi Pemilik</span>
-            <span class="queue-count">{{ $queueCounts['revision'] }}</span>
+        <button type="button" class="sub-tab-btn" onclick="filterSubmissions('revision', this)">
+            Perlu Revisi Pemilik <span style="background: #F1F5F9; color: #64748B; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['revision'] ?? 0 }}</span>
         </button>
-        <button type="button" class="queue-tab-btn" onclick="filterQueue('approved', this)">
-            <span>Disetujui & Diterbitkan</span>
-            <span class="queue-count" style="background: #059669; color: #FFFFFF;">{{ $queueCounts['approved'] }}</span>
+        <button type="button" class="sub-tab-btn" onclick="filterSubmissions('approved', this)">
+            Disetujui &amp; Diterbitkan <span style="background: #E6FBF5; color: #059669; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['approved'] ?? 0 }}</span>
         </button>
-        <button type="button" class="queue-tab-btn" onclick="filterQueue('rejected', this)">
-            <span>Ditolak</span>
-            <span class="queue-count">{{ $queueCounts['rejected'] }}</span>
+        <button type="button" class="sub-tab-btn" onclick="filterSubmissions('rejected', this)">
+            Ditolak <span style="background: #F1F5F9; color: #64748B; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['rejected'] ?? 0 }}</span>
         </button>
     </div>
 
-    <!-- Split-Screen Gatekeeper Workspace (2 Columns) -->
-    <div style="display: grid; grid-template-columns: 360px 1fr; gap: 24px; align-items: flex-start;">
-        
-        <!-- Left Column: Queue List -->
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-            <span style="font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">Antrean Berkas Masuk (3)</span>
+    <!-- Antrian Horizontal Cards Row -->
+    <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.74rem;">
+            <div style="font-weight: 800; color: #64748B; letter-spacing: 0.6px; text-transform: uppercase;">
+                ANTRIAN VERIFIKASI MASUK <span style="font-weight: 500; color: #94A3B8; text-transform: none; margin-left: 6px;">{{ count($submissions) }} Berkas Tersimpan</span>
+            </div>
+            <span style="color: #64748B; font-size: 0.72rem;">Klik kartu untuk meninjau detail berkas di bawah</span>
+        </div>
 
-            @foreach($submissions as $sub)
-            <div class="submission-queue-card {{ $loop->first ? 'active' : '' }}" onclick="selectSubmission(this, '{{ $sub['id'] }}')">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
-                    <span class="badge-tag badge-tag-navy" style="font-size: 0.7rem; padding: 2px 6px;">{{ $sub['id'] }}</span>
-                    <span style="font-size: 0.72rem; color: #D97706; font-weight: 700; background: #FEF3C7; padding: 2px 6px; border-radius: 4px;">{{ $sub['priority'] }}</span>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px;" id="queue-grid">
+            @forelse($submissions as $index => $sub)
+            @php
+                $statusPillClass = 'queue-pill-yellow';
+                $statusText = 'Review';
+                if (($sub['status'] ?? '') === 'approved') {
+                    $statusPillClass = 'queue-pill-green';
+                    $statusText = 'Disetujui';
+                } elseif (($sub['status'] ?? '') === 'rejected') {
+                    $statusPillClass = 'queue-pill-gray';
+                    $statusText = 'Ditolak';
+                } elseif (($sub['status'] ?? '') === 'revision') {
+                    $statusPillClass = 'queue-pill-red';
+                    $statusText = 'Revisi';
+                }
+            @endphp
+            <div class="queue-card {{ $index === 0 ? 'active' : '' }}" 
+                 data-status="{{ $sub['status'] ?? 'pending' }}" 
+                 data-sub-id="{{ $sub['id'] }}"
+                 onclick="selectSubmission({{ json_encode($sub) }}, this)">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <strong style="color: #0E1E2E; font-size: 0.78rem;">{{ $sub['id'] }}</strong>
+                    <span class="{{ $statusPillClass }}">&bull; {{ $statusText }}</span>
                 </div>
-
-                <strong style="display: block; font-size: 0.95rem; color: var(--primary-navy); margin-bottom: 4px; line-height: 1.3;">
+                <h4 style="font-size: 0.88rem; font-weight: 800; color: #0E1E2E; margin: 0 0 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     {{ $sub['title'] }}
-                </strong>
-
-                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
-                    <span>Oleh: <strong>{{ $sub['owner'] }}</strong></span> • <span>{{ $sub['location'] }}</span>
+                </h4>
+                <div style="font-size: 0.74rem; color: #64748B; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    {{ $sub['location'] }}
                 </div>
-
-                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid var(--border-light); font-size: 0.78rem;">
-                    <strong style="color: var(--primary-navy);">{{ $sub['price'] }}</strong>
-                    <span style="color: #94A3B8;">{{ $sub['time_ago'] }}</span>
+                <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: #64748B; padding-top: 6px; border-top: 1px solid #F1F5F9;">
+                    <span style="font-weight: 600; color: #334155;">{{ $sub['owner'] }}</span>
+                    <strong style="color: #0E1E2E;">{{ $sub['time_ago'] ?? 'Baru saja' }}</strong>
                 </div>
             </div>
-            @endforeach
+            @empty
+            <div style="grid-column: 1 / -1; padding: 24px; text-align: center; background: #fff; border-radius: 8px; border: 1px dashed #CBD5E1; color: #64748B; font-size: 0.85rem;">
+                Belum ada pengajuan titip properti yang masuk. Formulir di halaman publik dapat digunakan untuk menguji integrasi.
+            </div>
+            @endforelse
+        </div>
+    </div>
+
+    <!-- Main Inspection Deck -->
+    @php
+        $initSub = $selectedSubmission ?? ($submissions[0] ?? null);
+    @endphp
+    @if($initSub)
+    <div id="deck-wrapper" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 24px 28px; box-shadow: 0 1px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 20px;">
+        
+        <!-- Deck Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; padding-bottom: 16px; border-bottom: 1px solid #F1F5F9;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <span id="deck-id" style="background: #0E1E2E; color: #FFFFFF; font-size: 0.72rem; font-weight: 800; padding: 2px 7px; border-radius: 4px;">{{ $initSub['id'] }}</span>
+                    <span id="deck-trx-type" style="background: #E0F2FE; color: #0284C7; font-size: 0.72rem; font-weight: 800; padding: 2px 7px; border-radius: 4px; text-transform: uppercase;">
+                        {{ $initSub['category'] ?? 'RUMAH TINGGAL' }} ({{ strtoupper($initSub['trx_type'] ?? 'JUAL') }})
+                    </span>
+                    <span id="deck-time" style="font-size: 0.76rem; color: #64748B;">&bull; Terdaftar: {{ $initSub['time_ago'] ?? 'Baru saja' }}</span>
+                </div>
+                <h2 id="deck-title" style="font-size: 1.45rem; font-weight: 800; color: #0E1E2E; margin: 0 0 4px 0;">
+                    {{ $initSub['title'] }}
+                </h2>
+                <div id="deck-location" style="font-size: 0.8rem; color: #64748B;">
+                    {{ $initSub['address'] ?? $initSub['location'] }}
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <span id="deck-priority-pill" style="background: #E0F7FA; color: #00838F; font-size: 0.74rem; font-weight: 800; padding: 4px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                    <span>{{ $initSub['priority'] ?? 'P1 - Hot Asset' }}</span>
+                </span>
+                <span id="deck-status-pill" style="background: #FEF3C7; color: #D97706; font-size: 0.74rem; font-weight: 800; padding: 4px 10px; border-radius: 6px;">
+                    &bull; {{ ucfirst($initSub['status'] ?? 'pending') }}
+                </span>
+            </div>
         </div>
 
-        <!-- Right Column: Interactive Inspection Deck -->
-        <div style="background: #FFFFFF; border: 1px solid var(--border-color); border-radius: 14px; padding: 30px; box-shadow: var(--shadow-sm);">
+        <!-- 2 Section Grid: Data Pemilik & Spesifikasi -->
+        <div style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 18px;" id="deck-data-grid">
             
-            <!-- Deck Header -->
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 14px;">
-                <div>
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                        <span class="badge-tag badge-tag-navy" id="deck-id">{{ $selectedSubmission['id'] }}</span>
-                        <span class="badge-tag" style="background: #FEF3C7; color: #D97706;">{{ $selectedSubmission['priority'] }}</span>
-                        <span class="badge-tag badge-tag-teal">Menunggu Review Kurasi</span>
+            <!-- Left Card: Data Pemilik -->
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 16px 18px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="font-size: 0.76rem; font-weight: 800; color: #0E1E2E; display: flex; align-items: center; gap: 6px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <span>Data Pemilik</span>
                     </div>
-                    <h2 style="font-size: 1.5rem; color: var(--primary-navy); margin-bottom: 4px;" id="deck-title">
-                        {{ $selectedSubmission['title'] }}
-                    </h2>
-                    <span style="font-size: 0.85rem; color: var(--text-muted);" id="deck-address">{{ $selectedSubmission['address'] }}</span>
+                    <span id="deck-ownership" style="background: #E0F2FE; color: #0284C7; font-size: 0.68rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;">{{ $initSub['ownership'] ?? 'Pemilik Langsung' }}</span>
                 </div>
 
-                <div style="text-align: right;">
-                    <span style="font-size: 0.72rem; color: #64748B; text-transform: uppercase; font-weight: 700; display: block;">Harga Pengajuan Pemilik</span>
-                    <div style="font-family: var(--font-heading); font-size: 1.6rem; font-weight: 800; color: var(--primary-navy);" id="deck-price">
-                        {{ $selectedSubmission['price'] }}
+                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.8rem;">
+                    <div>
+                        <span style="font-size: 0.7rem; color: #64748B; display: block;">Nama Lengkap</span>
+                        <strong id="deck-owner-name" style="color: #0E1E2E; font-size: 0.88rem;">{{ $initSub['owner'] }}</strong>
                     </div>
-                    <span style="font-size: 0.78rem; color: #059669; font-weight: 600;">Est. Valuasi Kumala: {{ $selectedSubmission['valuation_range'] }}</span>
-                </div>
-            </div>
 
-            <!-- Section 1: Data Pemilik & Status Hukum -->
-            <div style="margin-bottom: 24px;">
-                <h3 style="font-size: 0.95rem; color: var(--primary-navy); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; font-weight: 700;">
-                    1. Data Pemilik & Kepemilikan Sah
-                </h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; background: #F8FAFC; border: 1px solid var(--border-light); border-radius: 10px; padding: 16px;">
                     <div>
-                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">Nama Lengkap</span>
-                        <strong style="color: var(--primary-navy); font-size: 0.9rem;" id="deck-owner">{{ $selectedSubmission['owner'] }}</strong>
-                    </div>
-                    <div>
-                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">WhatsApp Aktif</span>
-                        <div style="display: flex; align-items: center; gap: 6px;">
-                            <strong style="color: var(--primary-navy); font-size: 0.9rem;" id="deck-phone">{{ $selectedSubmission['phone'] }}</strong>
-                            <a href="https://wa.me/6281288992345" target="_blank" style="padding: 2px 6px; background: #E6FBF5; color: var(--accent-teal); border-radius: 4px; font-size: 0.72rem; font-weight: 700;">Chat WA</a>
+                        <span style="font-size: 0.7rem; color: #64748B; display: block;">Kontak WhatsApp</span>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
+                            <strong id="deck-owner-phone" style="color: #0E1E2E; font-size: 0.86rem;">{{ $initSub['phone'] }}</strong>
+                            <a id="deck-owner-wa-link" href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $initSub['phone']) }}" target="_blank" style="background: #00838F; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                <span>Chat WA</span>
+                            </a>
                         </div>
                     </div>
+
                     <div>
-                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">Email Terdaftar</span>
-                        <strong style="color: var(--primary-navy); font-size: 0.9rem;" id="deck-email">{{ $selectedSubmission['email'] }}</strong>
-                    </div>
-                    <div>
-                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block;">Status Kuasa</span>
-                        <strong style="color: #059669; font-size: 0.9rem;">{{ $selectedSubmission['ownership'] }}</strong>
+                        <span style="font-size: 0.7rem; color: #64748B; display: block;">Email</span>
+                        <span id="deck-owner-email" style="color: #0E1E2E; font-size: 0.82rem;">{{ $initSub['email'] }}</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Section 2: Spesifikasi Teknis & Dimensi -->
-            <div style="margin-bottom: 24px;">
-                <h3 style="font-size: 0.95rem; color: var(--primary-navy); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; font-weight: 700;">
-                    2. Parameter Dimensi & Spesifikasi Aset
-                </h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
-                    <div class="spec-grid-item" style="padding: 10px 14px;">
-                        <span class="spec-grid-label">Luas Tanah (LT)</span>
-                        <strong class="spec-grid-val">{{ $selectedSubmission['land_size'] }} m²</strong>
-                    </div>
-                    <div class="spec-grid-item" style="padding: 10px 14px;">
-                        <span class="spec-grid-label">Luas Bangunan (LB)</span>
-                        <strong class="spec-grid-val">{{ $selectedSubmission['building_size'] }} m²</strong>
-                    </div>
-                    <div class="spec-grid-item" style="padding: 10px 14px;">
-                        <span class="spec-grid-label">Kamar Tidur</span>
-                        <strong class="spec-grid-val">{{ $selectedSubmission['bedrooms'] }}</strong>
-                    </div>
-                    <div class="spec-grid-item" style="padding: 10px 14px;">
-                        <span class="spec-grid-label">Kamar Mandi</span>
-                        <strong class="spec-grid-val">{{ $selectedSubmission['bathrooms'] }}</strong>
-                    </div>
-                    <div class="spec-grid-item" style="padding: 10px 14px;">
-                        <span class="spec-grid-label">Kapasitas Listrik</span>
-                        <strong class="spec-grid-val">{{ $selectedSubmission['electricity'] }}</strong>
-                    </div>
-                    <div class="spec-grid-item" style="padding: 10px 14px;">
-                        <span class="spec-grid-label">Status Sertifikat</span>
-                        <strong class="spec-grid-val" style="color: #059669;">{{ $selectedSubmission['legal'] }}</strong>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section 3: Foto & Dokumen Legalitas (6 Berkas) -->
-            <div style="margin-bottom: 24px;">
+            <!-- Right Card: Spesifikasi & Nilai Pasar -->
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 16px 18px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <h3 style="font-size: 0.95rem; color: var(--primary-navy); text-transform: uppercase; letter-spacing: 0.5px; margin: 0; font-weight: 700;">
-                        3. Berkas Foto & Scan Sertifikat BPN (6 Berkas)
-                    </h3>
-                    <span style="font-size: 0.78rem; color: var(--accent-teal); font-weight: 600; cursor: pointer;" onclick="showToast('Membuka Galeri Berkas High-Res...')">Lihat Resolusi Asli</span>
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px;">
-                    <div style="position: relative; height: 80px; border-radius: 6px; overflow: hidden; background: #0E2238;">
-                        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=300&q=80" style="width: 100%; height: 100%; object-fit: cover;">
-                        <span style="position: absolute; bottom: 4px; left: 4px; background: rgba(0,0,0,0.7); color: #fff; font-size: 0.65rem; padding: 2px 4px; border-radius: 3px;">Fasad Depan</span>
+                    <div style="font-size: 0.76rem; font-weight: 800; color: #0E1E2E; display: flex; align-items: center; gap: 6px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                        <span>Spesifikasi &amp; Nilai Pasar</span>
                     </div>
-                    <div style="position: relative; height: 80px; border-radius: 6px; overflow: hidden; background: #0E2238;">
-                        <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=300&q=80" style="width: 100%; height: 100%; object-fit: cover;">
-                        <span style="position: absolute; bottom: 4px; left: 4px; background: rgba(0,0,0,0.7); color: #fff; font-size: 0.65rem; padding: 2px 4px; border-radius: 3px;">Living Room</span>
-                    </div>
-                    <div style="position: relative; height: 80px; border-radius: 6px; overflow: hidden; background: #0E2238;">
-                        <img src="https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=300&q=80" style="width: 100%; height: 100%; object-fit: cover;">
-                        <span style="position: absolute; bottom: 4px; left: 4px; background: rgba(0,0,0,0.7); color: #fff; font-size: 0.65rem; padding: 2px 4px; border-radius: 3px;">Master Suite</span>
-                    </div>
-                    <div style="position: relative; height: 80px; border-radius: 6px; overflow: hidden; background: #0E2238;">
-                        <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=300&q=80" style="width: 100%; height: 100%; object-fit: cover;">
-                        <span style="position: absolute; bottom: 4px; left: 4px; background: rgba(0,0,0,0.7); color: #fff; font-size: 0.65rem; padding: 2px 4px; border-radius: 3px;">Kitchen Set</span>
-                    </div>
-                    <div style="position: relative; height: 80px; border-radius: 6px; overflow: hidden; background: #0E2238;">
-                        <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=300&q=80" style="width: 100%; height: 100%; object-fit: cover;">
-                        <span style="position: absolute; bottom: 4px; left: 4px; background: rgba(0,0,0,0.7); color: #fff; font-size: 0.65rem; padding: 2px 4px; border-radius: 3px;">Carport Area</span>
-                    </div>
-                    <div style="position: relative; height: 80px; border-radius: 6px; overflow: hidden; background: #E2E8F0; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1.5px dashed #94A3B8;">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                        <span style="font-size: 0.68rem; font-weight: 700; color: #0E2238; margin-top: 2px;">Scan SHM BPN</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section 4: Checklist Kurasi Standar Tim Kumala -->
-            <div style="margin-bottom: 24px;">
-                <h3 style="font-size: 0.95rem; color: var(--primary-navy); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; font-weight: 700;">
-                    4. Checklist Verifikasi Tim Kurator
-                </h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; font-size: 0.82rem;">
-                    <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: #F8FAFC; border-radius: 6px; border: 1px solid var(--border-light); cursor: pointer;">
-                        <input type="checkbox" checked style="accent-color: #00B488;">
-                        <span>Identitas pemilik & no WA terverifikasi</span>
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: #F8FAFC; border-radius: 6px; border: 1px solid var(--border-light); cursor: pointer;">
-                        <input type="checkbox" checked style="accent-color: #00B488;">
-                        <span>Koordinat Maps & zonasi PBG akurat</span>
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: #F8FAFC; border-radius: 6px; border: 1px solid var(--border-light); cursor: pointer;">
-                        <input type="checkbox" checked style="accent-color: #00B488;">
-                        <span>Sertifikat SHM cocok data BPN resmi</span>
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 8px; padding: 10px; background: #FFF1F2; border-radius: 6px; border: 1px solid #FECDD3; cursor: pointer; color: #9F1239;">
-                        <input type="checkbox" style="accent-color: #00B488;">
-                        <span>Foto memenuhi standar estetika HD Kumala</span>
-                    </label>
-                </div>
-            </div>
-
-            <!-- Section 5: Catatan Internal Kurator -->
-            <div style="margin-bottom: 26px;">
-                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 6px;">Catatan Privat Tim Kurator</label>
-                <textarea rows="2" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; color: var(--primary-navy);" placeholder="Tuliskan catatan privat untuk kurator lain...">Aset lokasi sangat prime dekat Echo Beach. Foto interior dapur perlu peningkatan pencahayaan standar Kumala sebelum diterbitkan.</textarea>
-            </div>
-
-            <!-- Section 6: Action Footer Toolbar -->
-            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 20px; border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 12px;">
-                <div style="display: flex; gap: 8px;">
-                    <button type="button" class="btn-fav-danger" style="padding: 10px 16px; font-size: 0.85rem; border-radius: 6px;" onclick="showToast('Pengajuan ditolak. Notifikasi email terkirim ke pemilik.')">
-                        Tolak Pengajuan
-                    </button>
-                    <button type="button" class="btn-fav-tool" style="padding: 10px 16px; font-size: 0.85rem; border-radius: 6px; color: #D97706; border-color: #FDE68A; background: #FFFBEB;" onclick="showToast('Permintaan revisi dokumen telah dikirim via WhatsApp.')">
-                        Minta Revisi
-                    </button>
+                    <span style="color: #64748B; font-size: 0.72rem;">Estimasi Valuasi: <strong id="deck-valuation" style="color: #0E1E2E;">{{ $initSub['valuation_range'] ?? 'Rp 3M - 3,5M' }}</strong></span>
                 </div>
 
-                <div style="display: flex; gap: 10px;">
-                    <button type="button" class="btn-fav-tool" style="padding: 10px 16px; font-size: 0.85rem; border-radius: 6px;" onclick="showToast('Membuka form penyesuaian data teknis...')">
-                        Edit Data Standar
-                    </button>
-                    <button type="button" class="btn-teal" style="padding: 10px 22px; font-size: 0.85rem; border-radius: 6px;" onclick="showToast('Listing #TP-204 berhasil disetujui & langsung diterbitkan ke katalog publik!')">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                        <span>Setujui & Publikasikan</span>
-                    </button>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; font-size: 0.78rem;">
+                    <div>
+                        <span style="font-size: 0.7rem; color: #64748B; display: block;">Harga Pengajuan</span>
+                        <strong id="deck-price" style="color: #0E1E2E; font-size: 0.95rem; display: block; margin-top: 2px;">{{ $initSub['price'] }}</strong>
+                        <span id="deck-legal" style="color: #00838F; font-size: 0.72rem; font-weight: 600;">{{ $initSub['legal'] ?? 'SHM' }}</span>
+                    </div>
+
+                    <div>
+                        <span style="font-size: 0.7rem; color: #64748B; display: block;">Luas Tanah / Bangunan</span>
+                        <strong id="deck-land" style="color: #0E1E2E; font-size: 0.95rem; display: block; margin-top: 2px;">LT {{ $initSub['land_size'] ?? 0 }} m²</strong>
+                        <span id="deck-building" style="color: #64748B; font-size: 0.72rem;">LB {{ $initSub['building_size'] ?? 0 }} m²</span>
+                    </div>
+
+                    <div>
+                        <span style="font-size: 0.7rem; color: #64748B; display: block;">Kamar Tidur / Mandi</span>
+                        <strong id="deck-rooms" style="color: #0E1E2E; font-size: 0.95rem; display: block; margin-top: 2px;">{{ $initSub['bedrooms'] ?? '3 KT' }} / {{ $initSub['bathrooms'] ?? '2 KM' }}</strong>
+                        <span id="deck-electricity" style="color: #64748B; font-size: 0.72rem;">Listrik {{ $initSub['electricity'] ?? '3500 VA' }}</span>
+                    </div>
+
+                    <div>
+                        <span style="font-size: 0.7rem; color: #64748B; display: block;">Tipe Transaksi</span>
+                        <strong id="deck-trx" style="color: #0E1E2E; font-size: 0.95rem; display: block; margin-top: 2px;">{{ $initSub['trx_type'] ?? 'Jual' }}</strong>
+                        <span id="deck-category" style="color: #64748B; font-size: 0.72rem;">{{ $initSub['category'] ?? 'Properti' }}</span>
+                    </div>
                 </div>
             </div>
 
         </div>
 
+        <!-- Foto & Dokumen Legalitas -->
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div style="font-size: 0.76rem; font-weight: 800; color: #0E1E2E; display: flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <span>Foto &amp; Dokumen Lampiran Pengajuan</span>
+                </div>
+                <span style="font-size: 0.72rem; color: #94A3B8;">Tinjau berkas visual resolusi asli</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;" id="photos-row">
+                @php
+                    $photos = $initSub['photos'] ?? [];
+                    if (empty($photos)) {
+                        $photos = ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80'];
+                    }
+                @endphp
+                @foreach($photos as $pIndex => $pUrl)
+                <div class="berkas-photo-thumb">
+                    <img src="{{ $pUrl }}" alt="Dokumen {{ $pIndex + 1 }}">
+                    <span class="berkas-photo-label">Foto {{ $pIndex + 1 }}</span>
+                </div>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Checklist Kurasi Standar & Catatan Kurator -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;" id="deck-bottom-grid">
+            
+            <!-- Checklist Card -->
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px 18px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <strong style="color: #0E1E2E; font-size: 0.78rem;">Checklist Verifikasi Kurator</strong>
+                    <span style="background: #E0F2FE; color: #0284C7; font-size: 0.7rem; font-weight: 700; padding: 2px 7px; border-radius: 4px;">Standar Kumala</span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.78rem;">
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                        <input type="checkbox" checked style="accent-color: #00838F;">
+                        <span style="color: #0E1E2E; font-weight: 600;">Identitas &amp; kontak valid</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                        <input type="checkbox" checked style="accent-color: #00838F;">
+                        <span style="color: #0E1E2E; font-weight: 600;">Lokasi Maps akurat</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                        <input type="checkbox" checked style="accent-color: #00838F;">
+                        <span style="color: #0E1E2E; font-weight: 600;">Legalitas sesuai kepemilikan</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                        <input type="checkbox" checked style="accent-color: #00838F;">
+                        <span style="color: #0E1E2E; font-weight: 600;">Foto layak publikasi</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Catatan Tim Kurator -->
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px 18px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <strong style="color: #0E1E2E; font-size: 0.78rem;">Catatan Kurator / Pemohon</strong>
+                    <span style="font-size: 0.7rem; color: #94A3B8;">Tinjauan Internal</span>
+                </div>
+                <div id="deck-notes" style="font-size: 0.76rem; color: #475569; line-height: 1.45; background: #FFFFFF; border: 1px solid #E2E8F0; padding: 8px 10px; border-radius: 6px; min-height: 52px;">
+                    {{ $initSub['notes'] ?? 'Pengajuan online via portal Titip Properti Kumala. Siap diverifikasi.' }}
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Action Footer Buttons -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid #F1F5F9; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn-deck-reject" onclick="handleRejectSubmission()">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+                    <span>Tolak Pengajuan</span>
+                </button>
+                <button type="button" class="btn-deck-outline" onclick="handleRevisionSubmission()">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                    <span>Minta Revisi Berkas</span>
+                </button>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn-deck-approve" id="btn-action-approve" onclick="handleApproveSubmission()">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Setujui &amp; Publikasikan ke Web</span>
+                </button>
+            </div>
+        </div>
+
     </div>
+    @endif
 
 </div>
 @endsection
 
 @section('styles')
 <style>
-.queue-tab-btn {
+.sub-tab-btn {
+    padding: 7px 14px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: #FFFFFF;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--primary-navy);
-    cursor: pointer;
-    transition: var(--transition-fast);
+    transition: all 0.15s;
 }
-.queue-tab-btn:hover {
+.sub-tab-btn:hover {
+    border-color: #CBD5E1;
+    color: #0E1E2E;
+}
+.sub-tab-btn.active {
+    background: #0E1E2E;
+    color: #FFFFFF;
+    border-color: #0E1E2E;
+    font-weight: 700;
+}
+
+.queue-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.queue-card:hover {
+    border-color: #CBD5E1;
+}
+.queue-card.active {
+    border-color: #00838F;
+    box-shadow: 0 0 0 2px rgba(0, 131, 143, 0.2);
+}
+
+.queue-pill-yellow {
+    background: #FEF3C7;
+    color: #D97706;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+.queue-pill-green {
+    background: #E6FBF5;
+    color: #059669;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+.queue-pill-red {
+    background: #FEE2E2;
+    color: #DC2626;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+.queue-pill-gray {
+    background: #F1F5F9;
+    color: #64748B;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.berkas-photo-thumb {
+    position: relative;
+    border-radius: 6px;
+    overflow: hidden;
+    height: 64px;
+    background: #0E1E2E;
+}
+.berkas-photo-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.berkas-photo-label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(14, 30, 46, 0.85);
+    color: #FFFFFF;
+    font-size: 0.62rem;
+    font-weight: 700;
+    padding: 2px 4px;
+    text-align: center;
+}
+
+.btn-deck-reject {
+    background: #FFFFFF;
+    border: 1px solid #FCA5A5;
+    color: #DC2626;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    box-sizing: border-box;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+.btn-deck-reject:hover {
+    background: #FEF2F2;
+    border-color: #F87171;
+}
+
+.btn-deck-outline {
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    color: #0E1E2E;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    box-sizing: border-box;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+.btn-deck-outline:hover {
     background: #F8FAFC;
     border-color: #94A3B8;
 }
-.queue-tab-btn.active {
-    background: var(--primary-navy);
-    color: #FFFFFF;
-    border-color: var(--primary-navy);
-}
-.queue-tab-btn .queue-count {
-    background: #F1F5F9;
-    color: #475569;
-    padding: 2px 7px;
-    border-radius: 999px;
-    font-size: 0.72rem;
-    font-weight: 700;
-}
-.queue-tab-btn.active .queue-count {
-    background: rgba(255, 255, 255, 0.2);
-    color: #FFFFFF;
-}
 
-.submission-queue-card {
-    background: #FFFFFF;
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    padding: 16px;
+.btn-deck-approve {
+    background: #00838F;
+    border: 1px solid #00838F;
+    color: #FFFFFF;
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     cursor: pointer;
-    transition: var(--transition-fast);
-    box-shadow: var(--shadow-sm);
+    box-sizing: border-box;
+    white-space: nowrap;
+    transition: background 0.15s;
 }
-.submission-queue-card:hover {
-    border-color: #94A3B8;
-}
-.submission-queue-card.active {
-    border-color: var(--accent-teal);
-    background: #F0FDF4;
-    border-left: 4px solid var(--accent-teal);
+.btn-deck-approve:hover {
+    background: #0097A7;
+    border-color: #0097A7;
 }
 
 @media (max-width: 1024px) {
-    div[style*="grid-template-columns: 360px 1fr"] {
+    #deck-data-grid {
         grid-template-columns: 1fr !important;
+    }
+    #photos-row {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+    #deck-bottom-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+@media (max-width: 640px) {
+    #photos-row {
+        grid-template-columns: repeat(2, 1fr) !important;
     }
 }
 </style>
@@ -333,17 +505,172 @@
 
 @section('scripts')
 <script>
-function selectSubmission(card, id) {
-    document.querySelectorAll('.submission-queue-card').forEach(c => c.classList.remove('active'));
-    card.classList.add('active');
-    document.getElementById('deck-id').textContent = id;
-    showToast(`Memuat data inspeksi berkas ${id}...`);
+let activeSubData = @json($initSub ?? null);
+
+function selectSubmission(sub, el) {
+    activeSubData = sub;
+    
+    // Highlight card
+    document.querySelectorAll('.queue-card').forEach(c => c.classList.remove('active'));
+    if (el) el.classList.add('active');
+
+    // Update Deck
+    document.getElementById('deck-id').innerText = sub.id || '';
+    document.getElementById('deck-trx-type').innerText = (sub.category || 'PROPERTI') + ' (' + (sub.trx_type || 'JUAL').toUpperCase() + ')';
+    document.getElementById('deck-time').innerText = '• Terdaftar: ' + (sub.time_ago || 'Baru saja');
+    document.getElementById('deck-title').innerText = sub.title || '';
+    document.getElementById('deck-location').innerText = sub.address || sub.location || '';
+    
+    document.getElementById('deck-owner-name').innerText = sub.owner || '';
+    document.getElementById('deck-owner-phone').innerText = sub.phone || '';
+    document.getElementById('deck-owner-email').innerText = sub.email || '';
+    
+    const phoneClean = (sub.phone || '').replace(/[^0-9]/g, '');
+    const waLink = document.getElementById('deck-owner-wa-link');
+    if (waLink) waLink.href = 'https://wa.me/' + phoneClean;
+
+    document.getElementById('deck-price').innerText = sub.price || 'Rp 0';
+    document.getElementById('deck-legal').innerText = sub.legal || 'SHM';
+    document.getElementById('deck-land').innerText = 'LT ' + (sub.land_size || 0) + ' m²';
+    document.getElementById('deck-building').innerText = 'LB ' + (sub.building_size || 0) + ' m²';
+    document.getElementById('deck-rooms').innerText = (sub.bedrooms || '3 KT') + ' / ' + (sub.bathrooms || '2 KM');
+    document.getElementById('deck-electricity').innerText = 'Listrik ' + (sub.electricity || '3500 VA');
+    document.getElementById('deck-trx').innerText = sub.trx_type || 'Jual';
+    document.getElementById('deck-category').innerText = sub.category || 'Rumah Mewah';
+    document.getElementById('deck-notes').innerText = sub.notes || 'Pengajuan via portal Titip Properti.';
+    
+    // Update status badge
+    const statusPill = document.getElementById('deck-status-pill');
+    if (statusPill) {
+        statusPill.innerText = '• ' + (sub.status ? sub.status.toUpperCase() : 'PENDING');
+        if (sub.status === 'approved') {
+            statusPill.style.background = '#E6FBF5';
+            statusPill.style.color = '#059669';
+        } else if (sub.status === 'rejected') {
+            statusPill.style.background = '#FEE2E2';
+            statusPill.style.color = '#DC2626';
+        } else {
+            statusPill.style.background = '#FEF3C7';
+            statusPill.style.color = '#D97706';
+        }
+    }
+
+    // Update photos row
+    const photosRow = document.getElementById('photos-row');
+    if (photosRow && Array.isArray(sub.photos) && sub.photos.length > 0) {
+        let photosHtml = '';
+        sub.photos.forEach((url, i) => {
+            photosHtml += `
+                <div class="berkas-photo-thumb">
+                    <img src="${url}" alt="Dokumen ${i+1}">
+                    <span class="berkas-photo-label">Foto ${i+1}</span>
+                </div>
+            `;
+        });
+        photosRow.innerHTML = photosHtml;
+    }
 }
 
-function filterQueue(type, btn) {
-    document.querySelectorAll('.queue-tab-btn').forEach(b => b.classList.remove('active'));
+function filterSubmissions(status, btn) {
+    document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    showToast(`Memfilter antrean: ${type}`);
+
+    const cards = document.querySelectorAll('.queue-card');
+    cards.forEach(card => {
+        const cardStatus = card.getAttribute('data-status');
+        if (status === 'all' || cardStatus === status) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function handleApproveSubmission() {
+    if (!activeSubData || !activeSubData.id) {
+        showToast('Pilih berkas pengajuan terlebih dahulu.');
+        return;
+    }
+
+    const btn = document.getElementById('btn-action-approve');
+    btn.disabled = true;
+    btn.innerText = 'Menerbitkan Listing...';
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '{{ csrf_token() }}';
+
+    fetch('/admin/listing-masuk/' + encodeURIComponent(activeSubData.id) + '/approve', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            notes: 'Disetujui dan diverifikasi oleh Tim Kurator Kumala Property.'
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showToast(`Sukses! Pengajuan ${activeSubData.id} telah disetujui & otomatis tayang di halaman publik sebagai properti aktif!`);
+            setTimeout(() => {
+                window.location.reload();
+            }, 1200);
+        } else {
+            showToast('Gagal memproses persetujuan berkas.');
+            btn.disabled = false;
+            btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Setujui &amp; Publikasikan ke Web</span>`;
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        showToast('Terjadi kesalahan jaringan.');
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Setujui &amp; Publikasikan ke Web</span>`;
+    });
+}
+
+function handleRejectSubmission() {
+    if (!activeSubData || !activeSubData.id) return;
+    if (!confirm('Apakah Anda yakin ingin menolak pengajuan ' + activeSubData.id + '?')) return;
+
+    updateStatusDirect(activeSubData.id, 'rejected', 'Berkas ditolak setelah pemeriksaan spesifikasi fisik.');
+}
+
+function handleRevisionSubmission() {
+    if (!activeSubData || !activeSubData.id) return;
+    const notes = prompt('Masukkan catatan revisi untuk pemilik properti:', 'Mohon unggah foto sertifikat BPN dengan resolusi lebih tajam.');
+    if (notes === null) return;
+
+    updateStatusDirect(activeSubData.id, 'revision', notes);
+}
+
+function updateStatusDirect(id, status, notes) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '{{ csrf_token() }}';
+
+    fetch('/admin/listing-masuk/' + encodeURIComponent(id) + '/status', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            status: status,
+            notes: notes
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        showToast(`Status pengajuan ${id} berhasil diperbarui menjadi ${status.toUpperCase()}.`);
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
+    })
+    .catch(err => {
+        console.error(err);
+        showToast('Terjadi kesalahan.');
+    });
 }
 </script>
 @endsection

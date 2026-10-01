@@ -9,30 +9,42 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Master CSS -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
     <style>
         :root {
-            --admin-sidebar-width: 260px;
-            --admin-header-height: 68px;
+            --admin-sidebar-width: 250px;
+            --admin-header-height: 64px;
+            --admin-navy-dark: #0D1B2A;
+            --admin-navy-sidebar: #0C1929;
+            --admin-teal-active: #0B5C66;
+            --admin-teal-accent: #00838F;
+            --admin-cyan-sub: #38BDF8;
+            --admin-bg-body: #F4F7FB;
+            --admin-border-subtle: #E2E8F0;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
-            background-color: #F4F6F9;
-            color: var(--text-dark);
+            background-color: var(--admin-bg-body);
+            color: #0F172A;
             margin: 0;
             display: flex;
             min-height: 100vh;
-            font-family: var(--font-body);
+            font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
         }
 
         /* Sidebar Styling */
         .admin-sidebar {
             width: var(--admin-sidebar-width);
-            background: #0E2238;
+            background: var(--admin-navy-sidebar);
             color: #FFFFFF;
             display: flex;
             flex-direction: column;
@@ -41,49 +53,50 @@
             bottom: 0;
             left: 0;
             z-index: 1000;
-            border-right: 1px solid rgba(255, 255, 255, 0.08);
-            transition: var(--transition-normal);
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            transition: transform 0.25s ease;
         }
 
         .admin-sidebar-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 24px 22px 20px;
             display: flex;
             align-items: center;
             gap: 12px;
         }
         .admin-brand-icon {
-            width: 38px;
-            height: 38px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 32px;
+            height: 32px;
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px solid rgba(56, 189, 248, 0.3);
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #FFFFFF;
+            color: #38BDF8;
+            flex-shrink: 0;
         }
         .admin-brand-text {
             display: flex;
             flex-direction: column;
         }
         .admin-brand-title {
-            font-family: var(--font-heading);
             font-size: 1.05rem;
             font-weight: 800;
             letter-spacing: -0.01em;
             color: #FFFFFF;
-            line-height: 1.1;
+            line-height: 1.15;
         }
         .admin-brand-badge {
-            font-size: 0.68rem;
+            font-size: 0.65rem;
             font-weight: 700;
-            color: var(--accent-teal);
-            letter-spacing: 0.8px;
+            color: #38BDF8;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            margin-top: 2px;
         }
 
         .admin-nav {
-            padding: 20px 16px;
+            padding: 14px 14px;
             flex: 1;
             overflow-y: auto;
             display: flex;
@@ -94,51 +107,67 @@
         .admin-nav-item {
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: space-between;
             padding: 10px 14px;
             border-radius: 8px;
-            color: #94A3B8;
+            color: #8FA3BF;
             font-size: 0.88rem;
             font-weight: 600;
             text-decoration: none;
-            transition: var(--transition-fast);
+            transition: all 0.15s ease-in-out;
+        }
+        .admin-nav-item-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
         .admin-nav-item:hover {
             color: #FFFFFF;
-            background: rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.05);
         }
         .admin-nav-item.active {
             color: #FFFFFF;
-            background: rgba(0, 180, 136, 0.18);
-            border-left: 3px solid var(--accent-teal);
+            background: var(--admin-teal-active);
             font-weight: 700;
         }
-        .admin-nav-item svg {
-            flex-shrink: 0;
+        .admin-nav-item.active svg {
+            color: #FFFFFF;
+        }
+        .admin-nav-badge {
+            background: #00838F;
+            color: #FFFFFF;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 12px;
+            line-height: 1.2;
         }
 
         .admin-sidebar-footer {
-            padding: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(0, 0, 0, 0.15);
+            padding: 16px 14px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .admin-user-profile {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-        .admin-avatar {
-            width: 36px;
-            height: 36px;
+        .btn-keluar-portal {
+            width: 100%;
+            padding: 11px 14px;
+            background: #08121D;
+            border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 8px;
-            background: var(--accent-teal);
-            color: #0E2238;
-            font-weight: 800;
-            font-size: 0.82rem;
+            color: #E2E8F0;
+            font-size: 0.85rem;
+            font-weight: 600;
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-keluar-portal:hover {
+            background: #102135;
+            color: #FFFFFF;
+            border-color: rgba(255, 255, 255, 0.25);
         }
 
         /* Main Area */
@@ -148,12 +177,13 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            min-width: 0;
         }
 
         .admin-topbar {
             height: var(--admin-header-height);
             background: #FFFFFF;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--admin-border-subtle);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -165,48 +195,199 @@
 
         .admin-search-box {
             position: relative;
-            width: 380px;
+            width: 440px;
         }
         .admin-search-box input {
             width: 100%;
             background: #F8FAFC;
-            border: 1px solid var(--border-color);
+            border: 1px solid #E2E8F0;
             border-radius: 8px;
-            padding: 8px 12px 8px 36px;
-            font-size: 0.85rem;
-            color: var(--primary-navy);
-            transition: var(--transition-fast);
+            padding: 9px 36px 9px 36px;
+            font-size: 0.84rem;
+            color: #0F172A;
+            transition: all 0.2s;
+            outline: none;
         }
         .admin-search-box input:focus {
-            border-color: var(--accent-teal);
+            border-color: #00838F;
             background: #FFFFFF;
-            box-shadow: 0 0 0 3px rgba(0, 180, 136, 0.15);
+            box-shadow: 0 0 0 3px rgba(0, 131, 143, 0.12);
         }
         .admin-search-icon {
             position: absolute;
-            left: 11px;
+            left: 12px;
             top: 50%;
             transform: translateY(-50%);
             color: #94A3B8;
+            display: flex;
+            pointer-events: none;
+        }
+        .admin-search-shortcut {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #00838F;
+        }
+
+        .admin-topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .btn-admin-add {
+            background: #0E1E2E;
+            color: #FFFFFF;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-admin-add:hover {
+            background: #172D45;
+            color: #FFFFFF;
+        }
+
+        .admin-notification-btn {
+            position: relative;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+        }
+        .admin-notification-btn:hover {
+            color: #0F172A;
+            background: #F1F5F9;
+        }
+        .notification-badge-dot {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 7px;
+            height: 7px;
+            background: #EF4444;
+            border-radius: 50%;
+            border: 1.5px solid #FFFFFF;
         }
 
         .admin-content {
-            padding: 32px;
+            padding: 24px 32px 48px;
             flex: 1;
         }
 
-        @media (max-width: 992px) {
+        /* Mobile Responsive */
+        .mobile-hamburger {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            color: #334155;
+            margin-right: 8px;
+            border-radius: 6px;
+            align-items: center;
+            justify-content: center;
+        }
+        .mobile-hamburger:hover {
+            background: #F1F5F9;
+        }
+
+        .admin-sidebar-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(14, 30, 46, 0.6);
+            backdrop-filter: blur(2px);
+            z-index: 999;
+        }
+        .admin-sidebar-backdrop.open {
+            display: block;
+        }
+
+        .admin-sidebar-close {
+            display: none;
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: #94A3B8;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            align-items: center;
+            justify-content: center;
+        }
+        .admin-sidebar-close:hover {
+            color: #FFFFFF;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 1024px) {
             .admin-sidebar {
                 transform: translateX(-100%);
             }
             .admin-sidebar.open {
                 transform: translateX(0);
+                box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            }
+            .admin-sidebar-close {
+                display: flex;
             }
             .admin-main-wrap {
                 margin-left: 0;
             }
+            .mobile-hamburger {
+                display: flex;
+            }
             .admin-search-box {
-                width: 220px;
+                width: 240px;
+            }
+        }
+        @media (max-width: 768px) {
+            .admin-search-box {
+                display: none;
+            }
+        }
+        @media (max-width: 640px) {
+            .admin-topbar {
+                padding: 0 14px;
+                height: 58px;
+            }
+            .admin-content {
+                padding: 16px 14px 40px;
+            }
+            .admin-topbar-actions {
+                gap: 8px;
+            }
+            .btn-admin-add {
+                padding: 6px 10px;
+                font-size: 0.75rem;
+            }
+            .btn-admin-add .btn-admin-add-text-full {
+                display: none;
+            }
+            .btn-admin-add .btn-admin-add-text-short {
+                display: inline;
+            }
+        }
+        @media (min-width: 641px) {
+            .btn-admin-add .btn-admin-add-text-short {
+                display: none;
             }
         }
     </style>
@@ -214,70 +395,78 @@
 </head>
 <body>
 
+    <!-- Mobile Sidebar Backdrop -->
+    <div class="admin-sidebar-backdrop" id="admin-sidebar-backdrop" onclick="closeAdminSidebar()"></div>
+
     <!-- Sidebar -->
     <aside class="admin-sidebar" id="admin-sidebar">
         <div class="admin-sidebar-header">
             <div class="admin-brand-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
                     <polyline points="9 22 9 12 15 12 15 22"/>
                 </svg>
             </div>
             <div class="admin-brand-text">
-                <span class="admin-brand-title">KUMALA ADMIN</span>
-                <span class="admin-brand-badge">CONTROL SUITE v2.4</span>
+                <span class="admin-brand-title">Kumala Property</span>
+                <span class="admin-brand-badge">ADMIN SUITE</span>
             </div>
+            <button type="button" class="admin-sidebar-close" onclick="closeAdminSidebar()" title="Tutup Menu">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
         </div>
 
         <nav class="admin-nav">
-            <a href="{{ route('admin.dashboard') }}" class="admin-nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
-                <span>Dashboard</span>
+            <a href="{{ route('admin.dashboard') }}" class="admin-nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" onclick="closeAdminSidebar()">
+                <div class="admin-nav-item-left">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                    <span>Dashboard</span>
+                </div>
             </a>
 
-            <a href="{{ route('admin.properties') }}" class="admin-nav-item {{ request()->routeIs('admin.properties') ? 'active' : '' }}">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                <span>Manajemen Properti</span>
+            <a href="{{ route('admin.properties') }}" class="admin-nav-item {{ request()->routeIs('admin.properties') ? 'active' : '' }}" onclick="closeAdminSidebar()">
+                <div class="admin-nav-item-left">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    <span>Manajemen Properti</span>
+                </div>
             </a>
 
-            <a href="{{ route('admin.submissions') }}" class="admin-nav-item {{ request()->routeIs('admin.submissions') ? 'active' : '' }}">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
-                <span>Listing Masuk</span>
+            <a href="{{ route('admin.submissions') }}" class="admin-nav-item {{ request()->routeIs('admin.submissions') ? 'active' : '' }}" onclick="closeAdminSidebar()">
+                <div class="admin-nav-item-left">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span>Listing Masuk</span>
+                </div>
+                <span class="admin-nav-badge">{{ $pendingSubmissionsCount ?? 0 }}</span>
             </a>
 
-            <a href="{{ route('admin.transactions') }}" class="admin-nav-item {{ request()->routeIs('admin.transactions') ? 'active' : '' }}">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
-                <span>Riwayat Transaksi</span>
+            <a href="{{ route('admin.transactions') }}" class="admin-nav-item {{ request()->routeIs('admin.transactions') ? 'active' : '' }}" onclick="closeAdminSidebar()">
+                <div class="admin-nav-item-left">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+                    <span>Riwayat Closing</span>
+                </div>
             </a>
 
-            <a href="{{ route('admin.inquiries') }}" class="admin-nav-item {{ request()->routeIs('admin.inquiries') ? 'active' : '' }}">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                <span>Inquiry Leads</span>
+            <a href="{{ route('admin.inquiries') }}" class="admin-nav-item {{ request()->routeIs('admin.inquiries') ? 'active' : '' }}" onclick="closeAdminSidebar()">
+                <div class="admin-nav-item-left">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span>Data Inquiry</span>
+                </div>
+                <span class="admin-nav-badge">{{ $activeInquiriesCount ?? 0 }}</span>
             </a>
 
-            <a href="{{ route('admin.settings') }}" class="admin-nav-item {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                <span>Pengaturan Sistem</span>
+            <a href="{{ route('admin.settings') }}" class="admin-nav-item {{ request()->routeIs('admin.settings') ? 'active' : '' }}" onclick="closeAdminSidebar()">
+                <div class="admin-nav-item-left">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" x2="20" y1="21" y2="21"/><line x1="4" x2="20" y1="14" y2="14"/><line x1="4" x2="20" y1="7" y2="7"/><circle cx="8" cy="7" r="2"/><circle cx="16" cy="14" r="2"/><circle cx="10" cy="21" r="2"/></svg>
+                    <span>Pengaturan Master</span>
+                </div>
             </a>
         </nav>
 
         <div class="admin-sidebar-footer">
-            <div class="admin-user-profile">
-                <div class="admin-avatar">AP</div>
-                <div style="flex: 1; min-width: 0;">
-                    <strong style="display: block; font-size: 0.85rem; color: #FFFFFF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Aditya Pratama</strong>
-                    <span style="font-size: 0.72rem; color: #94A3B8;">Super Admin</span>
-                </div>
-            </div>
-
-            <div style="display: flex; gap: 8px;">
-                <a href="{{ route('home') }}" target="_blank" style="flex: 1; padding: 6px 10px; background: rgba(255, 255, 255, 0.08); border-radius: 6px; font-size: 0.75rem; color: #CBD5E1; text-align: center; text-decoration: none;">
-                    Web Publik
-                </a>
-                <a href="{{ route('admin.logout') }}" style="padding: 6px 10px; background: rgba(225, 29, 72, 0.15); border-radius: 6px; font-size: 0.75rem; color: #FDA4AF; text-decoration: none;">
-                    Keluar
-                </a>
-            </div>
+            <a href="{{ route('admin.logout') }}" class="btn-keluar-portal">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                <span>Keluar Portal</span>
+            </a>
         </div>
     </aside>
 
@@ -285,29 +474,33 @@
     <div class="admin-main-wrap">
         <!-- Topbar -->
         <header class="admin-topbar">
-            <div style="display: flex; align-items: center; gap: 16px;">
-                <button type="button" class="btn-icon-action" style="display: none;" id="mobile-toggle" onclick="document.getElementById('admin-sidebar').classList.toggle('open')">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            <div style="display: flex; align-items: center;">
+                <button type="button" class="mobile-hamburger" onclick="openAdminSidebar()" title="Buka Menu">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                 </button>
 
-                <div class="admin-search-box">
+                <form action="{{ route('admin.properties') }}" method="GET" class="admin-search-box" style="margin: 0;">
                     <span class="admin-search-icon">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                     </span>
-                    <input type="text" placeholder="Cari ID #KP-xxx, nama klien, atau lokasi...">
-                </div>
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari ID properti, nama properti, atau lokasi...">
+                    <span class="admin-search-shortcut"></span>
+                </form>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 14px;">
-                <div style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #059669; font-weight: 600; background: #E6FBF5; padding: 6px 12px; border-radius: 6px;">
-                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #059669; display: inline-block;"></span>
-                    <span>SLA Hijau (Normal)</span>
-                </div>
+            <div class="admin-topbar-actions">
+                @yield('topbar-extra')
 
-                <a href="{{ route('titip-properti') }}" target="_blank" class="btn-primary" style="padding: 8px 16px; font-size: 0.82rem; border-radius: 6px;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    <span>+ Input Properti</span>
+                <a href="{{ route('admin.properties', ['action' => 'add']) }}" class="btn-admin-add">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <span class="btn-admin-add-text-full">Tambah Properti</span>
+                    <span class="btn-admin-add-text-short">Tambah</span>
                 </a>
+
+                <button type="button" class="admin-notification-btn" title="Notifikasi" onclick="showToast('Sistem sinkronisasi real-time beroperasi normal.')">
+                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    <span class="notification-badge-dot"></span>
+                </button>
             </div>
         </header>
 
@@ -318,12 +511,28 @@
     </div>
 
     <!-- Global Toast Notification -->
-    <div id="toast-notification" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; background: #0E2238; color: #FFFFFF; padding: 14px 22px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); display: none; align-items: center; gap: 12px; border-left: 4px solid #00B488;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00B488" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        <span id="toast-message" style="font-size: 0.92rem; font-weight: 500;"></span>
+    <div id="toast-notification" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; background: #0E1E2E; color: #FFFFFF; padding: 12px 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; align-items: center; gap: 10px; border-left: 4px solid #00838F;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00838F" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        <span id="toast-message" style="font-size: 0.88rem; font-weight: 500;"></span>
     </div>
 
     <script>
+        function openAdminSidebar() {
+            const sidebar = document.getElementById('admin-sidebar');
+            const backdrop = document.getElementById('admin-sidebar-backdrop');
+            if (sidebar) sidebar.classList.add('open');
+            if (backdrop) backdrop.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAdminSidebar() {
+            const sidebar = document.getElementById('admin-sidebar');
+            const backdrop = document.getElementById('admin-sidebar-backdrop');
+            if (sidebar) sidebar.classList.remove('open');
+            if (backdrop) backdrop.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
         function showToast(msg) {
             const toast = document.getElementById('toast-notification');
             const messageEl = document.getElementById('toast-message');

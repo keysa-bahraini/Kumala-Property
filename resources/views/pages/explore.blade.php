@@ -28,7 +28,7 @@
     <!-- Multi-Parameter Search Box -->
     <div style="background: var(--bg-surface); border-radius: var(--radius-lg); border: 1px solid var(--border-color); padding: 22px; box-shadow: var(--shadow-card); margin-bottom: 22px;">
         <form action="{{ route('explore') }}" method="GET" id="filter-form">
-            <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 14px; margin-bottom: 18px;">
+            <div class="explore-filter-grid" style="margin-bottom: 18px;">
                 
                 <!-- Parameter 1: Jenis Transaksi -->
                 <div>
@@ -150,7 +150,7 @@
     </div>
 
     <!-- Properties Grid -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px; margin-bottom: 48px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; margin-bottom: 48px;">
         @forelse($properties as $prop)
         <div class="property-card" id="explore-card-{{ $loop->iteration }}">
             <div class="card-media-wrapper">
@@ -194,12 +194,15 @@
 
                 <div class="card-footer">
                     <div class="card-price-block">
-                        <span class="card-price-label">{{ $prop['price_label'] }}</span>
-                        <span class="card-price-val">{{ $prop['price_short'] }}</span>
+                        <span class="card-price-label">{{ ($prop['transaction_type'] ?? 'Jual') === 'Jual' ? 'HARGA PENAWARAN' : 'BIAYA SEWA' }}</span>
+                        <span class="card-price-val">{{ ($prop['transaction_type'] ?? 'Jual') === 'Sewa' ? str_replace(' / tahun', '/thn', $prop['price_short']) : $prop['price_short'] }}</span>
                     </div>
-                    <a href="{{ route('property.detail', $prop['slug']) }}" class="card-btn-detail">
-                        Lihat Detail
-                    </a>
+                    <div class="card-actions-group">
+                        <a href="https://wa.me/6281288992345?text=Halo%20Concierge%20Kumala,%20saya%20tertarik%20dengan%20unit%20{{ urlencode($prop['title']) }}%20({{ $prop['id'] }})." target="_blank" class="card-btn-wa" title="Tanya via WhatsApp">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        </a>
+                        <a href="{{ route('property.detail', $prop['slug']) }}" class="card-btn-detail">Lihat Detail</a>
+                    </div>
                 </div>
             </div>
         </div>

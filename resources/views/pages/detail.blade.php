@@ -63,7 +63,7 @@
     </div>
 
     <!-- Interactive Media Gallery Grid -->
-    <div class="gallery-grid" style="display: grid; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 230px 230px; gap: 14px; margin-bottom: 32px; border-radius: 14px; overflow: hidden; border: 1px solid var(--border-color);">
+    <div class="gallery-grid" style="margin-bottom: 32px; border-radius: 14px; overflow: hidden; border: 1px solid var(--border-color);">
         <!-- Main Image -->
         <div style="grid-column: 1 / 2; grid-row: 1 / 3; position: relative; overflow: hidden; background: #0E2238;">
             <img src="{{ $property['images'][0] ?? $property['image_main'] }}" alt="{{ $property['title'] }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;" class="gallery-hover-img">
@@ -146,7 +146,7 @@
     </div>
 
     <!-- Main Two-Column Layout -->
-    <div style="display: grid; grid-template-columns: 1fr 380px; gap: 40px; align-items: flex-start;">
+    <div class="detail-main-layout">
         
         <!-- Left Column: Specs, Description, Amenities, Maps -->
         <div>
@@ -304,6 +304,10 @@
                 <form id="inquiry-form" onsubmit="handleInquirySubmit(event)">
                     @csrf
                     <input type="hidden" name="property_id" value="{{ $property['id'] }}">
+                    <input type="hidden" name="property_title" value="{{ $property['title'] }}">
+                    <input type="hidden" name="property_price" value="{{ $property['price_short'] }}">
+                    <input type="hidden" name="property_slug" value="{{ $property['slug'] }}">
+                    <input type="hidden" name="buyer_type" id="inquiry-buyer-type" value="Calon Pembeli Eksklusif (HNWIs)">
 
                     <div style="margin-bottom: 14px;">
                         <label class="form-label-field">Nama Lengkap *</label>
@@ -427,10 +431,15 @@
                     </div>
                     <div class="card-footer">
                         <div class="card-price-block">
-                            <span class="card-price-label">{{ $rel['price_label'] }}</span>
-                            <span class="card-price-val">{{ $rel['price_short'] }}</span>
+                            <span class="card-price-label">{{ ($rel['transaction_type'] ?? 'Jual') === 'Jual' ? 'HARGA PENAWARAN' : 'BIAYA SEWA' }}</span>
+                            <span class="card-price-val">{{ ($rel['transaction_type'] ?? 'Jual') === 'Sewa' ? str_replace(' / tahun', '/thn', $rel['price_short']) : $rel['price_short'] }}</span>
                         </div>
-                        <a href="{{ route('property.detail', $rel['slug']) }}" class="card-btn-detail">Lihat</a>
+                        <div class="card-actions-group">
+                            <a href="https://wa.me/6281288992345?text=Halo%20Concierge%20Kumala,%20saya%20tertarik%20dengan%20unit%20{{ urlencode($rel['title']) }}%20({{ $rel['id'] }})." target="_blank" class="card-btn-wa" title="Tanya via WhatsApp">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            </a>
+                            <a href="{{ route('property.detail', $rel['slug']) }}" class="card-btn-detail">Lihat Detail</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -563,14 +572,17 @@ function setInquiryTab(type) {
     const tabBeli = document.getElementById('tab-beli');
     const tabSewa = document.getElementById('tab-sewa');
     const btnSubmit = document.getElementById('btn-submit-inquiry');
+    const buyerTypeInput = document.getElementById('inquiry-buyer-type');
 
     if (type === 'beli') {
         tabBeli.classList.add('active');
         tabSewa.classList.remove('active');
+        if (buyerTypeInput) buyerTypeInput.value = 'Calon Pembeli Eksklusif (HNWIs)';
         btnSubmit.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><span>Kirim Pengajuan Minat Beli</span>`;
     } else {
         tabSewa.classList.add('active');
         tabBeli.classList.remove('active');
+        if (buyerTypeInput) buyerTypeInput.value = 'Calon Penyewa Eksklusif';
         btnSubmit.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><span>Kirim Pengajuan Minat Sewa</span>`;
     }
 }
@@ -578,15 +590,42 @@ function setInquiryTab(type) {
 function handleInquirySubmit(e) {
     e.preventDefault();
     const btn = document.getElementById('btn-submit-inquiry');
+    const form = document.getElementById('inquiry-form');
     btn.disabled = true;
     btn.innerHTML = '<span>Mengirim permohonan...</span>';
 
-    setTimeout(() => {
-        showToast('Pengajuan minat & permohonan survei Anda berhasil dikirim! Private Client Concierge kami akan menghubungi Anda segera (SLA < 15 menit).');
-        document.getElementById('inquiry-form').reset();
+    const formData = new FormData(form);
+
+    fetch('{{ route('inquiry.submit') }}', {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showToast(`Pengajuan berhasil dikirim dengan ID ${data.lead_id}! Concierge kami akan menghubungi via WhatsApp dalam < 15 menit.`);
+            form.reset();
+            btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><span>Pengajuan Terkirim (${data.lead_id}) ✓</span>`;
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><span>Kirim Pengajuan Minat Beli</span>`;
+            }, 5000);
+        } else {
+            showToast(data.message || 'Gagal mengirim pengajuan. Silakan hubungi via WhatsApp hotline.');
+            btn.disabled = false;
+            btn.innerHTML = '<span>Kirim Ulang Pengajuan</span>';
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        showToast('Terjadi gangguan jaringan. Silakan hubungi via WhatsApp hotline kami.');
         btn.disabled = false;
-        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><span>Pengajuan Berhasil Terkirim ✓</span>`;
-    }, 800);
+        btn.innerHTML = '<span>Kirim Ulang Pengajuan</span>';
+    });
 }
 </script>
 @endsection

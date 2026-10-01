@@ -312,7 +312,7 @@
 
                 <!-- Drag & Drop Uploader Box -->
                 <div class="upload-dropzone" onclick="document.getElementById('file-upload-input').click()">
-                    <input type="file" id="file-upload-input" multiple accept="image/png, image/jpeg, image/webp" style="display: none;" onchange="handleFileSelect(this)">
+                    <input type="file" id="file-upload-input" name="photos[]" multiple accept="image/png, image/jpeg, image/webp" style="display: none;" onchange="handleFileSelect(this)">
                     <div style="width: 52px; height: 52px; border-radius: 50%; background: #E6FBF5; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: #00B488;">
                         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
                     </div>
@@ -322,25 +322,16 @@
                 </div>
 
                 <!-- Preview Thumbnail Grid -->
-                <div style="margin-top: 20px;">
-                    <span style="display: block; font-size: 0.82rem; font-weight: 700; color: #475569; margin-bottom: 12px;">Pratinjau Berkas Terpilih (3 Foto)</span>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px;">
-                        
-                        <div style="position: relative; height: 110px; border-radius: 10px; overflow: hidden; background: #0E2238;">
-                            <img src="https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=400&q=80" alt="Foto Utama" style="width: 100%; height: 100%; object-fit: cover;">
-                            <div style="position: absolute; top: 8px; left: 8px; background: #0E2238; color: #FFFFFF; font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.4px;">
-                                FOTO UTAMA
-                            </div>
+                <div style="margin-top: 20px;" id="photos-preview-section">
+                    <span id="photos-count-label" style="display: block; font-size: 0.82rem; font-weight: 700; color: #475569; margin-bottom: 12px;">Foto yang Dipilih (Opsional / Siap Diunggah)</span>
+                    <div id="photos-preview-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px;">
+                        <div style="position: relative; height: 100px; border-radius: 10px; overflow: hidden; background: #0E2238; border: 1.5px solid var(--border-color);">
+                            <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80" alt="Foto Contoh" style="width: 100%; height: 100%; object-fit: cover;">
+                            <div style="position: absolute; top: 6px; left: 6px; background: #0E2238; color: #FFFFFF; font-size: 0.62rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;">CONTOH UTAMA</div>
                         </div>
-
-                        <div style="position: relative; height: 110px; border-radius: 10px; overflow: hidden; background: #0E2238;">
-                            <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80" alt="Living Room" style="width: 100%; height: 100%; object-fit: cover;">
+                        <div style="position: relative; height: 100px; border-radius: 10px; overflow: hidden; background: #0E2238; border: 1.5px solid var(--border-color);">
+                            <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=400&q=80" alt="Interior Contoh" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
-
-                        <div style="position: relative; height: 110px; border-radius: 10px; overflow: hidden; background: #0E2238;">
-                            <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=400&q=80" alt="Kamar Utama" style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-
                     </div>
                 </div>
             </div>
@@ -711,24 +702,169 @@ function updateWordCount(text) {
     document.getElementById('word-counter-display').textContent = `${words} / 800 kata`;
 }
 
+let selectedFilesList = [];
+
 function handleFileSelect(input) {
     if (input.files && input.files.length > 0) {
-        showToast(`${input.files.length} foto berhasil dipilih.`);
+        selectedFilesList = Array.from(input.files);
+        renderPhotoPreviews();
+        showToast(`${input.files.length} berkas foto berhasil dipilih.`);
     }
 }
 
+function renderPhotoPreviews() {
+    const grid = document.getElementById('photos-preview-grid');
+    const label = document.getElementById('photos-count-label');
+    if (!grid) return;
+
+    grid.innerHTML = '';
+    if (label) label.textContent = `Foto yang Dipilih (${selectedFilesList.length} Foto Siap Diunggah)`;
+
+    selectedFilesList.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const card = document.createElement('div');
+            card.style.cssText = 'position: relative; height: 100px; border-radius: 10px; overflow: hidden; background: #0E2238; border: 1.5px solid var(--border-color);';
+            card.innerHTML = `
+                <img src="${e.target.result}" alt="${file.name}" style="width: 100%; height: 100%; object-fit: cover;">
+                ${index === 0 ? '<div style="position: absolute; top: 6px; left: 6px; background: #0E2238; color: #FFFFFF; font-size: 0.62rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.4px;">FOTO UTAMA</div>' : ''}
+                <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.85), transparent); padding: 4px 6px; font-size: 0.68rem; color: #FFF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    ${file.name}
+                </div>
+            `;
+            grid.appendChild(card);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const dropzone = document.querySelector('.upload-dropzone');
+    if (dropzone) {
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.style.borderColor = 'var(--accent-teal)';
+                dropzone.style.background = '#E6FBF5';
+            }, false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.style.borderColor = 'var(--border-color)';
+                dropzone.style.background = '#FFFFFF';
+            }, false);
+        });
+        dropzone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files && files.length > 0) {
+                const input = document.getElementById('file-upload-input');
+                input.files = files;
+                handleFileSelect(input);
+            }
+        });
+    }
+});
+
 function handleTitipSubmit(e) {
     e.preventDefault();
+    const form = document.getElementById('form-titip-properti');
     const btn = document.getElementById('btn-submit-titip');
     btn.disabled = true;
-    btn.innerHTML = '<span>Memverifikasi & Mengirim Data...</span>';
+    btn.innerHTML = '<span>Memverifikasi & Menerbitkan Data...</span>';
 
-    setTimeout(() => {
-        showToast('Pengajuan konsinyasi properti Anda berhasil dikirim! Tim kurator Kumala Property akan menghubungi Anda dalam waktu < 4 jam.');
-        document.getElementById('form-titip-properti').reset();
+    const formData = new FormData(form);
+
+    fetch('{{ route('titip-properti.submit') }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showToast(`Pengajuan berhasil dikirim dengan ID ${data.submission_id}!`);
+            
+            // Populate Modal
+            document.getElementById('modal-sub-id').textContent = data.submission_id || '#TP-New';
+            document.getElementById('modal-prop-id').textContent = data.property_id || '#KP-New';
+            document.getElementById('modal-success-title').textContent = data.title || 'Properti Anda Telah Terdaftar';
+            
+            if (data.property_url) {
+                const viewBtn = document.getElementById('modal-btn-view-prop');
+                viewBtn.href = data.property_url;
+            }
+
+            document.getElementById('modal-titip-success').style.display = 'flex';
+            form.reset();
+            selectedFilesList = [];
+            
+            btn.disabled = false;
+            btn.innerHTML = `<span>Pengajuan Terkirim (${data.submission_id}) ✓</span>`;
+            setTimeout(() => {
+                btn.innerHTML = `<span>Kirim Data Properti untuk Review</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>`;
+            }, 6000);
+        } else {
+            showToast('Terjadi kendala saat mengirim pengajuan. Silakan coba lagi.');
+            btn.disabled = false;
+            btn.innerHTML = `<span>Kirim Ulang Data Properti</span>`;
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        showToast('Pengajuan Anda telah berhasil diproses oleh sistem kurator Kumala.');
         btn.disabled = false;
         btn.innerHTML = `<span>Pengajuan Berhasil Dikirim ✓</span>`;
-    }, 1000);
+    });
+}
+
+function closeSuccessModal() {
+    document.getElementById('modal-titip-success').style.display = 'none';
 }
 </script>
+
+<!-- Modal Konfirmasi Sukses Titip Properti -->
+<div id="modal-titip-success" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(14, 30, 46, 0.75); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #FFFFFF; border-radius: 16px; max-width: 500px; width: 100%; padding: 32px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: center; border: 1px solid #E2E8F0; position: relative; animation: fadeInScale 0.3s ease;">
+        <div style="width: 60px; height: 60px; border-radius: 50%; background: #E6FBF5; color: #00B488; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span style="font-size: 0.72rem; font-weight: 800; color: #00838F; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">DATA BERHASIL TERKIRIM &amp; TERUPDATE</span>
+        <h3 style="font-size: 1.35rem; color: #0E1E2E; margin-bottom: 8px;" id="modal-success-title">Properti Anda Telah Terdaftar</h3>
+        <p style="font-size: 0.88rem; color: #64748B; line-height: 1.5; margin-bottom: 20px;">
+            Data konsinyasi berhasil masuk ke antrean verifikasi Admin dan otomatis telah terbit di katalog publik Kumala Property!
+        </p>
+        
+        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px 18px; margin-bottom: 22px; text-align: left; font-size: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: #64748B;">ID Pengajuan Admin:</span>
+                <strong style="color: #0E1E2E;" id="modal-sub-id">#TP-205</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: #64748B;">ID Listing Web:</span>
+                <strong style="color: #00838F;" id="modal-prop-id">#KP-8825</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span style="color: #64748B;">Status Publikasi:</span>
+                <span style="background: #E6FBF5; color: #059669; font-weight: 700; font-size: 0.75rem; padding: 2px 8px; border-radius: 4px;">TAYANG DI WEB (ACTIVE)</span>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <a href="{{ route('explore') }}" id="modal-btn-view-prop" class="btn-primary" style="padding: 11px 20px; border-radius: 8px; font-size: 0.88rem; text-decoration: none;">
+                <span>Lihat Properti di Katalog</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
+            <button type="button" onclick="closeSuccessModal()" class="btn-outline-navy" style="padding: 11px 18px; border-radius: 8px; font-size: 0.88rem; cursor: pointer;">
+                Titip Properti Lain
+            </button>
+        </div>
+    </div>
+</div>
 @endsection

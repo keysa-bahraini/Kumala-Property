@@ -26,56 +26,63 @@
    - Card konsultasi properti *off-market*.
 
 3. **[Detail Properti](resources/views/pages/detail.blade.php)** (`/properti/{slug}`):
-   - Media gallery grid 5 foto resolusi tinggi dengan trigger tur 18 foto.
+   - Media gallery grid resolusi tinggi.
    - Key specs bar (KT, KM, LT, LB, status furnishing).
-   - Factsheet download center (PDF denah & rekam legalitas).
    - Spesifikasi arsitektural teknis & estimasi waktu akses landmark.
-   - Sticky concierge inquiry form (minat beli vs minat sewa).
+   - Sticky concierge inquiry form (tersambung ke CRM Leads Admin).
 
 4. **[Titip Properti / Konsinyasi](resources/views/pages/titip-properti.blade.php)** (`/titip-properti`):
-   - Wizard multi-tahap (Step 01 - 05): Data Pemilik, Detail Properti, Spek Teknis, Deskripsi (live word counter), dan Drag & Drop Foto Uploader dengan tag *FOTO UTAMA*.
-   - Generator teks rupiah terbilang otomatis (*"Terbilang: Rp 15 Miliar"*).
-   - Pernyataan persetujuan legalitas & komisi standar (2-3%).
-   - Sidebar alur kerja konsinyasi dan standar kurasi Kumala.
+   - Wizard multi-tahap (Step 01 - 05): Data Pemilik, Detail Properti, Spek Teknis, Deskripsi, dan Drag & Drop Foto Uploader.
+   - Pengiriman form otomatis masuk ke antrean verifikasi Admin (`/admin/listing-masuk`) dan seketika terbit di katalog publik (`/explore`).
+
+5. **[Properti Favorit](resources/views/pages/favorites.blade.php)** (`/favorit`):
+   - Grid kartu favorit dengan sinkronisasi *localStorage*.
+   - Filter transaksi Jual/Sewa, modal komparasi multi-unit, dan hotline WhatsApp concierge.
+
+6. **[Tentang Kami & Kontak](resources/views/pages/about.blade.php)** (`/tentang-kami`):
+   - Profil kuratorial, 6 pilar keunggulan, kantor operasional Jakarta & Bali, serta form kontak langsung.
 
 ---
 
-## 📖 Dokumentasi Lengkap
+## 🛡️ Fitur Admin Suite (Internal Backoffice Portal)
 
-Untuk panduan mendalam seputar arsitektur, instalasi lokal, pengujian otomatis, dan spesifikasi desain:
-* 📄 **[DOKUMENTASI.md](DOKUMENTASI.md)**: Panduan Teknis & Arsitektur Lengkap (Bahasa Indonesia).
-* 📋 **[prd.md](prd.md)**: Product Requirement Document (PRD) versi 2.4.
+Portal admin yang bersih, modern, dan **100% bebas emoji** (menggunakan SVG Icons arsitektural):
+
+* **Halaman 7: Login Admin** (`/admin/login`): Kredensial default: `admin@kumalaproperty.id` / password: `admin` (atau `password123`).
+* **Halaman 8: Dashboard Operasional** (`/admin/dashboard`): Matriks portofolio, Priority Action SLA alert dinamis, distribusi tipe aset, dan audit log.
+* **Halaman 9: Master Inventory Properti** (`/admin/properti`): Filter status (ACTIVE, SOLD, RENTED, INACTIVE), pencarian keyword, penambahan unit modal, dan aksi delete aman.
+* **Halaman 10: Gatekeeper Listing Masuk** (`/admin/listing-masuk`): Antrean pengajuan dari halaman Titip Properti dengan kartu inspeksi lengkap, checklist verifikasi, tombol WhatsApp pemilik, serta persetujuan kuratorial.
+* **Halaman 11: Riwayat Closing & Transaksi** (`/admin/riwayat-transaksi`): Arsip transaksi jual beli dan sewa yang telah selesai tanpa label pihak ketiga.
+* **Halaman 12: Lead Pipeline CRM** (`/admin/inquiry`): Manajemen calon pembeli/penyewa (Baru -> Follow-up -> Survei -> Closing) dan penjadwalan survei lokasi harian.
+* **Halaman 13: Pengaturan Master Sistem** (`/admin/pengaturan`): Konfigurasi kontak hotline WhatsApp resmi, alamat kantor pusat & cabang, rate komisi, dan audit trail.
 
 ---
 
-## 💻 Cara Menjalankan Proyek
+## 🗄️ Arsitektur Data (*KumalaDataHub*)
+
+Platform ini menggunakan sistem data store lokal terpadu:
+* **Engine**: [`app/Services/KumalaDataHub.php`](app/Services/KumalaDataHub.php)
+* **Master Store**: [`storage/app/kumala_store.json`](storage/app/kumala_store.json)
+* Menghubungkan secara instan semua aksi di frontend publik ke admin portal tanpa memerlukan migrasi database SQL eksternal.
+
+---
+
+## 💻 Panduan Menjalankan Proyek (Untuk Rekan Tim)
 
 ```bash
 # 1. Pastikan dependensi telah terinstal
 composer install
 npm install
 
-# 2. Generate Application Key jika belum ada
+# 2. Salin .env dan generate Application Key (jika belum ada)
+cp .env.example .env
 php artisan key:generate
 
 # 3. Jalankan server lokal
 php artisan serve
 ```
 
-Akses aplikasi pada peramban melalui `http://127.0.0.1:8000`.
+Akses aplikasi pada peramban melalui:
+* Public Portal: `http://127.0.0.1:8000`
+* Admin Portal: `http://127.0.0.1:8000/admin` (Email: `admin@kumalaproperty.id`, Password: `admin`)
 
----
-
-## 🧪 Pengujian Otomatis (*Automated Testing*)
-
-Jalankan perintah pengujian seluruh rute halaman publik:
-```bash
-php artisan test
-```
-*Hasil: 5 passed (13 assertions) - Status 100% OK.*
-
----
-
-## 🔒 Keamanan Repositori Git
-
-File kredensial `.env` dan konfigurasi `.gitignore` di-exclude secara aman pada level lokal melalui `.git/info/exclude`, sehingga **tidak pernah terunggah ke repositori publik**.

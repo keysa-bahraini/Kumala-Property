@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Master CSS -->
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}?v={{ file_exists(public_path('css/style.css')) ? filemtime(public_path('css/style.css')) : time() }}">
     @yield('styles')
 </head>
 <body>
@@ -64,15 +64,82 @@
                 </button>
 
                 <!-- WhatsApp CTA -->
-                <a href="https://wa.me/6281288992345?text=Halo%20Kumala%20Property,%20saya%20tertarik%20dengan%20properti%20eksklusif%20Anda." target="_blank" class="btn-cta-whatsapp" id="btn-header-wa">
+                @php
+                    $hotlineRaw = $globalSettings['hotline_wa'] ?? '0812-8888-2900';
+                    $hotlineClean = preg_replace('/[^0-9]/', '', $hotlineRaw);
+                    if (substr($hotlineClean, 0, 1) === '0') {
+                        $hotlineClean = '62' . substr($hotlineClean, 1);
+                    }
+                @endphp
+                <a href="https://wa.me/{{ $hotlineClean }}?text=Halo%20Kumala%20Property,%20saya%20tertarik%20dengan%20properti%20eksklusif%20Anda." target="_blank" class="btn-cta-whatsapp" id="btn-header-wa">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                     </svg>
                     <span>Hubungi Kami</span>
                 </a>
+                <!-- Mobile Nav Toggle -->
+                <button type="button" class="mobile-nav-toggle" onclick="openMobileNav()" title="Buka Menu Navigasi">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
             </div>
         </div>
     </header>
+
+    <!-- Mobile Navigation Drawer -->
+    <div class="mobile-nav-backdrop" id="mobile-nav-backdrop" onclick="closeMobileNav()"></div>
+    <div class="mobile-nav-drawer" id="mobile-nav-drawer">
+        <div class="mobile-nav-header">
+            <div class="brand-logo">
+                <div class="brand-icon-box">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-title">KUMALA PROPERTY</span>
+                    <span class="brand-subtitle">JUAL & SEWA PROPERTI</span>
+                </div>
+            </div>
+            <button type="button" class="mobile-nav-close" onclick="closeMobileNav()" title="Tutup Menu">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+
+        <div class="mobile-nav-links">
+            <a href="{{ route('home') }}" class="mobile-nav-link {{ request()->routeIs('home') ? 'active' : '' }}" onclick="closeMobileNav()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                <span>Beranda</span>
+            </a>
+            <a href="{{ route('explore') }}" class="mobile-nav-link {{ request()->routeIs('explore') ? 'active' : '' }}" onclick="closeMobileNav()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/></svg>
+                <span>Explore Property</span>
+            </a>
+            <a href="{{ route('titip-properti') }}" class="mobile-nav-link {{ request()->routeIs('titip-properti*') ? 'active' : '' }}" onclick="closeMobileNav()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/></svg>
+                <span>Titip Property</span>
+            </a>
+            <a href="{{ route('favorites') }}" class="mobile-nav-link {{ request()->routeIs('favorites') ? 'active' : '' }}" onclick="closeMobileNav()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                <span>Favorit Saya</span>
+            </a>
+            <a href="{{ route('about') }}" class="mobile-nav-link {{ request()->routeIs('about') ? 'active' : '' }}" onclick="closeMobileNav()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <span>Tentang Kami & Kontak</span>
+            </a>
+            <a href="{{ route('admin.login') }}" class="mobile-nav-link" onclick="closeMobileNav()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span>Portal Admin</span>
+            </a>
+        </div>
+
+        <div class="mobile-nav-footer">
+            <a href="https://wa.me/{{ $hotlineClean }}?text=Halo%20Kumala%20Property,%20saya%20tertarik%20dengan%20properti%20eksklusif%20Anda." target="_blank" class="btn-mobile-nav-wa">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>Hubungi WhatsApp Concierge</span>
+            </a>
+        </div>
+    </div>
 
     <!-- ======================================================================
          Main Content Body
@@ -125,38 +192,33 @@
 
                 <!-- Col 3: Kontak & Kantor -->
                 <div class="footer-col-contact">
-                    <h4 class="footer-col-title">Kontak & Kantor</h4>
+                    <h4 class="footer-col-title">Kontak &amp; Kantor</h4>
                     <div class="footer-contact-item">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                        <span>Jl. Kemang Raya No. 42, Mampang Prapatan, Jakarta Selatan 12730</span>
+                        <span>{{ $globalSettings['address'] ?? 'Kumala Tower Lt. 5, Jl. TB Simatupang No. 18, Jakarta Selatan 12430' }}</span>
                     </div>
                     <div class="footer-contact-item">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                        <span>+62 812-8899-2345 (WhatsApp Active)</span>
+                        <span>{{ $globalSettings['hotline_wa'] ?? '+62 812-8888-2900' }} (WhatsApp Active)</span>
                     </div>
                     <div class="footer-contact-item">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                        <span>concierge@kumalaproperty.id</span>
+                        <span>{{ $globalSettings['email_cs'] ?? 'cs@kumalaproperty.co.id' }}</span>
                     </div>
                 </div>
 
                 <!-- Col 4: Jam Operasional -->
                 <div class="footer-col-hours">
                     <h4 class="footer-col-title">Jam Operasional</h4>
-                    <div style="display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 8px;">
-                        <span>Senin - Jumat</span>
-                        <strong style="color: #FFFFFF;">08.30 - 18.00 WIB</strong>
+                    <div style="font-size: 0.88rem; color: #CBD5E1; margin-bottom: 8px;">
+                        <span>Hari Kerja &amp; Pelayanan:</span>
+                        <strong style="color: #FFFFFF; display: block; margin-top: 2px;">{{ $globalSettings['office_hours'] ?? 'Senin - Sabtu: 08:30 - 18:00 WIB' }}</strong>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 8px;">
-                        <span>Sabtu</span>
-                        <strong style="color: #FFFFFF;">09.00 - 15.00 WIB</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 16px;">
-                        <span>Minggu / Libur</span>
-                        <span style="color: var(--accent-teal);">Dengan Janji Temu</span>
+                    <div style="font-size: 0.88rem; margin-bottom: 16px;">
+                        <span style="color: var(--accent-teal);">Minggu / Libur: Dengan Janji Temu</span>
                     </div>
 
-                    <a href="https://wa.me/6281288992345?text=Halo%20Kumala%20Property,%20saya%20ingin%20menjadwalkan%20Private%20Tour." target="_blank" class="footer-btn-tour">
+                    <a href="https://wa.me/{{ $hotlineClean }}?text=Halo%20Kumala%20Property,%20saya%20ingin%20menjadwalkan%20Private%20Tour." target="_blank" class="footer-btn-tour">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
                         <span>Jadwalkan Private Tour</span>
                     </a>
@@ -184,8 +246,51 @@
         <span id="toast-message" style="font-size: 0.92rem; font-weight: 500;"></span>
     </div>
 
+    <!-- Mobile Sticky Bottom Navigation -->
+    <nav class="mobile-bottom-nav">
+        <a href="{{ route('home') }}" class="mobile-bottom-item {{ request()->routeIs('home') ? 'active' : '' }}">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            <span>Beranda</span>
+        </a>
+        <a href="{{ route('explore') }}" class="mobile-bottom-item {{ request()->routeIs('explore') ? 'active' : '' }}">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <span>Eksplor</span>
+        </a>
+        <a href="{{ route('titip-properti') }}" class="mobile-bottom-item {{ request()->routeIs('titip-properti*') ? 'active' : '' }}">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            <span>Titip</span>
+        </a>
+        <a href="{{ route('favorites') }}" class="mobile-bottom-item {{ request()->routeIs('favorites') ? 'active' : '' }}">
+            <div style="position: relative; display: inline-flex;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                <span class="mobile-bottom-badge" id="mobile-fav-count-badge">3</span>
+            </div>
+            <span>Favorit</span>
+        </a>
+        <button type="button" class="mobile-bottom-item" onclick="openMobileNav()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            <span>Menu</span>
+        </button>
+    </nav>
+
     <!-- Client Script for Favorites and Global Interactions -->
     <script>
+        function openMobileNav() {
+            const drawer = document.getElementById('mobile-nav-drawer');
+            const backdrop = document.getElementById('mobile-nav-backdrop');
+            if (drawer) drawer.classList.add('open');
+            if (backdrop) backdrop.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileNav() {
+            const drawer = document.getElementById('mobile-nav-drawer');
+            const backdrop = document.getElementById('mobile-nav-backdrop');
+            if (drawer) drawer.classList.remove('open');
+            if (backdrop) backdrop.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
         // Favorite Management using LocalStorage
         function getFavorites() {
             try {
@@ -227,9 +332,10 @@
         function updateFavoriteCounter() {
             const favs = getFavorites();
             const badge = document.getElementById('fav-count-badge');
-            if (badge) {
-                badge.textContent = favs.length;
-            }
+            const mobileBadge = document.getElementById('mobile-fav-count-badge');
+            if (badge) badge.textContent = favs.length;
+            if (mobileBadge) mobileBadge.textContent = favs.length;
+
             // Sync all heart buttons on page
             document.querySelectorAll('[data-fav-id]').forEach(btn => {
                 const id = btn.getAttribute('data-fav-id');

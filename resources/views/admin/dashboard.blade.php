@@ -3,234 +3,360 @@
 @section('title', 'Admin Dashboard - Kumala Property')
 
 @section('content')
-<div>
+<div style="display: flex; flex-direction: column; gap: 24px;">
 
-    <!-- Operational Summary Banner -->
-    <div style="background: linear-gradient(135deg, #0E2238 0%, #162E4A 100%); border-radius: 14px; padding: 28px 32px; color: #FFFFFF; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin-bottom: 28px; box-shadow: var(--shadow-sm); border: 1px solid rgba(255, 255, 255, 0.08);">
+    <!-- 1. Operational Hero Banner -->
+    <div style="background: linear-gradient(135deg, #0C1E32 0%, #102A45 100%); border-radius: 14px; padding: 26px 30px; color: #FFFFFF; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; box-shadow: 0 4px 20px rgba(12, 30, 50, 0.08); border: 1px solid rgba(255, 255, 255, 0.08);">
         <div>
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                <span class="badge-tag badge-tag-teal" style="font-size: 0.72rem;">SISTEM OPERASIONAL AKTIF</span>
-                <span style="font-size: 0.78rem; color: #94A3B8;">Pembaruan Terakhir: {{ date('d M Y, H:i') }} WIB</span>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                <span style="background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255,255,255,0.15); color: #E2E8F0; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.8px; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">
+                    RINGKASAN OPERASIONAL
+                </span>
+                <span style="font-size: 0.78rem; color: #94A3B8; display: inline-flex; align-items: center; gap: 5px;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                    {{ date('l, d F Y') }}
+                </span>
             </div>
-            <h1 style="font-size: 1.75rem; color: #FFFFFF; margin-bottom: 6px; font-weight: 800;">
-                Selamat Datang Kembali, {{ session('admin_user.name', 'Aditya Pratama') }}
+            <h1 style="font-size: 1.85rem; font-weight: 800; color: #FFFFFF; margin: 4px 0 6px 0; letter-spacing: -0.02em;">
+                Selamat datang Admin!
             </h1>
-            <p style="font-size: 0.9rem; color: #CBD5E1; max-width: 680px; line-height: 1.5;">
-                Pantau antrean kurasi listing masuk, SLA respon prospek investor VIP, serta progres audit transaksi closing notarial hari ini.
+            <p style="font-size: 0.88rem; color: #CBD5E1; margin: 0; line-height: 1.5;">
+                Ada {{ $metrics['pending_review'] ?? 0 }} pengajuan listing baru dan {{ $metrics['new_inquiries'] ?? 0 }} pesan inquiry yang siap diverifikasi &amp; ditindaklanjuti.
             </p>
         </div>
 
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <button type="button" class="btn-outline-white" style="padding: 10px 18px; font-size: 0.85rem; border-radius: 8px; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2);" onclick="showToast('Mengunduh Laporan Operasional Harian (.CSV)...')">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+            <button type="button" class="btn-banner-action" onclick="showToast('Mengekspor Laporan Operasional Harian (.CSV)...')">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
                 <span>Ekspor Laporan Harian</span>
             </button>
-            <a href="{{ route('titip-properti') }}" target="_blank" class="btn-teal" style="padding: 10px 18px; font-size: 0.85rem; border-radius: 8px;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <a href="{{ route('admin.properties', ['action' => 'add']) }}" class="btn-banner-primary">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="16"/><line x1="8" x2="16" y1="12" y2="12"/></svg>
                 <span>+ Input Properti Baru</span>
             </a>
         </div>
     </div>
 
-    <!-- KPI Metrics Grid (4 Cards) -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 32px;">
+    <!-- 2. KPI Metrics Grid (4 Cards) -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px;" id="metrics-grid">
         
         <!-- Metric 1: Properti Aktif Tayang -->
         <div class="kpi-card">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                 <span class="kpi-label">Properti Aktif Tayang</span>
-                <div class="kpi-icon-box" style="background: #EBF1F5; color: var(--primary-navy);">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <div class="kpi-icon-box" style="background: #E0F7FA; color: #00838F;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><line x1="9" x2="9" y1="22" y2="22"/><line x1="9" x2="9" y1="6" y2="6"/><line x1="15" x2="15" y1="6" y2="6"/><line x1="9" x2="9" y1="10" y2="10"/><line x1="15" x2="15" y1="10" y2="10"/><line x1="9" x2="9" y1="14" y2="14"/><line x1="15" x2="15" y1="14" y2="14"/><line x1="9" x2="9" y1="18" y2="18"/><line x1="15" x2="15" y1="18" y2="18"/></svg>
                 </div>
             </div>
-            <div class="kpi-value">{{ $metrics['active_units'] }} <span style="font-size: 1rem; font-weight: 500; color: #64748B;">Unit</span></div>
-            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">
-                <span>{{ $metrics['active_jual'] }} Jual • {{ $metrics['active_sewa'] }} Sewa</span>
-                <strong style="color: #059669;">{{ $metrics['active_growth'] }}</strong>
+            <div class="kpi-value-row">
+                <span class="kpi-number">{{ $metrics['active_units'] ?? count($properties) }}</span>
+                <span class="kpi-unit">Unit Aktif</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; color: #64748B; margin-top: 10px; margin-bottom: 8px;">
+                <span style="color: #059669; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                    Katalog Terbit
+                </span>
+                <span>{{ $metrics['active_jual'] ?? 6 }} Jual &bull; {{ $metrics['active_sewa'] ?? 3 }} Sewa</span>
+            </div>
+            <!-- Dual progress bar -->
+            <div style="height: 5px; background: #E2E8F0; border-radius: 4px; display: flex; overflow: hidden;">
+                <div style="width: 65%; background: #00838F;"></div>
+                <div style="width: 35%; background: #67E8F9;"></div>
             </div>
         </div>
 
-        <!-- Metric 2: Menunggu Review Kurasi -->
+        <!-- Metric 2: Menunggu Review -->
         <div class="kpi-card">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                <span class="kpi-label">Menunggu Review Kurasi</span>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                <span class="kpi-label">Menunggu Review</span>
                 <div class="kpi-icon-box" style="background: #FEF3C7; color: #D97706;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/></svg>
                 </div>
             </div>
-            <div class="kpi-value" style="color: #D97706;">{{ $metrics['pending_review'] }} <span style="font-size: 1rem; font-weight: 500; color: #64748B;">Berkas</span></div>
-            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">
-                <span>Target SLA &lt; 4 Jam</span>
-                <span style="color: #D97706; font-weight: 600;">Perlu Tindakan Segera</span>
+            <div class="kpi-value-row">
+                <span class="kpi-number">{{ $metrics['pending_review'] ?? 0 }}</span>
+                <span class="kpi-unit">Pengajuan</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; margin-top: 14px;">
+                <span style="display: inline-flex; align-items: center; gap: 6px; color: #475569; font-weight: 500;">
+                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #D97706; display: inline-block;"></span>
+                    Titip Properti
+                </span>
+                <a href="{{ route('admin.submissions') }}" style="color: #00838F; font-weight: 700; text-decoration: none;">Tinjau Antrean &rarr;</a>
             </div>
         </div>
 
         <!-- Metric 3: Inquiry Baru Masuk -->
         <div class="kpi-card">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                 <span class="kpi-label">Inquiry Baru Masuk</span>
-                <div class="kpi-icon-box" style="background: #E6FBF5; color: var(--accent-teal);">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <div class="kpi-icon-box" style="background: #E0F7FA; color: #00838F;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 </div>
             </div>
-            <div class="kpi-value" style="color: var(--accent-teal-dark);">{{ $metrics['new_inquiries'] }} <span style="font-size: 1rem; font-weight: 500; color: #64748B;">Prospek</span></div>
-            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">
-                <span>Avg. SLA Respons Tim</span>
-                <strong style="color: #059669;">{{ $metrics['avg_sla_minutes'] }} Menit (Cepat)</strong>
+            <div class="kpi-value-row">
+                <span class="kpi-number">{{ $metrics['new_inquiries'] ?? 0 }}</span>
+                <span class="kpi-unit">Prospek Klien</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; margin-top: 14px;">
+                <span style="background: #E0F7FA; color: #00838F; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.72rem;">SLA &lt; 15 Mnt</span>
+                <a href="{{ route('admin.inquiries') }}" style="color: #00838F; font-weight: 700; text-decoration: none;">Buka Leads &rarr;</a>
             </div>
         </div>
 
         <!-- Metric 4: Closing Bulan Ini -->
         <div class="kpi-card">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                <span class="kpi-label">Closing Bulan Ini</span>
-                <div class="kpi-icon-box" style="background: #F1F5F9; color: var(--primary-navy);">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                <span class="kpi-label">Closing Transaksi</span>
+                <div class="kpi-icon-box" style="background: #E6FBF5; color: #059669;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
                 </div>
             </div>
-            <div class="kpi-value">{{ $metrics['closing_month_units'] }} <span style="font-size: 1rem; font-weight: 500; color: #64748B;">Deal</span></div>
-            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">
-                <span>{{ $metrics['closing_month_val'] }}</span>
-                <strong style="color: var(--primary-navy);">{{ $metrics['closing_target_pct'] }}% Target</strong>
+            <div class="kpi-value-row">
+                <span class="kpi-number">{{ $metrics['closing_month_units'] ?? 0 }}</span>
+                <span class="kpi-unit" style="font-size: 0.78rem; max-width: 100px; line-height: 1.2;">Unit Selesai</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; color: #64748B; margin-top: 10px; margin-bottom: 8px;">
+                <strong style="color: #0F172A; font-size: 0.82rem;">{{ $metrics['closing_month_val'] ?? 'Rp 18.4 Miliar' }}</strong>
+                <a href="{{ route('admin.transactions') }}" style="color: #059669; font-weight: 700; text-decoration: none;">Lihat Arsip</a>
+            </div>
+            <!-- Progress bar -->
+            <div style="height: 5px; background: #E2E8F0; border-radius: 4px; overflow: hidden;">
+                <div style="width: 85%; height: 100%; background: #0E1E2E; border-radius: 4px;"></div>
             </div>
         </div>
 
     </div>
 
-    <!-- Priority Action Inbox ("Perlu Ditindaklanjuti Segera") -->
-    <div style="background: #FFFFFF; border: 1px solid var(--border-color); border-radius: 14px; padding: 26px 30px; margin-bottom: 32px; box-shadow: var(--shadow-sm);">
+    <!-- 3. Priority Actions Section ("Perlu Ditindaklanjuti Segera") -->
+    <div style="background: #FFFFFF; border: 1px solid var(--admin-border-subtle); border-radius: 14px; padding: 24px 28px; box-shadow: 0 1px 4px rgba(0,0,0,0.02);">
+        @php
+            $countAll = count($priorityActions);
+            $countListing = count(array_filter($priorityActions, fn($a) => ($a['category'] ?? '') === 'listing'));
+            $countInquiry = count(array_filter($priorityActions, fn($a) => ($a['category'] ?? '') === 'inquiry'));
+            $countClosing = count(array_filter($priorityActions, fn($a) => ($a['category'] ?? '') === 'closing'));
+        @endphp
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 20px;">
             <div>
-                <span class="badge-tag badge-tag-teal" style="font-size: 0.72rem; margin-bottom: 4px;">ANTREAN KERJA PRIORITAS</span>
-                <h2 style="font-size: 1.35rem; color: var(--primary-navy); font-weight: 700;">Perlu Ditindaklanjuti Segera</h2>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #EF4444; display: inline-block;"></span>
+                    <h2 style="font-size: 1.15rem; color: #0E1E2E; font-weight: 800; margin: 0;">Perlu Ditindaklanjuti Segera</h2>
+                </div>
+                <p style="font-size: 0.8rem; color: #64748B; margin: 4px 0 0 16px;">
+                    Daftar item prioritas tinggi yang membutuhkan keputusan atau interaksi admin hari ini.
+                </p>
             </div>
 
-            <!-- Inbox Tabs -->
-            <div style="display: flex; background: #F1F5F9; border-radius: 8px; padding: 4px; gap: 4px;">
-                <button type="button" class="inbox-filter-tab active" data-type="all" onclick="filterInbox('all', this)">Semua (4)</button>
-                <button type="button" class="inbox-filter-tab" data-type="listing" onclick="filterInbox('listing', this)">Listing (2)</button>
-                <button type="button" class="inbox-filter-tab" data-type="inquiry" onclick="filterInbox('inquiry', this)">Inquiry (1)</button>
-                <button type="button" class="inbox-filter-tab" data-type="closing" onclick="filterInbox('closing', this)">Closing (1)</button>
+            <!-- Tabs Filter -->
+            <div style="display: flex; background: #F1F5F9; border-radius: 8px; padding: 3px; gap: 3px;">
+                <button type="button" class="inbox-tab-btn active" onclick="filterActionTabs('all', this)">Semua ({{ $countAll }})</button>
+                <button type="button" class="inbox-tab-btn" onclick="filterActionTabs('listing', this)">Listing ({{ $countListing }})</button>
+                <button type="button" class="inbox-tab-btn" onclick="filterActionTabs('inquiry', this)">Inquiry ({{ $countInquiry }})</button>
+                <button type="button" class="inbox-tab-btn" onclick="filterActionTabs('closing', this)">Closing ({{ $countClosing }})</button>
             </div>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 14px;" id="inbox-items-container">
-            @foreach($priorityActions as $item)
-            <div class="inbox-card-row" data-inbox-type="{{ $item['type'] }}">
-                <div style="flex: 1; min-width: 280px;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
-                        <span class="badge-tag {{ $item['type'] === 'listing' ? 'badge-tag-navy' : ($item['type'] === 'inquiry' ? 'badge-tag-teal' : 'badge-tag-white') }}">
-                            {{ $item['id'] }}
-                        </span>
-                        <span style="font-size: 0.75rem; color: #64748B;">{{ $item['time_ago'] }}</span>
-                        <span class="badge-tag" style="background: {{ $item['sla_status'] === 'urgent' ? '#E6FBF5' : ($item['sla_status'] === 'warning' ? '#FEF3C7' : '#F1F5F9') }}; color: {{ $item['sla_status'] === 'urgent' ? '#059669' : ($item['sla_status'] === 'warning' ? '#D97706' : '#475569') }}; font-size: 0.72rem;">
-                            {{ $item['sla_badge'] }}
-                        </span>
-                    </div>
-
-                    <strong style="display: block; font-size: 1rem; color: var(--primary-navy); margin-bottom: 4px;">{{ $item['title'] }}</strong>
-                    <p style="font-size: 0.85rem; color: #64748B; line-height: 1.45; margin-bottom: 6px;">{{ $item['detail'] }}</p>
-                    <div style="font-size: 0.8rem; color: var(--text-muted);">
-                        <span>Kontak Terkait: <strong>{{ $item['owner'] }}</strong> ({{ $item['phone'] }})</span>
+        <!-- Action Items List -->
+        <div class="action-items-container">
+            @forelse($priorityActions as $item)
+            @php
+                $cat = $item['category'] ?? 'listing';
+                $tagClass = $item['tag_class'] ?? ($cat === 'inquiry' ? 'badge-peach' : ($cat === 'closing' ? 'badge-teal' : 'badge-cyan'));
+            @endphp
+            <div class="action-item-card" data-category="{{ $cat }}">
+                <div class="action-item-main">
+                    <img src="{{ $item['image'] ?? 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=300&q=80' }}" alt="{{ $item['title'] }}" class="action-item-thumb">
+                    <div class="action-item-info">
+                        <div class="action-item-header-meta">
+                            <span class="badge-tag-custom {{ $tagClass }}">{{ $item['tag_badge'] ?? strtoupper($cat) }}</span>
+                            <span class="action-item-time">• {{ $item['time_ago'] ?? 'Baru saja' }}</span>
+                        </div>
+                        <h3 class="action-item-title">{{ $item['title'] }}</h3>
+                        <div class="action-item-meta-row">
+                            <span class="action-meta-user">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                {{ $item['owner'] ?? $item['owner_label'] ?? 'Klien Terverifikasi' }}
+                            </span>
+                            <span class="action-meta-price">{{ $item['detail'] ?? $item['price_label'] ?? '' }}</span>
+                        </div>
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                    <button type="button" class="btn-outline-navy" style="padding: 8px 14px; font-size: 0.82rem; border-radius: 6px;" onclick="showToast('Aksi {{ $item['btn_action_1'] }} diproses...')">
-                        {{ $item['btn_action_1'] }}
-                    </button>
-                    <button type="button" class="btn-primary" style="padding: 8px 14px; font-size: 0.82rem; border-radius: 6px;" onclick="showToast('Membuka {{ $item['btn_action_2'] }}...')">
-                        {{ $item['btn_action_2'] }}
-                    </button>
+                <div class="action-item-actions">
+                    @if(!empty($item['btn_url_1']) || !empty($item['btn1_url']))
+                        <a href="{{ $item['btn_url_1'] ?? $item['btn1_url'] ?? '#' }}" class="btn-action-outline">{{ $item['btn_action_1'] ?? $item['btn1_text'] ?? 'Buka Detail' }}</a>
+                    @else
+                        <button type="button" class="btn-action-outline" onclick="showToast('Memproses {{ $item['id'] }}...')">{{ $item['btn_action_1'] ?? 'Tindak Lanjut' }}</button>
+                    @endif
+
+                    @if(!empty($item['btn_url_2']) || !empty($item['btn2_url']))
+                        <a href="{{ $item['btn_url_2'] ?? $item['btn2_url'] ?? '#' }}" target="{{ str_contains($item['btn_url_2'] ?? '', 'wa.me') ? '_blank' : '_self' }}" class="{{ str_contains($item['btn_url_2'] ?? '', 'wa.me') ? 'btn-action-teal' : 'btn-action-dark' }}">
+                            @if(str_contains($item['btn_url_2'] ?? '', 'wa.me'))
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            @endif
+                            <span>{{ $item['btn_action_2'] ?? $item['btn2_text'] ?? 'Proses' }}</span>
+                        </a>
+                    @else
+                        <button type="button" class="btn-action-dark" onclick="showToast('Membuka kurasi {{ $item['id'] }}...')">Proses</button>
+                    @endif
                 </div>
             </div>
-            @endforeach
+            @empty
+            <div style="padding: 24px; text-align: center; color: #64748B;">
+                Semua tugas operasional telah selesai ditindaklanjuti.
+            </div>
+            @endforelse
         </div>
     </div>
 
-    <!-- 2 Bottom Widgets: Audit Trail & Portfolio Distribution -->
-    <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px;">
+    <!-- 4. Stacked Full-Width Section 1: AUDIT TRAIL -->
+    <div style="background: #FFFFFF; border: 1px solid var(--admin-border-subtle); border-radius: 14px; padding: 22px 26px; box-shadow: 0 1px 4px rgba(0,0,0,0.02);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+            <div>
+                <span style="font-size: 0.68rem; font-weight: 800; color: #64748B; letter-spacing: 0.8px; text-transform: uppercase;">AUDIT TRAIL</span>
+                <h3 style="font-size: 1.15rem; color: #0E1E2E; font-weight: 800; margin: 2px 0 0 0;">Aktivitas Terkini</h3>
+            </div>
+            <button type="button" style="background: none; border: none; color: #64748B; cursor: pointer; padding: 4px;" title="Refresh Log" onclick="window.location.reload()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            </button>
+        </div>
+
+        <!-- Activity Timeline List -->
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+            @forelse($auditLogs as $log)
+            <div style="display: flex; gap: 12px; align-items: flex-start;">
+                <div style="width: 28px; height: 28px; border-radius: 50%; background: #E0F7FA; color: #00838F; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                </div>
+                <div style="font-size: 0.82rem; line-height: 1.4;">
+                    <span style="color: #0F172A;">
+                        <strong>{{ $log['user'] ?? 'Sistem' }}</strong>: {{ $log['action'] }}
+                    </span>
+                    <div style="font-size: 0.72rem; color: #94A3B8; margin-top: 2px;">{{ $log['timestamp'] ?? 'Hari ini' }} &bull; Status: {{ $log['status'] ?? 'Recorded' }}</div>
+                </div>
+            </div>
+            @empty
+            <div style="padding: 12px; color: #64748B; font-size: 0.8rem;">
+                Belum ada catatan aktivitas baru.
+            </div>
+            @endforelse
+        </div>
+    </div>
+
+    <!-- 5. Stacked Full-Width Section 2: PORTOFOLIO TAYANG -->
+    @php
+        $totalActiveUnits = count(array_filter($properties, fn($p) => ($p['status'] ?? 'ACTIVE') === 'ACTIVE'));
+        if ($totalActiveUnits === 0) $totalActiveUnits = count($properties);
         
-        <!-- Real-time Audit Trail Log -->
-        <div style="background: #FFFFFF; border: 1px solid var(--border-color); border-radius: 14px; padding: 24px; box-shadow: var(--shadow-sm);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
-                <div>
-                    <h3 style="font-size: 1.15rem; color: var(--primary-navy); font-weight: 700;">Audit Trail Aktivitas Sistem</h3>
-                    <p style="font-size: 0.78rem; color: var(--text-muted);">Pencatatan waktu nyata untuk setiap modifikasi data & transaksi.</p>
+        $countRumah = count(array_filter($properties, fn($p) => stripos($p['category'] ?? '', 'Rumah') !== false));
+        $countRuko = count(array_filter($properties, fn($p) => stripos($p['category'] ?? '', 'Ruko') !== false || stripos($p['category'] ?? '', 'Komersial') !== false));
+        $countApt = count(array_filter($properties, fn($p) => stripos($p['category'] ?? '', 'Apartemen') !== false || stripos($p['category'] ?? '', 'Penthouse') !== false));
+        $countVilla = count(array_filter($properties, fn($p) => stripos($p['category'] ?? '', 'Villa') !== false));
+        
+        $pctRumah = $totalActiveUnits > 0 ? round(($countRumah / $totalActiveUnits) * 100) : 50;
+        $pctRuko = $totalActiveUnits > 0 ? round(($countRuko / $totalActiveUnits) * 100) : 20;
+        $pctApt = $totalActiveUnits > 0 ? round(($countApt / $totalActiveUnits) * 100) : 15;
+        $pctVilla = $totalActiveUnits > 0 ? round(($countVilla / $totalActiveUnits) * 100) : 15;
+    @endphp
+    <div style="background: #FFFFFF; border: 1px solid var(--admin-border-subtle); border-radius: 14px; padding: 22px 26px; box-shadow: 0 1px 4px rgba(0,0,0,0.02);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 32px; height: 32px; border-radius: 8px; background: #E0F7FA; color: #00838F; display: flex; align-items: center; justify-content: center;">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10h-10z"/></svg>
                 </div>
-                <span style="font-size: 0.72rem; color: #059669; font-weight: 700; background: #E6FBF5; padding: 4px 8px; border-radius: 4px;">Live Logger Active</span>
-            </div>
-
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-                @foreach($auditLogs as $log)
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #F8FAFC; border-radius: 8px; border: 1px solid var(--border-light); font-size: 0.82rem;">
-                    <div>
-                        <strong style="color: var(--primary-navy); display: block;">{{ $log['action'] }}</strong>
-                        <span style="color: var(--text-muted); font-size: 0.75rem;">Oleh: {{ $log['user'] }}</span>
-                    </div>
-                    <div style="text-align: right;">
-                        <span class="badge-tag badge-tag-teal" style="font-size: 0.7rem; padding: 2px 6px;">{{ $log['status'] }}</span>
-                        <span style="display: block; font-size: 0.72rem; color: #94A3B8; margin-top: 2px;">{{ $log['timestamp'] }}</span>
-                    </div>
-                </div>
-                @endforeach
-            </div>
-        </div>
-
-        <!-- Portfolio Distribution Breakdown -->
-        <div style="background: #FFFFFF; border: 1px solid var(--border-color); border-radius: 14px; padding: 24px; box-shadow: var(--shadow-sm);">
-            <div style="margin-bottom: 18px;">
-                <h3 style="font-size: 1.15rem; color: var(--primary-navy); font-weight: 700;">Distribusi Portofolio Aset</h3>
-                <p style="font-size: 0.78rem; color: var(--text-muted);">Porsi kategori dari 148 total unit aktif tayang.</p>
-            </div>
-
-            <div style="display: flex; flex-direction: column; gap: 14px;">
                 <div>
-                    <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
-                        <strong style="color: var(--primary-navy);">Rumah Tapak Mewah / Villa</strong>
-                        <span style="font-weight: 700; color: var(--primary-navy);">60% (88 Unit)</span>
-                    </div>
-                    <div style="height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden;">
-                        <div style="width: 60%; height: 100%; background: var(--primary-navy); border-radius: 4px;"></div>
-                    </div>
-                </div>
-
-                <div>
-                    <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
-                        <strong style="color: var(--primary-navy);">Ruko & Ruang Komersial</strong>
-                        <span style="font-weight: 700; color: var(--primary-navy);">22% (33 Unit)</span>
-                    </div>
-                    <div style="height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden;">
-                        <div style="width: 22%; height: 100%; background: var(--accent-teal); border-radius: 4px;"></div>
-                    </div>
-                </div>
-
-                <div>
-                    <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
-                        <strong style="color: var(--primary-navy);">Penthouse & Apartemen</strong>
-                        <span style="font-weight: 700; color: var(--primary-navy);">12% (18 Unit)</span>
-                    </div>
-                    <div style="height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden;">
-                        <div style="width: 12%; height: 100%; background: #3B82F6; border-radius: 4px;"></div>
-                    </div>
-                </div>
-
-                <div>
-                    <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
-                        <strong style="color: var(--primary-navy);">Tanah Kavling Strategis</strong>
-                        <span style="font-weight: 700; color: var(--primary-navy);">6% (9 Unit)</span>
-                    </div>
-                    <div style="height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden;">
-                        <div style="width: 6%; height: 100%; background: #D97706; border-radius: 4px;"></div>
-                    </div>
+                    <span style="font-size: 0.68rem; font-weight: 800; color: #64748B; letter-spacing: 0.8px; text-transform: uppercase;">PORTOFOLIO TAYANG</span>
+                    <h3 style="font-size: 1.15rem; color: #0E1E2E; font-weight: 800; margin: 2px 0 0 0;">Distribusi Tipe Properti</h3>
                 </div>
             </div>
-
-            <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border-light); font-size: 0.78rem; color: var(--text-muted); text-align: center;">
-                Total Nilai Portofolio Terdaftar: <strong style="color: var(--primary-navy);">Rp 482 Miliar</strong>
+            <div style="font-size: 0.82rem; color: #64748B;">
+                Total Aktif: <strong style="color: #0E1E2E; font-size: 1rem;">{{ $totalActiveUnits }} Unit</strong>
             </div>
         </div>
 
+        <div style="display: flex; align-items: center; gap: 36px; flex-wrap: wrap;" id="portfolio-dist-row">
+            
+            <!-- Donut Visual SVG -->
+            <div style="position: relative; width: 124px; height: 124px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                <svg width="124" height="124" viewBox="0 0 120 120">
+                    <circle cx="60" cy="60" r="48" fill="none" stroke="#E2E8F0" stroke-width="16"/>
+                    <circle cx="60" cy="60" r="48" fill="none" stroke="#00838F" stroke-width="16"
+                            stroke-dasharray="301.59" stroke-dashoffset="{{ 301.59 * (1 - ($pctRumah / 100)) }}" transform="rotate(-90 60 60)"/>
+                    <circle cx="60" cy="60" r="48" fill="none" stroke="#0C1E32" stroke-width="16"
+                            stroke-dasharray="301.59" stroke-dashoffset="{{ 301.59 * (1 - (($pctRumah + $pctRuko) / 100)) }}" transform="rotate(-90 60 60)"/>
+                </svg>
+                <div style="position: absolute; text-align: center;">
+                    <span style="font-size: 1.35rem; font-weight: 800; color: #0E1E2E; display: block; line-height: 1;">{{ $totalActiveUnits }}</span>
+                    <span style="font-size: 0.64rem; font-weight: 700; color: #94A3B8; letter-spacing: 0.8px;">UNIT</span>
+                </div>
+            </div>
+
+            <!-- 4 Horizontal Items Grid -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; flex: 1; min-width: 320px;" id="portfolio-cols-grid">
+                
+                <!-- Col 1 -->
+                <div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
+                        <span style="display: inline-flex; align-items: center; gap: 6px; color: #0F172A; font-weight: 600;">
+                            <span style="width: 8px; height: 8px; background: #0C1E32; border-radius: 2px; display: inline-block;"></span>
+                            Rumah Tapak
+                        </span>
+                        <strong style="color: #0E1E2E; font-size: 0.88rem;">{{ $countRumah }} Unit</strong>
+                    </div>
+                    <div style="font-size: 0.72rem; color: #64748B; text-align: right; margin-bottom: 4px;">{{ $pctRumah }}%</div>
+                    <div style="height: 4px; background: #E2E8F0; border-radius: 2px; overflow: hidden;">
+                        <div style="width: {{ $pctRumah }}%; height: 100%; background: #0C1E32;"></div>
+                    </div>
+                </div>
+
+                <!-- Col 2 -->
+                <div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
+                        <span style="display: inline-flex; align-items: center; gap: 6px; color: #0F172A; font-weight: 600;">
+                            <span style="width: 8px; height: 8px; background: #00838F; border-radius: 2px; display: inline-block;"></span>
+                            Ruko &amp; Komersial
+                        </span>
+                        <strong style="color: #0E1E2E; font-size: 0.88rem;">{{ $countRuko }} Unit</strong>
+                    </div>
+                    <div style="font-size: 0.72rem; color: #64748B; text-align: right; margin-bottom: 4px;">{{ $pctRuko }}%</div>
+                    <div style="height: 4px; background: #E2E8F0; border-radius: 2px; overflow: hidden;">
+                        <div style="width: {{ $pctRuko }}%; height: 100%; background: #00838F;"></div>
+                    </div>
+                </div>
+
+                <!-- Col 3 -->
+                <div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
+                        <span style="display: inline-flex; align-items: center; gap: 6px; color: #0F172A; font-weight: 600;">
+                            <span style="width: 8px; height: 8px; background: #67E8F9; border-radius: 2px; display: inline-block;"></span>
+                            Apartemen &amp; Penthouse
+                        </span>
+                        <strong style="color: #0E1E2E; font-size: 0.88rem;">{{ $countApt }} Unit</strong>
+                    </div>
+                    <div style="font-size: 0.72rem; color: #64748B; text-align: right; margin-bottom: 4px;">{{ $pctApt }}%</div>
+                    <div style="height: 4px; background: #E2E8F0; border-radius: 2px; overflow: hidden;">
+                        <div style="width: {{ $pctApt }}%; height: 100%; background: #67E8F9;"></div>
+                    </div>
+                </div>
+
+                <!-- Col 4 -->
+                <div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
+                        <span style="display: inline-flex; align-items: center; gap: 6px; color: #0F172A; font-weight: 600;">
+                            <span style="width: 8px; height: 8px; background: #A5F3FC; border-radius: 2px; display: inline-block;"></span>
+                            Villa Tropis
+                        </span>
+                        <strong style="color: #0E1E2E; font-size: 0.88rem;">{{ $countVilla }} Unit</strong>
+                    </div>
+                    <div style="font-size: 0.72rem; color: #64748B; text-align: right; margin-bottom: 4px;">{{ $pctVilla }}%</div>
+                    <div style="height: 4px; background: #E2E8F0; border-radius: 2px; overflow: hidden;">
+                        <div style="width: {{ $pctVilla }}%; height: 100%; background: #A5F3FC;"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
 
 </div>
@@ -238,78 +364,407 @@
 
 @section('styles')
 <style>
+/* Hero Banner Buttons */
+.btn-banner-action {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #FFFFFF;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-banner-action:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+.btn-banner-primary {
+    background: #00838F;
+    color: #FFFFFF;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-banner-primary:hover {
+    background: #0097A7;
+    color: #FFFFFF;
+}
+
+/* KPI Cards */
 .kpi-card {
     background: #FFFFFF;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--admin-border-subtle);
     border-radius: 12px;
-    padding: 20px;
-    box-shadow: var(--shadow-sm);
+    padding: 18px 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.02);
 }
 .kpi-label {
     font-size: 0.78rem;
-    font-weight: 700;
+    font-weight: 600;
     color: #64748B;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-.kpi-value {
-    font-family: var(--font-heading);
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--primary-navy);
-    line-height: 1.15;
-    letter-spacing: -0.02em;
 }
 .kpi-icon-box {
-    width: 38px;
-    height: 38px;
+    width: 32px;
+    height: 32px;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
+.kpi-value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-top: 4px;
+}
+.kpi-number {
+    font-size: 2.1rem;
+    font-weight: 800;
+    color: #0E1E2E;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+.kpi-unit {
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: #64748B;
+}
 
-.inbox-filter-tab {
-    padding: 6px 12px;
+/* Inbox Tabs */
+.inbox-tab-btn {
+    padding: 5px 12px;
     border-radius: 6px;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 600;
     color: #64748B;
     background: transparent;
     border: none;
     cursor: pointer;
-    transition: var(--transition-fast);
+    transition: all 0.15s;
 }
-.inbox-filter-tab:hover {
-    color: var(--primary-navy);
+.inbox-tab-btn:hover {
+    color: #0E1E2E;
 }
-.inbox-filter-tab.active {
-    background: #FFFFFF;
-    color: var(--primary-navy);
+.inbox-tab-btn.active {
+    background: #0E1E2E;
+    color: #FFFFFF;
     font-weight: 700;
-    box-shadow: var(--shadow-sm);
 }
 
-.inbox-card-row {
-    background: #F8FAFC;
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    padding: 16px 20px;
+/* Action Items */
+.action-items-container {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-    transition: var(--transition-fast);
+    flex-direction: column;
+    gap: 10px;
 }
-.inbox-card-row:hover {
-    border-color: #CBD5E1;
+.action-item-card {
     background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    transition: all 0.2s ease;
+}
+.action-item-card:hover {
+    border-color: #CBD5E1;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+.action-item-main {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    min-width: 0;
+}
+.action-item-thumb {
+    width: 68px;
+    height: 68px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid #F1F5F9;
+}
+.action-item-thumb-placeholder {
+    width: 68px;
+    height: 68px;
+    border-radius: 8px;
+    background: #F1F5F9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid #E2E8F0;
+}
+.action-item-info {
+    flex: 1;
+    min-width: 0;
+}
+.action-item-header-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+}
+.action-item-time {
+    font-size: 0.72rem;
+    color: #64748B;
+    white-space: nowrap;
+}
+.action-item-title {
+    font-size: 0.90rem;
+    font-weight: 700;
+    color: #0E1E2E;
+    margin: 0 0 5px 0;
+    line-height: 1.35;
+    word-break: break-word;
+}
+.action-item-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.78rem;
+    flex-wrap: wrap;
+}
+.action-meta-user {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #64748B;
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+.action-meta-price {
+    color: #0E1E2E;
+    font-size: 0.82rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.action-meta-budget {
+    color: #00838F;
+    font-size: 0.82rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.action-meta-ready {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #059669;
+    font-weight: 600;
+    font-size: 0.76rem;
+    white-space: nowrap;
+}
+.action-meta-notaris {
+    color: #64748B;
+    font-size: 0.76rem;
+    white-space: nowrap;
+}
+.action-meta-warning {
+    color: #DC2626;
+    font-size: 0.76rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 500;
+    line-height: 1.3;
 }
 
-@media (max-width: 992px) {
-    div[style*="grid-template-columns: 1.4fr 1fr"] {
+/* Tag Pills */
+.badge-tag-custom {
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+    white-space: nowrap;
+}
+.badge-cyan { background: #E0F7FA; color: #00838F; }
+.badge-peach { background: #FEE2E2; color: #DC2626; }
+.badge-teal { background: #E0F2FE; color: #0284C7; }
+.badge-orange { background: #FFEDD5; color: #C2410C; }
+
+/* Action Buttons */
+.action-item-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+}
+.btn-action-outline {
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    color: #0E1E2E;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+.btn-action-outline:hover {
+    background: #F8FAFC;
+    border-color: #94A3B8;
+}
+.btn-action-dark {
+    background: #0E1E2E;
+    color: #FFFFFF;
+    border: 1px solid #0E1E2E;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    white-space: nowrap;
+    transition: background 0.15s;
+}
+.btn-action-dark:hover {
+    background: #192F47;
+    border-color: #192F47;
+    color: #FFFFFF;
+}
+.btn-action-teal {
+    background: #00695C;
+    color: #FFFFFF;
+    border: 1px solid #00695C;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    white-space: nowrap;
+    transition: background 0.15s;
+}
+.btn-action-teal:hover {
+    background: #00796B;
+    border-color: #00796B;
+    color: #FFFFFF;
+}
+
+.btn-log-all {
+    width: 100%;
+    height: 40px;
+    padding: 0 16px;
+    background: #EFF6FF;
+    border: 1px solid #DBEAFE;
+    border-radius: 8px;
+    color: #0E1E2E;
+    font-size: 0.82rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background 0.15s;
+}
+.btn-log-all:hover {
+    background: #DBEAFE;
+}
+
+@media (max-width: 1200px) {
+    #metrics-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    #portfolio-cols-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+@media (max-width: 860px) {
+    .action-item-card {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+        padding: 14px !important;
+    }
+    .action-item-main {
+        width: 100% !important;
+        gap: 12px !important;
+    }
+    .action-item-actions {
+        width: 100% !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+    }
+    .action-item-actions .btn-action-outline,
+    .action-item-actions .btn-action-dark,
+    .action-item-actions .btn-action-teal {
+        width: 100% !important;
+        padding: 0 8px !important;
+        font-size: 0.76rem !important;
+        text-align: center !important;
+    }
+}
+@media (max-width: 640px) {
+    #metrics-grid {
         grid-template-columns: 1fr !important;
+    }
+    #portfolio-cols-grid {
+        grid-template-columns: 1fr !important;
+        min-width: 0 !important;
+    }
+    .action-item-thumb,
+    .action-item-thumb-placeholder {
+        width: 60px !important;
+        height: 60px !important;
+    }
+    .action-item-title {
+        font-size: 0.86rem !important;
+    }
+}
+@media (max-width: 480px) {
+    .action-item-meta-row {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 4px !important;
+    }
+    .action-meta-price,
+    .action-meta-budget {
+        font-size: 0.84rem !important;
     }
 }
 </style>
@@ -317,17 +772,17 @@
 
 @section('scripts')
 <script>
-function filterInbox(type, btn) {
-    document.querySelectorAll('.inbox-filter-tab').forEach(b => b.classList.remove('active'));
+function filterActionTabs(cat, btn) {
+    document.querySelectorAll('.inbox-tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
-    const rows = document.querySelectorAll('.inbox-card-row');
-    rows.forEach(row => {
-        const itemType = row.getAttribute('data-inbox-type');
-        if (type === 'all' || itemType === type) {
-            row.style.display = 'flex';
+    const items = document.querySelectorAll('.action-item-card');
+    items.forEach(item => {
+        if (cat === 'all') {
+            item.style.display = 'flex';
         } else {
-            row.style.display = 'none';
+            const itemCat = item.getAttribute('data-category');
+            item.style.display = (itemCat === cat) ? 'flex' : 'none';
         }
     });
 }

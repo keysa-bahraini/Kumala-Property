@@ -66,7 +66,7 @@
     </div>
 
     <!-- Favorite Cards Grid Container -->
-    <div id="favorites-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 28px; margin-bottom: 50px;">
+    <div id="favorites-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; margin-bottom: 50px;">
         @foreach($allProperties as $prop)
         <div class="property-card fav-item-card" data-prop-id="{{ $prop['id'] }}" data-prop-trx="{{ $prop['transaction_type'] }}" style="display: none;">
             <div class="card-media-wrapper">
@@ -88,7 +88,7 @@
             <div class="card-content">
                 <div class="card-location">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                    <span>{{ $prop['location_area'] }}</span>
+                    <span>{{ $prop['location_area'] }}{{ !empty($prop['location_city']) && !str_contains($prop['location_area'], $prop['location_city']) ? ', ' . $prop['location_city'] : '' }}</span>
                 </div>
 
                 <h3 class="card-title">
@@ -101,14 +101,14 @@
                     @endforeach
                 </div>
 
-                <div class="card-footer" style="padding-top: 14px;">
+                <div class="card-footer">
                     <div class="card-price-block">
-                        <span class="card-price-label">{{ $prop['price_label'] }}</span>
-                        <span class="card-price-val">{{ $prop['price_short'] }}</span>
+                        <span class="card-price-label">{{ ($prop['transaction_type'] ?? 'Jual') === 'Jual' ? 'HARGA PENAWARAN' : 'BIAYA SEWA' }}</span>
+                        <span class="card-price-val">{{ ($prop['transaction_type'] ?? 'Jual') === 'Sewa' ? str_replace(' / tahun', '/thn', $prop['price_short']) : $prop['price_short'] }}</span>
                     </div>
-                    <div style="display: flex; gap: 8px;">
+                    <div class="card-actions-group">
                         <a href="https://wa.me/6281288992345?text=Halo%20Concierge%20Kumala,%20saya%20tertarik%20dengan%20unit%20{{ urlencode($prop['title']) }}%20({{ $prop['id'] }})." target="_blank" class="card-btn-wa" title="Tanya via WhatsApp">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                         </a>
                         <a href="{{ route('property.detail', $prop['slug']) }}" class="card-btn-detail">Lihat Detail</a>
                     </div>
@@ -305,23 +305,6 @@
 .btn-remove-fav:hover {
     transform: scale(1.08);
     background: #FFF1F2;
-}
-
-.card-btn-wa {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    background: #E6FBF5;
-    color: var(--accent-teal);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid rgba(0, 180, 136, 0.3);
-    transition: var(--transition-fast);
-}
-.card-btn-wa:hover {
-    background: var(--accent-teal);
-    color: #FFFFFF;
 }
 </style>
 @endsection

@@ -1,0 +1,1613 @@
+{
+    "properties": [
+        {
+            "id": "#KP-8832",
+            "slug": "the-royal-cliff-villa-jimbaran-730",
+            "title": "The Royal Cliff Villa Jimbaran",
+            "category": "Villa Mewah",
+            "transaction_type": "Jual",
+            "price": 22500000000,
+            "price_formatted": "Rp 22.500.000.000",
+            "price_short": "Rp 22.5 Miliar",
+            "price_label": "Harga Penawaran Eksklusif",
+            "price_notes": "Legalitas Lengkap • Siap Transaksi",
+            "location_city": "Bali - Badung",
+            "location_area": "Jimbaran Cliff",
+            "location_address": "Jl. Bukit Permai No. 12, Jimbaran, Badung, Bali",
+            "legal_status": "SHM (Hak Milik)",
+            "verified": true,
+            "featured": true,
+            "highlight_badge": "Listing Baru",
+            "land_size": 750,
+            "building_size": 550,
+            "floors": 2,
+            "bedrooms": 5,
+            "bathrooms": 5,
+            "orientation": "Utara",
+            "electricity": "4400 VA",
+            "water_source": "PDAM",
+            "garage": "2 Mobil",
+            "year_built": "2026",
+            "furnishing": "Semi Furnished",
+            "specs_tags": [
+                "5 Kamar Tidur",
+                "LT 750m²",
+                "Private Pool"
+            ],
+            "image_main": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+            "images": [
+                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+                "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80",
+                "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=800&q=80"
+            ],
+            "description": "Villa pemandangan tebing Jimbaran dengan kolam renang infinity dan akses langsung ke pantai pasir putih.",
+            "features": [
+                {
+                    "title": "Keamanan 24 Jam",
+                    "desc": "One gate security system.",
+                    "icon": "shield"
+                },
+                {
+                    "title": "Akses Strategis",
+                    "desc": "Dekat pusat bisnis dan area komersial.",
+                    "icon": "map-pin"
+                }
+            ],
+            "distance_points": [
+                {
+                    "time": "10 Menit",
+                    "place": "Pusat Kota / CBD"
+                },
+                {
+                    "time": "25 Menit",
+                    "place": "Akses Tol / Bandara"
+                }
+            ],
+            "status": "ACTIVE",
+            "created_at": "2026-10-01 07:32:35"
+        },
+        {
+            "id": "#KP-8831",
+            "slug": "villa-coastal-cliffside-pecatu-226",
+            "title": "Villa Coastal Cliffside Pecatu",
+            "category": "Villa Eksklusif",
+            "transaction_type": "Jual",
+            "price": 18500000000,
+            "price_formatted": "Rp 18.500.000.000",
+            "price_short": "Rp 18.5 Miliar",
+            "price_label": "Harga Penawaran Eksklusif",
+            "price_notes": "Legalitas Lengkap • Siap Transaksi",
+            "location_city": "Bali",
+            "location_area": "Uluwatu",
+            "location_address": "Jl. Pantai Pecatu Sunset No. 88, Badung, Bali",
+            "legal_status": "SHM (Hak Milik)",
+            "verified": true,
+            "featured": true,
+            "highlight_badge": "Listing Baru",
+            "land_size": 600,
+            "building_size": 450,
+            "floors": 2,
+            "bedrooms": 5,
+            "bathrooms": 5,
+            "orientation": "Utara",
+            "electricity": "4400 VA",
+            "water_source": "PDAM",
+            "garage": "2 Mobil",
+            "year_built": "2026",
+            "furnishing": "Semi Furnished",
+            "specs_tags": [
+                "5 Kamar Tidur",
+                "LT 600m²",
+                "LB 450m²"
+            ],
+            "image_main": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80",
+            "images": [
+                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+                "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80"
+            ],
+            "description": "Disetujui dan diverifikasi oleh Tim Kurator Kumala Property.",
+            "features": [
+                {
+                    "title": "Keamanan 24 Jam",
+                    "desc": "One gate security system.",
+                    "icon": "shield"
+                },
+                {
+                    "title": "Akses Strategis",
+                    "desc": "Dekat pusat bisnis dan area komersial.",
+                    "icon": "map-pin"
+                }
+            ],
+            "distance_points": [
+                {
+                    "time": "10 Menit",
+                    "place": "Pusat Kota / CBD"
+                },
+                {
+                    "time": "25 Menit",
+                    "place": "Akses Tol / Bandara"
+                }
+            ],
+            "status": "ACTIVE",
+            "created_at": "2026-10-01 06:44:23"
+        },
+        {
+            "id": "#KP-8830",
+            "slug": "villa-coastal-cliffside-pecatu-603",
+            "title": "Villa Coastal Cliffside Pecatu",
+            "category": "Villa Eksklusif",
+            "transaction_type": "Jual",
+            "price": 18500000000,
+            "price_formatted": "Rp 18.500.000.000",
+            "price_short": "Rp 18.5 Miliar",
+            "price_label": "Harga Penawaran Eksklusif",
+            "price_notes": "Legalitas Lengkap • Siap Transaksi",
+            "location_city": "Bali",
+            "location_area": "Uluwatu",
+            "location_address": "Jl. Pantai Pecatu Sunset No. 88, Badung, Bali",
+            "legal_status": "SHM (Hak Milik)",
+            "verified": true,
+            "featured": true,
+            "highlight_badge": "Listing Baru",
+            "land_size": 600,
+            "building_size": 450,
+            "floors": 2,
+            "bedrooms": 5,
+            "bathrooms": 5,
+            "orientation": "Utara",
+            "electricity": "4400 VA",
+            "water_source": "PDAM",
+            "garage": "2 Mobil",
+            "year_built": "2026",
+            "furnishing": "Semi Furnished",
+            "specs_tags": [
+                "5 Kamar Tidur",
+                "LT 600m²",
+                "LB 450m²"
+            ],
+            "image_main": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80",
+            "images": [
+                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+                "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80"
+            ],
+            "description": "Disetujui dan diverifikasi oleh Head Curator Kumala.",
+            "features": [
+                {
+                    "title": "Keamanan 24 Jam",
+                    "desc": "One gate security system.",
+                    "icon": "shield"
+                },
+                {
+                    "title": "Akses Strategis",
+                    "desc": "Dekat pusat bisnis dan area komersial.",
+                    "icon": "map-pin"
+                }
+            ],
+            "distance_points": [
+                {
+                    "time": "10 Menit",
+                    "place": "Pusat Kota / CBD"
+                },
+                {
+                    "time": "25 Menit",
+                    "place": "Akses Tol / Bandara"
+                }
+            ],
+            "status": "ACTIVE",
+            "created_at": "2026-10-01 06:34:53"
+        },
+        {
+            "id": "#KP-8821",
+            "slug": "villa-cliffside-horizon-uluwatu",
+            "title": "Villa Cliffside Horizon Uluwatu",
+            "category": "Villa",
+            "transaction_type": "Jual",
+            "price": 42000000000,
+            "price_formatted": "Rp 42.000.000.000",
+            "price_short": "Rp 42 Miliar",
+            "price_label": "Harga Penawaran Eksklusif",
+            "price_notes": "Nego Langsung Pemilik • Legalitas On Hand Clean",
+            "location_city": "Bali",
+            "location_area": "Uluwatu, Badung",
+            "location_address": "Jl. Pantai Suluban, Uluwatu, Pecatu, Kuta Selatan, Badung, Bali 80361",
+            "legal_status": "SHM (Hak Milik)",
+            "verified": true,
+            "featured": true,
+            "highlight_badge": "Ocean Sunset",
+            "land_size": 850,
+            "building_size": 620,
+            "floors": 2,
+            "bedrooms": 5,
+            "bathrooms": 6,
+            "orientation": "Barat Daya (Direct Sunset)",
+            "electricity": "16.500 VA + Backup Genset",
+            "water_source": "PDAM & Deep Well Filter",
+            "garage": "3 Mobil + 4 Motor",
+            "year_built": "2023 (Pristine Baru)",
+            "furnishing": "Furnished Bespoke Full Interior",
+            "specs_tags": [
+                "5 Kamar Tidur",
+                "LT 850m²",
+                "Full Ocean View"
+            ],
+            "image_main": "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1200&q=80",
+            "images": [
+                "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1200&q=80",
+                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
+                "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80",
+                "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80",
+                "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80"
+            ],
+            "description": "Terletak di atas tebing prestisius pesisir Uluwatu, Villa Cliffside Horizon merupakan adikarya arsitektur tropis modern yang memadukan kehangatan material batu paras alam, marmer Italia, dan elemen kayu jati grade A bersertifikasi legalitas. Properti ini dirancang secara eksklusif untuk menangkap vista panorama Samudra Hindia 180 derajat tanpa terhalang seumur hidup.\\n\\nSetiap sudut hunian dikuratori untuk menghadirkan sirkulasi udara alami yang sejuk serta limpahan pencahayaan senja. Area ruang keluarga berkonsep open-plan menyatu mulus dengan teras kolam renang infinity sepanjang 18 meter yang seolah melayang di tubir tebing. Lantai atas diperuntukkan khusus bagi kamar tidur utama yang memiliki balkon pribadi dengan pemandangan langsung ke ombak legendaris Pantai Suluban.\\n\\nSebagai portofolio investasi premium, vila ini berlokasi strategis di episentrum destinasi rekreasi kelas dunia Uluwatu. Didukung izin operasional pariwisata lengkap serta potensi yield sewa tahunan yang sangat tinggi (proyeksi gross ROI 11–14% per tahun), properti ini ideal sebagai sanctuary privat maupun investasi residensial bernilai tinggi di Bali.",
+            "features": [
+                {
+                    "title": "Infinity Pool 18 Meter",
+                    "desc": "Sistem sirkulasi garam ramah kulit dengan pemandangan jurang tebing laut.",
+                    "icon": "waves"
+                },
+                {
+                    "title": "Sunken Lounge & Sun Deck",
+                    "desc": "Bale gazebo kayu ulin dan area santai senja dengan instalasi fire pit.",
+                    "icon": "sun"
+                },
+                {
+                    "title": "Dapur Gourmet Eropa & Wet Kitchen",
+                    "desc": "Island marble terintegrasi Miele appliances dan dapur basah staf terpisah.",
+                    "icon": "utensils"
+                },
+                {
+                    "title": "Staff Quarter & Security Post",
+                    "desc": "2 kamar tidur asisten rumah tangga dengan akses pintu servis independen.",
+                    "icon": "shield"
+                },
+                {
+                    "title": "Smart Home & Keamanan 24 Jam",
+                    "desc": "Automasi pencahayaan, digital smart lock, sensor gerak, dan 8 titik CCTV.",
+                    "icon": "lock"
+                },
+                {
+                    "title": "Dedicated Fiber Optic Internet",
+                    "desc": "Koneksi dedicated ultra-stabil ideal untuk remote executive & hiburan 4K.",
+                    "icon": "wifi"
+                }
+            ],
+            "distance_points": [
+                {
+                    "time": "5 Menit",
+                    "place": "Pantai Suluban & Single Fin"
+                },
+                {
+                    "time": "15 Menit",
+                    "place": "Savaya Bali & Ulu Cliffhouse"
+                },
+                {
+                    "time": "35 Menit",
+                    "place": "Bandara Int'l Ngurah Rai"
+                }
+            ]
+        },
+        {
+            "id": "#KP-8822",
+            "slug": "modern-tropical-residence-kemang",
+            "title": "Modern Tropical Residence Kemang",
+            "category": "Rumah Mewah",
+            "transaction_type": "Sewa",
+            "price": 450000000,
+            "price_formatted": "Rp 450.000.000 / tahun",
+            "price_short": "Rp 450 Jt / tahun",
+            "price_label": "Biaya Sewa",
+            "price_notes": "Minimal Kontrak 2 Tahun • Deposit 10%",
+            "location_city": "Jakarta Selatan",
+            "location_area": "Kemang, Mampang Prapatan",
+            "location_address": "Jl. Kemang Timur Raya No. 18, Jakarta Selatan 12730",
+            "legal_status": "SHM (Hak Milik)",
+            "verified": true,
+            "featured": true,
+            "highlight_badge": "Private Pool",
+            "land_size": 480,
+            "building_size": 420,
+            "floors": 2,
+            "bedrooms": 4,
+            "bathrooms": 4,
+            "orientation": "Utara",
+            "electricity": "11.000 VA",
+            "water_source": "Air Tanah Filter & Jet Pump",
+            "garage": "2 Mobil Dalam + 2 Carport",
+            "year_built": "2022",
+            "furnishing": "Fully Furnished Scandinavian Chic",
+            "specs_tags": [
+                "4 Kamar Tidur",
+                "LB 480m²",
+                "Private Pool"
+            ],
+            "image_main": "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80",
+            "images": [
+                "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80",
+                "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=800&q=80"
+            ],
+            "description": "Oase privat di jantung Jakarta Selatan dengan arsitektur tropis kontemporer, kolam renang alami, dan pencahayaan skylight yang lapang.",
+            "features": [],
+            "distance_points": [
+                {
+                    "time": "5 Menit",
+                    "place": "Lippo Mall Kemang"
+                },
+                {
+                    "time": "15 Menit",
+                    "place": "SCBD Sudirman"
+                }
+            ]
+        },
+        {
+            "id": "#KP-8823",
+            "slug": "skyline-executive-penthouse",
+            "title": "Skyline Executive Penthouse",
+            "category": "Apartemen / Penthouse",
+            "transaction_type": "Jual",
+            "price": 18500000000,
+            "price_formatted": "Rp 18.500.000.000",
+            "price_short": "Rp 18,5 Miliar",
+            "price_label": "Harga Penawaran",
+            "price_notes": "Strata Title on Hand • Semi Furnished Miele",
+            "location_city": "Jakarta Selatan",
+            "location_area": "Pondok Indah",
+            "location_address": "Jl. Metro Pondok Indah, Kebayoran Lama, Jakarta Selatan",
+            "legal_status": "Strata Title",
+            "verified": true,
+            "featured": true,
+            "highlight_badge": "Private Lift",
+            "land_size": 0,
+            "building_size": 320,
+            "floors": 1,
+            "bedrooms": 3,
+            "bathrooms": 3,
+            "orientation": "Timur (City Skyline)",
+            "electricity": "13.200 VA",
+            "water_source": "PDAM Building Central",
+            "garage": "2 Reserved Parking Lot",
+            "year_built": "2021",
+            "furnishing": "Semi Furnished Premium",
+            "specs_tags": [
+                "3 Bed Ensuite",
+                "LB 320m²",
+                "Private Lift"
+            ],
+            "image_main": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80",
+            "images": [
+                "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80"
+            ],
+            "description": "Penthouse mahatinggi dengan private foyer, lift khusus, spesifikasi marmer impor, dan pemandangan panorama skyline Jakarta 270 derajat.",
+            "features": [],
+            "distance_points": [
+                {
+                    "time": "3 Menit",
+                    "place": "Pondok Indah Mall 1 & 2"
+                },
+                {
+                    "time": "8 Menit",
+                    "place": "Gerbang Tol TB Simatupang"
+                }
+            ]
+        },
+        {
+            "id": "#KP-8824",
+            "slug": "the-sanctuary-garden-bsd",
+            "title": "The Sanctuary Garden BSD",
+            "category": "Rumah Mewah",
+            "transaction_type": "Jual",
+            "price": 8900000000,
+            "price_formatted": "Rp 8.900.000.000",
+            "price_short": "Rp 8,9 Miliar",
+            "price_label": "Harga Penawaran",
+            "price_notes": "Siap Huni • SHM Murni",
+            "location_city": "Tangerang Selatan",
+            "location_area": "BSD City",
+            "location_address": "Cluster Greenwich Park, BSD City, Tangerang Selatan",
+            "legal_status": "SHM (Hak Milik)",
+            "verified": true,
+            "featured": false,
+            "highlight_badge": "Ready Unit",
+            "land_size": 300,
+            "building_size": 280,
+            "floors": 2,
+            "bedrooms": 4,
+            "bathrooms": 3,
+            "orientation": "Selatan",
+            "electricity": "5.500 VA",
+            "water_source": "PDAM BSD City",
+            "garage": "2 Carport Kanopi Kaca",
+            "year_built": "2023",
+            "furnishing": "Unfurnished Pristine",
+            "specs_tags": [
+                "4 Kamar Tidur",
+                "LT 300m²",
+                "Clubhouse"
+            ],
+            "image_main": "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1200&q=80",
+            "images": [
+                "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1200&q=80"
+            ],
+            "description": "Hunian cluster mewah bernuansa resor di kawasan mandiri BSD City dengan akses eksklusif ke lagoon pool dan botanical clubhouse.",
+            "features": [],
+            "distance_points": [
+                {
+                    "time": "5 Menit",
+                    "place": "AEON Mall BSD & ICE"
+                },
+                {
+                    "time": "7 Menit",
+                    "place": "Tol Serpong - Balaraja"
+                }
+            ]
+        },
+        {
+            "id": "#KP-8825",
+            "slug": "villa-serenity-greenery-canggu",
+            "title": "Villa Serenity Greenery Canggu",
+            "category": "Villa",
+            "transaction_type": "Sewa",
+            "price": 550000000,
+            "price_formatted": "Rp 550.000.000 / tahun",
+            "price_short": "Rp 550 Jt / tahun",
+            "price_label": "Biaya Sewa",
+            "price_notes": "Leasehold Tersedia / Sewa Tahunan",
+            "location_city": "Bali",
+            "location_area": "Canggu, Badung",
+            "location_address": "Jl. Kayu Tulang, Canggu, Kuta Utara, Badung, Bali",
+            "legal_status": "Hak Sewa (Leasehold)",
+            "verified": true,
+            "featured": false,
+            "highlight_badge": "Tahunan",
+            "land_size": 350,
+            "building_size": 310,
+            "floors": 2,
+            "bedrooms": 3,
+            "bathrooms": 3,
+            "orientation": "Barat",
+            "electricity": "7.700 VA",
+            "water_source": "Sumur Bor Filter",
+            "garage": "1 Mobil + 2 Motor",
+            "year_built": "2024",
+            "furnishing": "Fully Furnished Boho Luxe",
+            "specs_tags": [
+                "3 Master Suite",
+                "LB 310m²",
+                "Rice Field View"
+            ],
+            "image_main": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80",
+            "images": [
+                "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80"
+            ],
+            "description": "Vila santai tropis menghadap sawah abadi Canggu dengan interior boho modern dan dek kolam renang luas untuk relaksasi maksimal.",
+            "features": [],
+            "distance_points": [
+                {
+                    "time": "7 Menit",
+                    "place": "Pantai Batu Bolong"
+                },
+                {
+                    "time": "10 Menit",
+                    "place": "Echo Beach"
+                }
+            ]
+        },
+        {
+            "id": "#KP-8826",
+            "slug": "grand-versailles-mansion-citraland",
+            "title": "Grand Versailles Mansion CitraLand",
+            "category": "Rumah Mewah",
+            "transaction_type": "Jual",
+            "price": 26000000000,
+            "price_formatted": "Rp 26.000.000.000",
+            "price_short": "Rp 26 Miliar",
+            "price_label": "Harga Penawaran",
+            "price_notes": "SHM On Hand • Siap Huni Klasik Mewah",
+            "location_city": "Surabaya",
+            "location_area": "CitraLand, Surabaya Barat",
+            "location_address": "Bukit Golf CitraLand, Sambikerep, Surabaya Barat",
+            "legal_status": "SHM (Hak Milik)",
+            "verified": true,
+            "featured": false,
+            "highlight_badge": "SHM On Hand",
+            "land_size": 640,
+            "building_size": 580,
+            "floors": 2,
+            "bedrooms": 5,
+            "bathrooms": 5,
+            "orientation": "Timur",
+            "electricity": "13.200 VA",
+            "water_source": "PDAM CitraLand",
+            "garage": "Garasi 4 Mobil",
+            "year_built": "2021",
+            "furnishing": "Semi Furnished European Style",
+            "specs_tags": [
+                "5 Kamar Tidur",
+                "LT 640m²",
+                "Garasi 4 Mobil"
+            ],
+            "image_main": "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=80",
+            "images": [
+                "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=80"
+            ],
+            "description": "Mansion megah bergaya Eropa klasik modern dengan pilar tinggi, marmer slab utuh, dan halaman belakang luas dengan pemandangan lapangan golf.",
+            "features": [],
+            "distance_points": [
+                {
+                    "time": "5 Menit",
+                    "place": "Ciputra World Surabaya"
+                },
+                {
+                    "time": "10 Menit",
+                    "place": "Pakuwon Mall"
+                }
+            ]
+        },
+        {
+            "id": "#KP-8827",
+            "slug": "the-bingin-cove-sanctuary",
+            "title": "The Bingin Cove Sanctuary",
+            "category": "Villa",
+            "transaction_type": "Jual",
+            "price": 26500000000,
+            "price_formatted": "Rp 26.500.000.000",
+            "price_short": "Rp 26,5 Miliar",
+            "price_label": "Harga Penawaran",
+            "price_notes": "Freehold SHM • Full Furnished",
+            "location_city": "Bali",
+            "location_area": "Bingin Beach, Uluwatu",
+            "location_address": "Jl. Pantai Bingin, Pecatu, Kuta Selatan, Badung, Bali",
+            "legal_status": "SHM (Hak Milik)",
+            "verified": true,
+            "featured": false,
+            "highlight_badge": "Ocean View",
+            "land_size": 450,
+            "building_size": 380,
+            "floors": 2,
+            "bedrooms": 4,
+            "bathrooms": 4,
+            "orientation": "Barat",
+            "electricity": "10.600 VA",
+            "water_source": "PDAM & Filter",
+            "garage": "2 Mobil",
+            "year_built": "2023",
+            "furnishing": "Fully Furnished Luxury",
+            "specs_tags": [
+                "4 KT",
+                "4 KM",
+                "450 m²"
+            ],
+            "image_main": "https://images.unsplash.com/photo-1512915922686-57c11dde9b6b?auto=format&fit=crop&w=1200&q=80",
+            "images": [
+                "https://images.unsplash.com/photo-1512915922686-57c11dde9b6b?auto=format&fit=crop&w=1200&q=80"
+            ],
+            "description": "Vila eksklusif selangkah dari pantai pasir putih Bingin dengan rooftop lounge berlatar Samudra Hindia.",
+            "features": [],
+            "distance_points": []
+        },
+        {
+            "id": "#KP-8828",
+            "slug": "cliff-haven-nusa-dua-estate",
+            "title": "Cliff Haven Nusa Dua Estate",
+            "category": "Villa",
+            "transaction_type": "Sewa",
+            "price": 1450000000,
+            "price_formatted": "Rp 1.450.000.000 / tahun",
+            "price_short": "Rp 1.450 Jt / tahun",
+            "price_label": "Harga Sewa / Tahun",
+            "price_notes": "Minimum 1 Tahun • Staff Terlatih",
+            "location_city": "Bali",
+            "location_area": "Sawangan, Nusa Dua",
+            "location_address": "Kawasan Sawangan, Nusa Dua Selatan, Badung, Bali",
+            "legal_status": "Sewa Tahunan (Verified)",
+            "verified": true,
+            "featured": false,
+            "highlight_badge": "Verified",
+            "land_size": 920,
+            "building_size": 750,
+            "floors": 2,
+            "bedrooms": 6,
+            "bathrooms": 7,
+            "orientation": "Selatan",
+            "electricity": "23.000 VA",
+            "water_source": "PDAM Nusa Dua",
+            "garage": "4 Mobil",
+            "year_built": "2022",
+            "furnishing": "Fully Furnished Presidential Style",
+            "specs_tags": [
+                "6 KT",
+                "7 KM",
+                "920 m²"
+            ],
+            "image_main": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+            "images": [
+                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"
+            ],
+            "description": "Estate super megah di kawasan hotel bintang lima Nusa Dua dengan private tennis court dan helipad access.",
+            "features": [],
+            "distance_points": []
+        },
+        {
+            "id": "#KP-8829",
+            "slug": "casa-del-sol-mediterranean-villa",
+            "title": "Casa Del Sol Mediterranean Villa",
+            "category": "Villa",
+            "transaction_type": "Jual",
+            "price": 34000000000,
+            "price_formatted": "Rp 34.000.000.000",
+            "price_short": "Rp 34 Miliar",
+            "price_label": "Harga Penawaran",
+            "price_notes": "HGB / SHM Murni",
+            "location_city": "Bali",
+            "location_area": "Padang Padang, Pecatu",
+            "location_address": "Jl. Labuansait, Pecatu, Badung, Bali",
+            "legal_status": "HGB / SHM",
+            "verified": true,
+            "featured": false,
+            "highlight_badge": "HGB / SHM",
+            "land_size": 510,
+            "building_size": 450,
+            "floors": 2,
+            "bedrooms": 4,
+            "bathrooms": 5,
+            "orientation": "Barat",
+            "electricity": "13.200 VA",
+            "water_source": "PDAM & Filter",
+            "garage": "2 Mobil",
+            "year_built": "2023",
+            "furnishing": "Full Furnished Mediterranean",
+            "specs_tags": [
+                "4 KT",
+                "5 KM",
+                "510 m²"
+            ],
+            "image_main": "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80",
+            "images": [
+                "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80"
+            ],
+            "description": "Adopsi arsitektur Mediterania tropis dengan lengkungan estetik, dinding bertekstur kapur, dan taman kaktus eksotis.",
+            "features": [],
+            "distance_points": []
+        }
+    ],
+    "submissions": [
+        {
+            "id": "#TP-213",
+            "title": "The Royal Cliff Villa Jimbaran",
+            "owner": "Budi Santoso",
+            "phone": "+62 81299887766",
+            "email": "budi.santoso@investor.id",
+            "price": "Rp 22.500.000.000",
+            "asking_val": 22500000000,
+            "valuation_range": "Rp 21.4 Miliar - Rp 24.3 Miliar",
+            "trx_type": "Jual",
+            "category": "Villa Mewah",
+            "city_region": "Bali - Badung",
+            "specific_area": "Jimbaran Cliff",
+            "location": "Bali - Badung - Jimbaran Cliff",
+            "address": "Jl. Bukit Permai No. 12, Jimbaran, Badung, Bali",
+            "land_size": 750,
+            "building_size": 550,
+            "bedrooms": "5 KT",
+            "bathrooms": "5 KM",
+            "electricity": "4400 VA",
+            "legal": "SHM (Hak Milik)",
+            "ownership": "Pemilik Langsung",
+            "facilities": [
+                "pool",
+                "furnished",
+                "ocean_view",
+                "shm",
+                "pbg"
+            ],
+            "time_ago": "Baru saja",
+            "status": "pending",
+            "priority": "P1 - Hot Asset",
+            "photos_count": 3,
+            "photos": [
+                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+                "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80",
+                "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=800&q=80"
+            ],
+            "checklist": {
+                "identity": true,
+                "maps": true,
+                "shm_match": true,
+                "photos_hd": true
+            },
+            "notes": "Villa pemandangan tebing Jimbaran dengan kolam renang infinity dan akses langsung ke pantai pasir putih.",
+            "property_id": "#KP-8832",
+            "property_slug": "the-royal-cliff-villa-jimbaran-730",
+            "created_at": "2026-10-01 07:32:35"
+        },
+        {
+            "id": "#TP-212",
+            "title": "The Royal Cliff Villa Jimbaran",
+            "owner": "Budi Santoso",
+            "phone": "+62 81299887766",
+            "email": "budi.santoso@investor.id",
+            "price": "Rp 22.500.000.000",
+            "asking_val": 22500000000,
+            "valuation_range": "Rp 21.4 Miliar - Rp 24.3 Miliar",
+            "trx_type": "Jual",
+            "category": "Villa Mewah",
+            "city_region": "Bali - Badung",
+            "specific_area": "Jimbaran Cliff",
+            "location": "Bali - Badung - Jimbaran Cliff",
+            "address": "Jl. Bukit Permai No. 12, Jimbaran, Badung, Bali",
+            "land_size": 750,
+            "building_size": 550,
+            "bedrooms": "5 KT",
+            "bathrooms": "5 KM",
+            "electricity": "4400 VA",
+            "legal": "SHM (Hak Milik)",
+            "ownership": "Pemilik Langsung",
+            "facilities": [
+                "pool",
+                "furnished",
+                "ocean_view",
+                "shm",
+                "pbg"
+            ],
+            "time_ago": "Baru saja",
+            "status": "pending",
+            "priority": "P1 - Hot Asset",
+            "photos_count": 3,
+            "photos": [
+                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+                "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80",
+                "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=800&q=80"
+            ],
+            "checklist": {
+                "identity": true,
+                "maps": true,
+                "shm_match": true,
+                "photos_hd": true
+            },
+            "notes": "Villa pemandangan tebing Jimbaran dengan kolam renang infinity dan akses langsung ke pantai pasir putih.",
+            "property_id": "#KP-8832",
+            "property_slug": "the-royal-cliff-villa-jimbaran-584",
+            "created_at": "2026-10-01 07:30:04"
+        },
+        {
+            "id": "#TP-211",
+            "title": "Villa Coastal Cliffside Pecatu",
+            "owner": "Bpk. Wayan Sudarma",
+            "phone": "+62 812-3344-5566",
+            "email": "wayan@sunsetvilla.com",
+            "price": "Rp 18.500.000.000",
+            "asking_val": 18500000000,
+            "valuation_range": "Rp 17.6 Miliar - Rp 20.0 Miliar",
+            "trx_type": "Jual",
+            "category": "Villa Eksklusif",
+            "location": "Bali - Uluwatu",
+            "address": "Jl. Pantai Pecatu Sunset No. 88, Badung, Bali",
+            "land_size": 600,
+            "building_size": 450,
+            "bedrooms": "5 KT",
+            "bathrooms": "5 KM",
+            "electricity": "4400 VA",
+            "legal": "SHM (Hak Milik)",
+            "ownership": "Pemilik Langsung",
+            "time_ago": "Baru saja",
+            "status": "revision",
+            "priority": "P1 - Hot Asset",
+            "photos_count": 4,
+            "photos": [
+                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80",
+                "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=400&q=80"
+            ],
+            "checklist": {
+                "identity": true,
+                "maps": true,
+                "shm_match": true,
+                "photos_hd": true
+            },
+            "notes": "Mohon unggah foto sertifikat BPN dengan resolusi lebih tajam.",
+            "created_at": "2026-10-01 06:34:53"
+        },
+        {
+            "id": "#TP-210",
+            "title": "Villa Coastal Cliffside Pecatu",
+            "owner": "Bpk. Wayan Sudarma",
+            "phone": "+62 812-3344-5566",
+            "email": "wayan@sunsetvilla.com",
+            "price": "Rp 18.500.000.000",
+            "asking_val": 18500000000,
+            "valuation_range": "Rp 17.6 Miliar - Rp 20.0 Miliar",
+            "trx_type": "Jual",
+            "category": "Villa Eksklusif",
+            "location": "Bali - Uluwatu",
+            "address": "Jl. Pantai Pecatu Sunset No. 88, Badung, Bali",
+            "land_size": 600,
+            "building_size": 450,
+            "bedrooms": "5 KT",
+            "bathrooms": "5 KM",
+            "electricity": "4400 VA",
+            "legal": "SHM (Hak Milik)",
+            "ownership": "Pemilik Langsung",
+            "time_ago": "Baru saja",
+            "status": "approved",
+            "priority": "P1 - Hot Asset",
+            "photos_count": 4,
+            "photos": [
+                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80",
+                "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=400&q=80"
+            ],
+            "checklist": {
+                "identity": true,
+                "maps": true,
+                "shm_match": true,
+                "photos_hd": true
+            },
+            "notes": "Disetujui dan diverifikasi oleh Head Curator Kumala.",
+            "created_at": "2026-10-01 06:33:03"
+        },
+        {
+            "id": "#TP-209",
+            "title": "Villa Coastal Cliffside Pecatu",
+            "owner": "Bpk. Wayan Sudarma",
+            "phone": "+62 812-3344-5566",
+            "email": "wayan@sunsetvilla.com",
+            "price": "Rp 18.500.000.000",
+            "asking_val": 18500000000,
+            "valuation_range": "Rp 17.6 Miliar - Rp 20.0 Miliar",
+            "trx_type": "Jual",
+            "category": "Villa Eksklusif",
+            "location": "Bali - Uluwatu",
+            "address": "Jl. Pantai Pecatu Sunset No. 88, Badung, Bali",
+            "land_size": 600,
+            "building_size": 450,
+            "bedrooms": "5 KT",
+            "bathrooms": "5 KM",
+            "electricity": "4400 VA",
+            "legal": "SHM (Hak Milik)",
+            "ownership": "Pemilik Langsung",
+            "time_ago": "Baru saja",
+            "status": "rejected",
+            "priority": "P1 - Hot Asset",
+            "photos_count": 4,
+            "photos": [
+                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80",
+                "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=400&q=80"
+            ],
+            "checklist": {
+                "identity": true,
+                "maps": true,
+                "shm_match": true,
+                "photos_hd": true
+            },
+            "notes": "Berkas ditolak setelah pemeriksaan spesifikasi fisik.",
+            "created_at": "2026-10-01 06:32:34"
+        },
+        {
+            "id": "#TP-208",
+            "title": "Villa Coastal Cliffside Pecatu",
+            "owner": "Bpk. Wayan Sudarma",
+            "phone": "+62 812-3344-5566",
+            "email": "wayan@sunsetvilla.com",
+            "price": "Rp 18.500.000.000",
+            "asking_val": 18500000000,
+            "valuation_range": "Rp 17.6 Miliar - Rp 20.0 Miliar",
+            "trx_type": "Jual",
+            "category": "Villa Eksklusif",
+            "location": "Bali - Uluwatu",
+            "address": "Jl. Pantai Pecatu Sunset No. 88, Badung, Bali",
+            "land_size": 600,
+            "building_size": 450,
+            "bedrooms": "5 KT",
+            "bathrooms": "5 KM",
+            "electricity": "4400 VA",
+            "legal": "SHM (Hak Milik)",
+            "ownership": "Pemilik Langsung",
+            "time_ago": "Baru saja",
+            "status": "pending",
+            "priority": "P1 - Hot Asset",
+            "photos_count": 4,
+            "photos": [
+                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80",
+                "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=400&q=80"
+            ],
+            "checklist": {
+                "identity": true,
+                "maps": true,
+                "shm_match": true,
+                "photos_hd": true
+            },
+            "notes": "Villa mewah pemandangan laut lepas Samudra Hindia dengan akses privat ke pantai.",
+            "created_at": "2026-10-01 06:32:00"
+        },
+        {
+            "id": "#TP-204",
+            "title": "Modern Tropical Villa Canggu",
+            "owner": "Hendra Wijaya",
+            "phone": "+62 812-8899-2345",
+            "email": "hendra@canggurealty.id",
+            "price": "Rp 2.850.000.000",
+            "asking_val": 2850000000,
+            "valuation_range": "Rp 2.8 M - 3.1 Miliar",
+            "trx_type": "Jual",
+            "category": "Villa Mewah",
+            "location": "Bali - Canggu, Badung",
+            "address": "Jl. Pantai Batu Mejan No. 88, Canggu, Kuta Utara",
+            "land_size": 140,
+            "building_size": 180,
+            "bedrooms": "3+1 KT",
+            "bathrooms": "3 KM",
+            "electricity": "3500 VA",
+            "legal": "SHM (Hak Milik)",
+            "ownership": "Pemilik Langsung",
+            "time_ago": "45 menit lalu",
+            "status": "pending",
+            "priority": "P1 - Hot Asset",
+            "photos_count": 6,
+            "photos": [
+                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80",
+                "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=400&q=80"
+            ],
+            "checklist": {
+                "identity": true,
+                "maps": true,
+                "shm_match": true,
+                "photos_hd": false
+            },
+            "notes": "Aset lokasi sangat prime dekat Echo Beach. Foto interior dapur perlu peningkatan pencahayaan standar Kumala sebelum diterbitkan."
+        },
+        {
+            "id": "#TP-205",
+            "title": "Colonial Executive Residence Kemang",
+            "owner": "Ibu Farida Siregar",
+            "phone": "+62 811-3344-5566",
+            "email": "farida.s@siregarholding.com",
+            "price": "Rp 38.000.000.000",
+            "asking_val": 38000000000,
+            "valuation_range": "Rp 36 M - 39 Miliar",
+            "trx_type": "Jual",
+            "category": "Rumah Mewah",
+            "location": "DKI Jakarta - Kemang, Jaksel",
+            "address": "Jl. Kemang Timur Raya No. 14, Bangka, Jakarta Selatan",
+            "land_size": 750,
+            "building_size": 550,
+            "bedrooms": "5 KT",
+            "bathrooms": "5 KM",
+            "electricity": "13200 VA",
+            "legal": "SHM Clear",
+            "ownership": "Pemilik Langsung",
+            "time_ago": "2 jam lalu",
+            "status": "pending",
+            "priority": "P2 - High Priority",
+            "photos_count": 12,
+            "photos": [
+                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80"
+            ],
+            "checklist": {
+                "identity": true,
+                "maps": true,
+                "shm_match": true,
+                "photos_hd": true
+            },
+            "notes": "Legalitas sertifikat SHM sudah diverifikasi notaris rekanan. Menunggu persetujuan final Super Admin."
+        },
+        {
+            "id": "#TP-206",
+            "title": "Beachside Cliff Pavillion Uluwatu",
+            "owner": "Bpk. Kenneth Lee (Kuasa Jual)",
+            "phone": "+62 817-9000-1122",
+            "email": "k.lee@pacificwealth.sg",
+            "price": "Rp 650.000.000 / Thn",
+            "asking_val": 650000000,
+            "valuation_range": "Rp 600 Jt - 700 Jt / Thn",
+            "trx_type": "Sewa",
+            "category": "Villa Mewah",
+            "location": "Bali - Uluwatu, Badung",
+            "address": "Jl. Pantai Suluban No. 12, Pecatu, Uluwatu",
+            "land_size": 600,
+            "building_size": 450,
+            "bedrooms": "4 KT",
+            "bathrooms": "4 KM",
+            "electricity": "7700 VA",
+            "legal": "HGB Murni",
+            "ownership": "Kuasa Jual Resmi",
+            "time_ago": "3 jam lalu",
+            "status": "pending",
+            "priority": "P2 - High Priority",
+            "photos_count": 8,
+            "photos": [
+                "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=400&q=80"
+            ],
+            "checklist": {
+                "identity": true,
+                "maps": true,
+                "shm_match": false,
+                "photos_hd": true
+            },
+            "notes": "Surat kuasa notarial dari pemilik Singapura sedang diproses legalisasi Kemenkumham."
+        }
+    ],
+    "inquiries": [
+        {
+            "id": "#IQ-2216",
+            "client_name": "Ibu Jennifer Kusumo",
+            "phone": "081299881122",
+            "email": "jennifer@investor.co.id",
+            "buyer_type": "Calon Pembeli Eksklusif (HNWIs)",
+            "time_ago": "Baru saja",
+            "sla_badge": "SLA Hijau (< 15 mnt)",
+            "sla_status": "urgent",
+            "stage": "Survei",
+            "property_id": "#KP-8830",
+            "property_title": "Villa Coastal Cliffside Pecatu",
+            "property_price": "Rp 18.5 Miliar",
+            "quote": "Rencana: Cash Keras (Diskon Khusus Nego) | Tgl Survei: 2026-10-15 | Mohon disiapkan video virtual tour 360 dan berkas sertifikat SHM untuk dicek notaris kami.",
+            "assigned_to": "Private Client Concierge",
+            "created_at": "2026-10-01 06:34:54"
+        },
+        {
+            "id": "#IQ-2215",
+            "client_name": "Ibu Jennifer Kusumo",
+            "phone": "081299881122",
+            "email": "jennifer@investor.co.id",
+            "buyer_type": "Calon Pembeli Eksklusif (HNWIs)",
+            "time_ago": "Baru saja",
+            "sla_badge": "SLA Hijau (< 15 mnt)",
+            "sla_status": "urgent",
+            "stage": "Survei",
+            "property_id": "#KP-8830",
+            "property_title": "Villa Coastal Cliffside Pecatu",
+            "property_price": "Rp 15 Miliar",
+            "quote": "Rencana: Cash Keras (Diskon Khusus Nego) | Tgl Survei: 2026-10-15 | Mohon disiapkan video virtual tour 360 dan berkas sertifikat SHM untuk dicek notaris kami.",
+            "assigned_to": "Private Client Concierge",
+            "created_at": "2026-10-01 06:33:05"
+        },
+        {
+            "id": "#IQ-2214",
+            "client_name": "Ibu Jennifer Kusumo",
+            "phone": "081299881122",
+            "email": "jennifer@investor.co.id",
+            "buyer_type": "Calon Pembeli Eksklusif (HNWIs)",
+            "time_ago": "Baru saja",
+            "sla_badge": "SLA Hijau (< 15 mnt)",
+            "sla_status": "urgent",
+            "stage": "Survei",
+            "property_id": "#KP-8821",
+            "property_title": "Villa Coastal Cliffside Pecatu",
+            "property_price": "Rp 15 Miliar",
+            "quote": "Rencana: Cash Keras (Diskon Khusus Nego) | Tgl Survei: 2026-10-15 | Mohon disiapkan video virtual tour 360 dan berkas sertifikat SHM untuk dicek notaris kami.",
+            "assigned_to": "Private Client Concierge",
+            "created_at": "2026-10-01 06:32:35"
+        },
+        {
+            "id": "#IQ-2213",
+            "client_name": "Ibu Jennifer Kusumo",
+            "phone": "081299881122",
+            "email": "jennifer@investor.co.id",
+            "buyer_type": "Calon Pembeli Eksklusif (HNWIs)",
+            "time_ago": "Baru saja",
+            "sla_badge": "SLA Hijau (< 15 mnt)",
+            "sla_status": "urgent",
+            "stage": "Baru",
+            "property_id": "#KP-8821",
+            "property_title": "Villa Coastal Cliffside Pecatu",
+            "property_price": "Rp 15 Miliar",
+            "quote": "Rencana: Cash Keras (Diskon Khusus Nego) | Tgl Survei: 2026-10-15 | Mohon disiapkan video virtual tour 360 dan berkas sertifikat SHM untuk dicek notaris kami.",
+            "assigned_to": "Private Client Concierge",
+            "created_at": "2026-10-01 06:32:01"
+        },
+        {
+            "id": "#IQ-2209",
+            "client_name": "Bpk. Richard Tan",
+            "phone": "+62 811-9234-5678",
+            "email": "richard.tan@capitalasia.com",
+            "buyer_type": "Investor Repeat (HNWIs)",
+            "time_ago": "12 menit lalu",
+            "sla_badge": "SLA Hijau (12 mnt)",
+            "sla_status": "urgent",
+            "stage": "Baru",
+            "property_id": "#KP-8821",
+            "property_title": "Villa Cliffside Horizon Uluwatu",
+            "property_price": "Rp 42 Miliar",
+            "quote": "Halo tim Kumala, kami berencana survei privat Sabtu pagi ini. Mohon info apakah tersedia helipad transfer atau penjemputan bandara Ngurah Rai?",
+            "assigned_to": "Gusti Ayu (Concierge Bali)"
+        },
+        {
+            "id": "#IQ-2208",
+            "client_name": "Ibu Stephanie Halim",
+            "phone": "+62 812-7788-9900",
+            "email": "stephanie.h@halimholdings.id",
+            "buyer_type": "Pembeli Rumah Tinggal",
+            "time_ago": "45 menit lalu",
+            "sla_badge": "SLA Aman (45 mnt)",
+            "sla_status": "normal",
+            "stage": "Follow-Up",
+            "property_id": "#KP-8822",
+            "property_title": "Menteng Heritage Colonial Mansion",
+            "property_price": "Rp 85 Miliar",
+            "quote": "Apakah berkas sertifikat SHM sudah diaudit BPN tanpa riwayat sengketa waris? Kami ingin menjadwalkan pertemuan di kantor Menteng.",
+            "assigned_to": "Farhan Kamil (Curator Jaksel)"
+        },
+        {
+            "id": "#IQ-2207",
+            "client_name": "Mr. Thomas Vance",
+            "phone": "+62 819-2233-4455",
+            "email": "tvance@singaporeventures.sg",
+            "buyer_type": "Sewa Korporat Ekspatriat",
+            "time_ago": "2 jam lalu",
+            "sla_badge": "Survei Terjadwal",
+            "sla_status": "normal",
+            "stage": "Survei",
+            "property_id": "#KP-8824",
+            "property_title": "Lavish Executive Penthouse SCBD",
+            "property_price": "Rp 850 Jt / Thn",
+            "quote": "Survei dikonfirmasi untuk besok pukul 15.00 WIB bersama tim legal perusahaan kami.",
+            "assigned_to": "Aditya Pratama (Super Admin)"
+        }
+    ],
+    "surveys_today": [
+        {
+            "time": "10:30 WIB",
+            "property": "Villa Cliffside Horizon Uluwatu",
+            "client": "Bpk. Richard Tan",
+            "agent": "Gusti Ayu",
+            "status": "Terkonfirmasi"
+        },
+        {
+            "time": "14:00 WIB",
+            "property": "Menteng Heritage Mansion",
+            "client": "Ibu Stephanie Halim",
+            "agent": "Farhan Kamil",
+            "status": "Menunggu Klien"
+        },
+        {
+            "time": "16:30 WIB",
+            "property": "Lavish Penthouse SCBD",
+            "client": "Mr. Thomas Vance",
+            "agent": "Aditya Pratama",
+            "status": "Terkonfirmasi"
+        }
+    ],
+    "transactions": [
+        {
+            "id": "#CLS-2025-031",
+            "date": "14 Mar 2025",
+            "property_id": "#KP-8822",
+            "property_title": "Menteng Heritage Colonial Mansion",
+            "property_image": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80",
+            "location": "Menteng, Jakarta Pusat",
+            "trx_type": "TERJUAL - JUAL BELI",
+            "asking_price": "Rp 88.000.000.000",
+            "deal_price": "Rp 85.000.000.000",
+            "diff_pct": "-3.4%",
+            "parties": "Penjual: Bpk. Tanu / Pembeli: Konsorsium Artha",
+            "commission_val": "Rp 2.125.000.000 (2.5%)",
+            "notary": "Dra. Sri Wahyuni, S.H., M.Kn. (Jaksel)",
+            "status_doc": "AJB Selesai",
+            "days_on_market": "38 Hari"
+        },
+        {
+            "id": "#CLS-2025-030",
+            "date": "02 Mar 2025",
+            "property_id": "#KP-8821",
+            "property_title": "Villa Cliffside Horizon Uluwatu",
+            "property_image": "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=400&q=80",
+            "location": "Uluwatu, Badung, Bali",
+            "trx_type": "TERJUAL - JUAL BELI",
+            "asking_price": "Rp 45.000.000.000",
+            "deal_price": "Rp 42.000.000.000",
+            "diff_pct": "-6.6%",
+            "parties": "Penjual: PT Bali Vista / Pembeli: Keluarga Gunawan",
+            "commission_val": "Rp 1.050.000.000 (2.5%)",
+            "notary": "I Made Suardana, S.H. (Denpasar)",
+            "status_doc": "AJB Selesai",
+            "days_on_market": "45 Hari"
+        }
+    ],
+    "settings": {
+        "hotline_wa": "+62 811-9988-7711",
+        "hotline_wa_numeric": "6281199887711",
+        "email_official": "concierge@kumalaproperty.id",
+        "email_business": "inquiries@kumalaproperty.id",
+        "address_hq": "Jl. Kemang Raya No. 42, Mampang Prapatan, Jakarta Selatan 12730",
+        "address_bali": "Jl. Pantai Suluban No. 8, Pecatu, Uluwatu, Badung, Bali 80361",
+        "hours_weekday": "08.30 - 18.00 WIB",
+        "hours_saturday": "09.00 - 15.00 WIB",
+        "hours_sunday": "Dengan Janji Temu",
+        "auto_watermark": true,
+        "whatsapp_notify": true,
+        "email_notify": true,
+        "email_cs": "vip@kumalaproperty.id",
+        "address": "Kumala Heritage Suite, Jl. Senopati No. 88, Kebayoran Baru, Jakarta Selatan 12190",
+        "office_hours": "Setiap Hari: 08:00 - 20:00 WIB"
+    },
+    "regions": [
+        {
+            "name": "DKI Jakarta - Jakarta Selatan",
+            "active": true,
+            "listings": 48
+        },
+        {
+            "name": "Bali - Badung (Canggu, Uluwatu, Seminyak)",
+            "active": true,
+            "listings": 52
+        },
+        {
+            "name": "Banten - Tangerang Selatan (BSD City)",
+            "active": true,
+            "listings": 24
+        },
+        {
+            "name": "DKI Jakarta - Jakarta Pusat (Menteng)",
+            "active": true,
+            "listings": 12
+        },
+        {
+            "name": "Jawa Timur - Surabaya Barat",
+            "active": true,
+            "listings": 8
+        },
+        {
+            "name": "Jawa Barat - Bandung Utara",
+            "active": false,
+            "listings": 4
+        }
+    ],
+    "categories": [
+        {
+            "name": "Rumah Tapak Mewah",
+            "subtypes": "Heritage, Colonial, Modern Minimalis",
+            "active": true,
+            "count": 64
+        },
+        {
+            "name": "Villa Mewah & Tropis",
+            "subtypes": "Cliffside, Beachfront, Ricefield View",
+            "active": true,
+            "count": 52
+        },
+        {
+            "name": "Ruko & Komersial",
+            "subtypes": "Shophouse, Butik, Kantor Representatif",
+            "active": true,
+            "count": 18
+        },
+        {
+            "name": "Apartemen & Penthouse",
+            "subtypes": "Sky Villa, Penthouse SCBD, High-rise",
+            "active": true,
+            "count": 14
+        }
+    ],
+    "priority_actions": [
+        {
+            "id": "#TP-213",
+            "type": "listing",
+            "title": "Pengajuan Titip Baru: The Royal Cliff Villa Jimbaran",
+            "owner": "Budi Santoso",
+            "phone": "+62 81299887766",
+            "time_ago": "Baru saja",
+            "sla_status": "warning",
+            "sla_badge": "SLA Respon < 4 Jam",
+            "detail": "Harga pengajuan Rp 22.500.000.000. Unit telah tayang perdana di katalog publik (#KP-8832).",
+            "btn_action_1": "Verifikasi SHM BPN",
+            "btn_action_2": "Tinjau & Kurasi Unit"
+        },
+        {
+            "id": "#TP-212",
+            "type": "listing",
+            "title": "Pengajuan Titip Baru: The Royal Cliff Villa Jimbaran",
+            "owner": "Budi Santoso",
+            "phone": "+62 81299887766",
+            "time_ago": "Baru saja",
+            "sla_status": "warning",
+            "sla_badge": "SLA Respon < 4 Jam",
+            "detail": "Harga pengajuan Rp 22.500.000.000. Unit telah tayang perdana di katalog publik (#KP-8832).",
+            "btn_action_1": "Verifikasi SHM BPN",
+            "btn_action_2": "Tinjau & Kurasi Unit"
+        },
+        {
+            "id": "#IQ-2216",
+            "type": "inquiry",
+            "title": "Inquiry Baru: Villa Coastal Cliffside Pecatu",
+            "owner": "Ibu Jennifer Kusumo",
+            "phone": "081299881122",
+            "time_ago": "Baru saja",
+            "sla_status": "urgent",
+            "sla_badge": "SLA Respon < 15 mnt",
+            "detail": "Rencana: Cash Keras (Diskon Khusus Nego) | Tgl Survei: 2026-10-15 | Mohon disiapkan video virtual tour 360 dan berkas sertifikat SHM untuk dicek notaris kami.",
+            "btn_action_1": "Hubungi via WhatsApp",
+            "btn_action_2": "Jadwalkan Survei"
+        },
+        {
+            "id": "#TP-211",
+            "type": "listing",
+            "title": "Pengajuan Titip Baru: Villa Coastal Cliffside Pecatu",
+            "owner": "Bpk. Wayan Sudarma",
+            "phone": "+62 812-3344-5566",
+            "time_ago": "Baru saja",
+            "sla_status": "warning",
+            "sla_badge": "SLA Respon < 4 Jam",
+            "detail": "Harga pengajuan Rp 18.500.000.000. Dokumen diajukan via portal publik.",
+            "btn_action_1": "Verifikasi SHM BPN",
+            "btn_action_2": "Tinjau & Kurasi Unit"
+        },
+        {
+            "id": "#IQ-2215",
+            "type": "inquiry",
+            "title": "Inquiry Baru: Villa Coastal Cliffside Pecatu",
+            "owner": "Ibu Jennifer Kusumo",
+            "phone": "081299881122",
+            "time_ago": "Baru saja",
+            "sla_status": "urgent",
+            "sla_badge": "SLA Respon < 15 mnt",
+            "detail": "Rencana: Cash Keras (Diskon Khusus Nego) | Tgl Survei: 2026-10-15 | Mohon disiapkan video virtual tour 360 dan berkas sertifikat SHM untuk dicek notaris kami.",
+            "btn_action_1": "Hubungi via WhatsApp",
+            "btn_action_2": "Jadwalkan Survei"
+        },
+        {
+            "id": "#TP-210",
+            "type": "listing",
+            "title": "Pengajuan Titip Baru: Villa Coastal Cliffside Pecatu",
+            "owner": "Bpk. Wayan Sudarma",
+            "phone": "+62 812-3344-5566",
+            "time_ago": "Baru saja",
+            "sla_status": "warning",
+            "sla_badge": "SLA Respon < 4 Jam",
+            "detail": "Harga pengajuan Rp 18.500.000.000. Dokumen diajukan via portal publik.",
+            "btn_action_1": "Verifikasi SHM BPN",
+            "btn_action_2": "Tinjau & Kurasi Unit"
+        },
+        {
+            "id": "#IQ-2214",
+            "type": "inquiry",
+            "title": "Inquiry Baru: Villa Coastal Cliffside Pecatu",
+            "owner": "Ibu Jennifer Kusumo",
+            "phone": "081299881122",
+            "time_ago": "Baru saja",
+            "sla_status": "urgent",
+            "sla_badge": "SLA Respon < 15 mnt",
+            "detail": "Rencana: Cash Keras (Diskon Khusus Nego) | Tgl Survei: 2026-10-15 | Mohon disiapkan video virtual tour 360 dan berkas sertifikat SHM untuk dicek notaris kami.",
+            "btn_action_1": "Hubungi via WhatsApp",
+            "btn_action_2": "Jadwalkan Survei"
+        },
+        {
+            "id": "#TP-209",
+            "type": "listing",
+            "title": "Pengajuan Titip Baru: Villa Coastal Cliffside Pecatu",
+            "owner": "Bpk. Wayan Sudarma",
+            "phone": "+62 812-3344-5566",
+            "time_ago": "Baru saja",
+            "sla_status": "warning",
+            "sla_badge": "SLA Respon < 4 Jam",
+            "detail": "Harga pengajuan Rp 18.500.000.000. Dokumen diajukan via portal publik.",
+            "btn_action_1": "Verifikasi SHM BPN",
+            "btn_action_2": "Tinjau & Kurasi Unit"
+        },
+        {
+            "id": "#IQ-2213",
+            "type": "inquiry",
+            "title": "Inquiry Baru: Villa Coastal Cliffside Pecatu",
+            "owner": "Ibu Jennifer Kusumo",
+            "phone": "081299881122",
+            "time_ago": "Baru saja",
+            "sla_status": "urgent",
+            "sla_badge": "SLA Respon < 15 mnt",
+            "detail": "Rencana: Cash Keras (Diskon Khusus Nego) | Tgl Survei: 2026-10-15 | Mohon disiapkan video virtual tour 360 dan berkas sertifikat SHM untuk dicek notaris kami.",
+            "btn_action_1": "Hubungi via WhatsApp",
+            "btn_action_2": "Jadwalkan Survei"
+        },
+        {
+            "id": "#TP-208",
+            "type": "listing",
+            "title": "Pengajuan Titip Baru: Villa Coastal Cliffside Pecatu",
+            "owner": "Bpk. Wayan Sudarma",
+            "phone": "+62 812-3344-5566",
+            "time_ago": "Baru saja",
+            "sla_status": "warning",
+            "sla_badge": "SLA Respon < 4 Jam",
+            "detail": "Harga pengajuan Rp 18.500.000.000. Dokumen diajukan via portal publik.",
+            "btn_action_1": "Verifikasi SHM BPN",
+            "btn_action_2": "Tinjau & Kurasi Unit"
+        },
+        {
+            "id": "#TP-204",
+            "type": "listing",
+            "title": "Pengajuan Konsinyasi Baru: Modern Tropical Villa Canggu",
+            "owner": "Hendra Wijaya",
+            "phone": "+62 812-8899-2345",
+            "time_ago": "45 menit yang lalu",
+            "sla_status": "warning",
+            "sla_badge": "SLA Respon < 4 Jam",
+            "detail": "Harga pengajuan Rp 2.85 M. Dokumen SHM dan KTP telah diunggah. Membutuhkan verifikasi appraisal & persetujuan tayang.",
+            "btn_action_1": "Verifikasi SHM BPN",
+            "btn_action_2": "Tinjau & Kurasi Unit"
+        },
+        {
+            "id": "#IQ-2209",
+            "type": "inquiry",
+            "title": "Inquiry Beli Segera: Villa Cliffside Horizon Uluwatu (#KP-8821)",
+            "owner": "Bpk. Richard Tan (Investor)",
+            "phone": "+62 811-9234-5678",
+            "time_ago": "12 menit yang lalu",
+            "sla_status": "urgent",
+            "sla_badge": "SLA Respon Hijau (12 mnt)",
+            "detail": "Meminta jadwal survei privat Sabtu pagi dengan penjemputan bandara Ngurah Rai. Skema pembayaran Cash Keras.",
+            "btn_action_1": "Hubungi via WhatsApp",
+            "btn_action_2": "Jadwalkan Survei"
+        },
+        {
+            "id": "#CLS-2025-031",
+            "type": "closing",
+            "title": "Draft Final PPJB: Menteng Heritage Colonial Mansion (#KP-8822)",
+            "owner": "Notaris Rekanan: Dra. Sri Wahyuni, S.H.",
+            "phone": "+62 813-7722-1100",
+            "time_ago": "2 jam yang lalu",
+            "sla_status": "normal",
+            "sla_badge": "Jadwal Closing: 14:00 WIB",
+            "detail": "Nilai deal disepakati Rp 85 Miliar. Salinan draft PPJB dan bukti validasi PPh/BPHTB siap ditandatangani.",
+            "btn_action_1": "Cetak Draft PPJB",
+            "btn_action_2": "Verifikasi Pajak"
+        }
+    ],
+    "audit_logs": [
+        {
+            "timestamp": "07:32 WIB",
+            "action": "Pengajuan Titip Properti Baru #TP-213 (#KP-8832) dari Budi Santoso",
+            "user": "Portal Publik (User)",
+            "status": "Published"
+        },
+        {
+            "timestamp": "07:32 WIB",
+            "action": "Penerbitan Listing Baru #KP-8832",
+            "user": "Admin Operator",
+            "status": "Published"
+        },
+        {
+            "timestamp": "07:30 WIB",
+            "action": "Pengajuan Titip Properti Baru #TP-212 (#KP-8832) dari Budi Santoso",
+            "user": "Portal Publik (User)",
+            "status": "Published"
+        },
+        {
+            "timestamp": "06:44 WIB",
+            "action": "Status pengajuan #TP-211 diperbarui menjadi revision",
+            "user": "Admin Curator",
+            "status": "Status Changed"
+        },
+        {
+            "timestamp": "06:44 WIB",
+            "action": "Penerbitan Listing Baru #KP-8831",
+            "user": "Admin Operator",
+            "status": "Published"
+        },
+        {
+            "timestamp": "06:44 WIB",
+            "action": "Status pengajuan #TP-209 diperbarui menjadi rejected",
+            "user": "Admin Curator",
+            "status": "Status Changed"
+        },
+        {
+            "timestamp": "06:34 WIB",
+            "action": "Pembaruan Konfigurasi Sistem & Kontak Resmi",
+            "user": "Super Admin",
+            "status": "Config Saved"
+        },
+        {
+            "timestamp": "06:34 WIB",
+            "action": "Tahapan Lead #IQ-2216 diubah ke Survei",
+            "user": "Admin Concierge",
+            "status": "Stage Advanced"
+        },
+        {
+            "timestamp": "06:34 WIB",
+            "action": "Inquiry Baru #IQ-2216 untuk properti #KP-8830 dari Ibu Jennifer Kusumo",
+            "user": "Portal Publik (User)",
+            "status": "Lead Created"
+        },
+        {
+            "timestamp": "06:34 WIB",
+            "action": "Penerbitan Listing Baru #KP-8830",
+            "user": "Admin Operator",
+            "status": "Published"
+        },
+        {
+            "timestamp": "06:34 WIB",
+            "action": "Pengajuan Titip Properti Baru #TP-211 dari Bpk. Wayan Sudarma",
+            "user": "Portal Publik (User)",
+            "status": "Submitted"
+        },
+        {
+            "timestamp": "06:33 WIB",
+            "action": "Pembaruan Konfigurasi Sistem & Kontak Resmi",
+            "user": "Super Admin",
+            "status": "Config Saved"
+        },
+        {
+            "timestamp": "06:33 WIB",
+            "action": "Tahapan Lead #IQ-2215 diubah ke Survei",
+            "user": "Admin Concierge",
+            "status": "Stage Advanced"
+        },
+        {
+            "timestamp": "06:33 WIB",
+            "action": "Inquiry Baru #IQ-2215 untuk properti #KP-8830 dari Ibu Jennifer Kusumo",
+            "user": "Portal Publik (User)",
+            "status": "Lead Created"
+        },
+        {
+            "timestamp": "06:33 WIB",
+            "action": "Pengajuan #TP-210 Disetujui & Diterbitkan sebagai Listing Live #KP-8830",
+            "user": "Admin Curator",
+            "status": "Approved & Published"
+        },
+        {
+            "timestamp": "06:33 WIB",
+            "action": "Pengajuan Titip Properti Baru #TP-210 dari Bpk. Wayan Sudarma",
+            "user": "Portal Publik (User)",
+            "status": "Submitted"
+        },
+        {
+            "timestamp": "06:32 WIB",
+            "action": "Pembaruan Konfigurasi Sistem & Kontak Resmi",
+            "user": "Super Admin",
+            "status": "Config Saved"
+        },
+        {
+            "timestamp": "06:32 WIB",
+            "action": "Tahapan Lead #IQ-2214 diubah ke Survei",
+            "user": "Admin Concierge",
+            "status": "Stage Advanced"
+        },
+        {
+            "timestamp": "06:32 WIB",
+            "action": "Inquiry Baru #IQ-2214 untuk properti #KP-8821 dari Ibu Jennifer Kusumo",
+            "user": "Portal Publik (User)",
+            "status": "Lead Created"
+        },
+        {
+            "timestamp": "06:32 WIB",
+            "action": "Pengajuan Titip Properti Baru #TP-209 dari Bpk. Wayan Sudarma",
+            "user": "Portal Publik (User)",
+            "status": "Submitted"
+        },
+        {
+            "timestamp": "06:32 WIB",
+            "action": "Pembaruan Konfigurasi Sistem & Kontak Resmi",
+            "user": "Super Admin",
+            "status": "Config Saved"
+        },
+        {
+            "timestamp": "06:32 WIB",
+            "action": "Inquiry Baru #IQ-2213 untuk properti #KP-8821 dari Ibu Jennifer Kusumo",
+            "user": "Portal Publik (User)",
+            "status": "Lead Created"
+        },
+        {
+            "timestamp": "06:32 WIB",
+            "action": "Pengajuan Titip Properti Baru #TP-208 dari Bpk. Wayan Sudarma",
+            "user": "Portal Publik (User)",
+            "status": "Submitted"
+        },
+        {
+            "timestamp": "11:42 WIB",
+            "action": "Persetujuan Listing Baru #KP-8826",
+            "user": "Aditya Pratama (Super Admin)",
+            "status": "Published"
+        },
+        {
+            "timestamp": "10:15 WIB",
+            "action": "Penyesuaian Harga Asking #KP-8821 (Rp 45M -> Rp 42M)",
+            "user": "Farhan Kamil (Curator)",
+            "status": "Updated"
+        },
+        {
+            "timestamp": "09:30 WIB",
+            "action": "Inquiry Baru #IQ-2209 Dialokasikan ke Concierge Bali",
+            "user": "Sistem Otomatis (Rule Engine)",
+            "status": "Assigned"
+        },
+        {
+            "timestamp": "08:50 WIB",
+            "action": "Unduhan Factsheet PDF #KP-8822 oleh Klien VIP",
+            "user": "Portal Publik (IP 182.253.xx.xx)",
+            "status": "Downloaded"
+        }
+    ]
+}
