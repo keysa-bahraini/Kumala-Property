@@ -589,6 +589,7 @@ function setInquiryTab(type) {
 
 function handleInquirySubmit(e) {
     e.preventDefault();
+    const form = e.target;
     const btn = document.getElementById('btn-submit-inquiry');
     const form = document.getElementById('inquiry-form');
     btn.disabled = true;

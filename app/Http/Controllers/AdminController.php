@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Services\KumalaDataHub;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
@@ -24,25 +27,45 @@ class AdminController extends Controller
      */
     public function authenticate(Request $request)
     {
-        $email = $request->input('email', 'admin@kumalaproperty.com');
-        $password = $request->input('password', '');
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string'],
+        ]);
 
-        // Accept demo admin credentials
-        if ($email === 'admin@kumalaproperty.com' || !empty($password)) {
-            session([
-                'admin_logged_in' => true,
-                'admin_user' => [
-                    'name' => 'Aditya Pratama',
-                    'role' => 'Senior Curator & Super Admin',
-                    'email' => $email,
-                    'avatar' => 'AP',
-                ]
-            ]);
+        $throttleKey = Str::transliterate(Str::lower($request->input('email')) . '|' . $request->ip());
 
-            return redirect()->route('admin.dashboard')->with('success', 'Selamat datang kembali di Portal Kontrol Kumala Property.');
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            return back()->withErrors([
+                'email' => "Terlalu banyak percobaan masuk gagal. Silakan coba lagi dalam {$seconds} detik demi keamanan sistem.",
+            ])->onlyInput('email');
         }
 
-        return back()->withErrors(['email' => 'Kredensial login tidak cocok dengan data personel terdaftar.']);
+        $remember = $request->boolean('remember');
+
+        if (Auth::attempt($credentials, $remember)) {
+            RateLimiter::clear($throttleKey);
+            $request->session()->regenerate();
+
+            if (!Auth::user()->isAdmin()) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return back()->withErrors([
+                    'email' => 'Akun Anda tidak memiliki hak akses administratif.',
+                ]);
+            }
+
+            return redirect()->intended(route('admin.dashboard'))
+                ->with('success', 'Selamat datang kembali, ' . Auth::user()->name . '. Sesi terverifikasi.');
+        }
+
+        RateLimiter::hit($throttleKey, 300);
+
+        return back()->withErrors([
+            'email' => 'Kombinasi email atau kata sandi tidak cocok dengan data personel terdaftar.',
+        ])->onlyInput('email');
     }
 
     /**
@@ -59,10 +82,7 @@ class AdminController extends Controller
         return view('admin.dashboard', compact('properties', 'metrics', 'priorityActions', 'auditLogs'));
     }
 
-    /**
-     * Page 9: Manajemen Properti (Inventory Hub)
-     */
-    public function properties(Request $request)
+    private static function getDefaultAuditLogs(): array
     {
         $search = $request->query('search', '');
         $status = $request->query('status', 'Semua');
@@ -96,8 +116,6 @@ class AdminController extends Controller
             'leads_total' => count(KumalaDataHub::getInquiries()),
             'portfolio_val' => 'Rp 482 M',
         ];
-
-        return view('admin.properties', compact('allProperties', 'metrics', 'search', 'status', 'type', 'region'));
     }
 
     /**
@@ -294,11 +312,10 @@ class AdminController extends Controller
     }
 
     /**
-     * Admin Logout
+     * Safe redirect for GET /admin/logout
      */
-    public function logout()
+    public function logoutRedirect()
     {
-        session()->forget(['admin_logged_in', 'admin_user']);
-        return redirect()->route('admin.login')->with('success', 'Anda telah keluar dari Portal Kontrol Admin.');
+        return redirect()->route('admin.login');
     }
 }

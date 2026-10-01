@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Services\KumalaDataHub;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class PropertyController extends Controller
 {
@@ -70,7 +72,7 @@ class PropertyController extends Controller
      * Submit Titip Properti (Konsinyasi dari User)
      * Langsung tersambung ke Admin Gatekeeper Submissions & Admin Dashboard!
      */
-    public function submitTitipProperti(Request $request)
+    public function submitTitipProperti(TitipPropertiRequest $request)
     {
         $data = $request->all();
 
@@ -131,7 +133,7 @@ class PropertyController extends Controller
      * Submit Inquiry Form (Minat Beli / Sewa dari User)
      * Langsung tersambung ke Admin Lead Pipeline CRM & Dashboard!
      */
-    public function submitInquiry(Request $request)
+    public function submitInquiry(InquiryRequest $request)
     {
         $inquiry = KumalaDataHub::createInquiry($request->all());
 

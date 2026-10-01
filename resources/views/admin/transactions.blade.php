@@ -108,6 +108,65 @@
         </div>
     </div>
 
+    <!-- Modal Input Closing Transaksi -->
+    <div id="modalClosing" style="display: none; position: fixed; inset: 0; background: rgba(14, 34, 56, 0.7); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: #FFFFFF; border-radius: 14px; max-width: 520px; width: 100%; padding: 28px; box-shadow: var(--shadow-lg); border: 1px solid var(--border-color);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="font-size: 1.25rem; color: var(--primary-navy); font-weight: 700;">Catat Closing Transaksi</h3>
+                <button type="button" onclick="closeClosingModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: #94A3B8;">&times;</button>
+            </div>
+            <form action="{{ route('admin.transactions.store') }}" method="POST" style="display: flex; flex-direction: column; gap: 14px;">
+                @csrf
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Pilih Properti Aktif</label>
+                    <select name="property_id" required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                        @if(!empty($activeProperties))
+                            @foreach($activeProperties as $prop)
+                                <option value="{{ $prop->id }}">{{ $prop->id }} - {{ $prop->title }} ({{ $prop->price_formatted }})</option>
+                            @endforeach
+                        @else
+                            <option value="#KP-8821">#KP-8821 - Villa Cliffside Horizon Uluwatu</option>
+                        @endif
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Jenis Transaksi</label>
+                        <select name="trx_type" required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                            <option value="TERJUAL - JUAL BELI">TERJUAL - JUAL BELI</option>
+                            <option value="TERSEWA - 2 TAHUN">TERSEWA - 2 TAHUN</option>
+                            <option value="TERSEWA - 1 TAHUN">TERSEWA - 1 TAHUN</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Harga Deal Final</label>
+                        <input type="text" name="deal_price" placeholder="Contoh: Rp 40.000.000.000" required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem;">
+                    </div>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Pihak Transaksi</label>
+                    <input type="text" name="parties" placeholder="Penjual: Bpk. Tanu / Pembeli: Konsorsium Artha" required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Notaris Rekanan</label>
+                    <input type="text" name="notary" value="Dra. Sri Wahyuni, S.H., M.Kn." required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem;">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                    <button type="button" class="btn-fav-tool" onclick="closeClosingModal()">Batal</button>
+                    <button type="submit" class="btn-teal">Simpan & Bukukan Closing</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    function openClosingModal() {
+        document.getElementById('modalClosing').style.display = 'flex';
+    }
+    function closeClosingModal() {
+        document.getElementById('modalClosing').style.display = 'none';
+    }
+    </script>
 </div>
 
 <!-- Modal Catat Closing -->

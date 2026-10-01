@@ -141,11 +141,17 @@
                     <div>
                         <label class="form-label-field">Provinsi & Kota / Kabupaten *</label>
                         <select name="city_region" class="form-input-field" required>
-                            <option value="Bali - Badung">Bali - Badung (Canggu, Seminyak, Kuta)</option>
-                            <option value="Jakarta Selatan">DKI Jakarta - Jakarta Selatan</option>
-                            <option value="Tangerang Selatan">Banten - Tangerang Selatan (BSD City)</option>
-                            <option value="Surabaya">Jawa Timur - Surabaya Barat</option>
-                            <option value="Bandung">Jawa Barat - Bandung Utara</option>
+                            @if(!empty($activeRegions) && count($activeRegions) > 0)
+                                @foreach($activeRegions as $reg)
+                                    <option value="{{ $reg->city ?: $reg->name }}">{{ $reg->name }}</option>
+                                @endforeach
+                            @else
+                                <option value="Bali - Badung">Bali - Badung (Canggu, Seminyak, Kuta)</option>
+                                <option value="Jakarta Selatan">DKI Jakarta - Jakarta Selatan</option>
+                                <option value="Tangerang Selatan">Banten - Tangerang Selatan (BSD City)</option>
+                                <option value="Surabaya">Jawa Timur - Surabaya Barat</option>
+                                <option value="Bandung">Jawa Barat - Bandung Utara</option>
+                            @endif
                         </select>
                     </div>
                     <div>

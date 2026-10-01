@@ -46,11 +46,17 @@
                     <label class="form-label-field">2. KATEGORI PROPERTI</label>
                     <select name="category" class="filter-select" onchange="document.getElementById('filter-form').submit()">
                         <option value="Semua Tipe Properti" {{ $category === 'Semua Tipe Properti' ? 'selected' : '' }}>Semua Tipe Properti</option>
-                        <option value="Rumah Mewah" {{ $category === 'Rumah Mewah' ? 'selected' : '' }}>Rumah Mewah</option>
-                        <option value="Apartemen / Penthouse" {{ $category === 'Apartemen / Penthouse' ? 'selected' : '' }}>Apartemen / Penthouse</option>
-                        <option value="Villa" {{ $category === 'Villa' ? 'selected' : '' }}>Villa Tropis</option>
-                        <option value="Tanah Komersial" {{ $category === 'Tanah Komersial' ? 'selected' : '' }}>Tanah Komersial</option>
-                        <option value="Ruko / Shophouse" {{ $category === 'Ruko / Shophouse' ? 'selected' : '' }}>Ruko / Shophouse</option>
+                        @if(!empty($activeCategories) && count($activeCategories) > 0)
+                            @foreach($activeCategories as $cat)
+                                <option value="{{ $cat->name }}" {{ $category === $cat->name ? 'selected' : '' }}>{{ $cat->name }}</option>
+                            @endforeach
+                        @else
+                            <option value="Rumah Mewah" {{ $category === 'Rumah Mewah' ? 'selected' : '' }}>Rumah Mewah</option>
+                            <option value="Apartemen / Penthouse" {{ $category === 'Apartemen / Penthouse' ? 'selected' : '' }}>Apartemen / Penthouse</option>
+                            <option value="Villa" {{ $category === 'Villa' ? 'selected' : '' }}>Villa Tropis</option>
+                            <option value="Tanah Komersial" {{ $category === 'Tanah Komersial' ? 'selected' : '' }}>Tanah Komersial</option>
+                            <option value="Ruko / Shophouse" {{ $category === 'Ruko / Shophouse' ? 'selected' : '' }}>Ruko / Shophouse</option>
+                        @endif
                     </select>
                 </div>
 
@@ -59,10 +65,16 @@
                     <label class="form-label-field">3. LOKASI PROPERTI</label>
                     <select name="location" class="filter-select" onchange="document.getElementById('filter-form').submit()">
                         <option value="Semua Wilayah" {{ $location === 'Semua Wilayah' ? 'selected' : '' }}>Semua Wilayah</option>
-                        <option value="Bali" {{ $location === 'Bali' ? 'selected' : '' }}>Bali - Badung / Canggu / Uluwatu</option>
-                        <option value="Jakarta Selatan" {{ $location === 'Jakarta Selatan' ? 'selected' : '' }}>Jakarta Selatan (Kemang, Pondok Indah)</option>
-                        <option value="BSD City" {{ $location === 'BSD City' ? 'selected' : '' }}>BSD City, Tangerang Selatan</option>
-                        <option value="Surabaya" {{ $location === 'Surabaya' ? 'selected' : '' }}>Surabaya Barat</option>
+                        @if(!empty($activeRegions) && count($activeRegions) > 0)
+                            @foreach($activeRegions as $reg)
+                                <option value="{{ $reg->city ?: $reg->name }}" {{ $location === ($reg->city ?: $reg->name) ? 'selected' : '' }}>{{ $reg->name }}</option>
+                            @endforeach
+                        @else
+                            <option value="Bali" {{ $location === 'Bali' ? 'selected' : '' }}>Bali - Badung / Canggu / Uluwatu</option>
+                            <option value="Jakarta Selatan" {{ $location === 'Jakarta Selatan' ? 'selected' : '' }}>Jakarta Selatan (Kemang, Pondok Indah)</option>
+                            <option value="BSD City" {{ $location === 'BSD City' ? 'selected' : '' }}>BSD City, Tangerang Selatan</option>
+                            <option value="Surabaya" {{ $location === 'Surabaya' ? 'selected' : '' }}>Surabaya Barat</option>
+                        @endif
                     </select>
                 </div>
 

@@ -236,6 +236,252 @@
         </div>
     </div>
 
+    <!-- Modal Formulir Properti (Tambah & Edit) -->
+    <div id="modalPropertyForm" style="display: none; position: fixed; inset: 0; background: rgba(14, 34, 56, 0.7); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: #FFFFFF; border-radius: 14px; max-width: 680px; width: 100%; padding: 28px; box-shadow: var(--shadow-lg); border: 1px solid var(--border-color); max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <div>
+                    <h3 id="propModalTitle" style="font-size: 1.25rem; color: var(--primary-navy); font-weight: 700;">Tambah Properti Baru</h3>
+                    <p id="propModalSubtitle" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">Lengkapi data spesifikasi dan kurasi properti.</p>
+                </div>
+                <button type="button" onclick="closePropertyModal()" style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #94A3B8;">&times;</button>
+            </div>
+
+            <form id="propMainForm" action="{{ route('admin.properties.store') }}" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 16px;">
+                @csrf
+                <input type="hidden" name="id" id="propInputId" value="">
+
+                <!-- Section 1: Data Pokok -->
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Judul Properti *</label>
+                    <input type="text" name="title" id="propInputTitle" required placeholder="Contoh: Villa Cliffside Horizon Uluwatu" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Kategori Induk *</label>
+                        <select name="category" id="propInputCategory" required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                            @if(isset($categoriesList) && count($categoriesList) > 0)
+                                @foreach($categoriesList as $cat)
+                                    <option value="{{ $cat->name }}">{{ $cat->name }}</option>
+                                @endforeach
+                            @else
+                                <option value="Rumah Tapak Mewah">Rumah Tapak Mewah</option>
+                                <option value="Villa Mewah & Tropis">Villa Mewah & Tropis</option>
+                                <option value="Ruko & Komersial">Ruko & Komersial</option>
+                                <option value="Apartemen & Penthouse">Apartemen & Penthouse</option>
+                                <option value="Tanah & Kavling">Tanah & Kavling</option>
+                            @endif
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Tipe Transaksi *</label>
+                        <select name="transaction_type" id="propInputTrxType" required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                            <option value="Jual">Jual</option>
+                            <option value="Sewa">Sewa</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Harga Penawaran *</label>
+                        <input type="text" name="price" id="propInputPrice" required placeholder="Contoh: Rp 42.000.000.000" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Catatan Harga</label>
+                        <input type="text" name="price_notes" id="propInputPriceNotes" placeholder="Pajak & Biaya Notaris Dibagi Proposional" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                </div>
+
+                <!-- Section 2: Lokasi & Legalitas -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Kota / Wilayah *</label>
+                        <select name="location_city" id="propInputCity" required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                            @if(isset($regionsList) && count($regionsList) > 0)
+                                @foreach($regionsList as $reg)
+                                    <option value="{{ $reg->city ?: $reg->name }}">{{ $reg->name }}</option>
+                                @endforeach
+                            @else
+                                <option value="Jakarta Selatan">Jakarta Selatan</option>
+                                <option value="Bali">Bali</option>
+                                <option value="Tangerang Selatan">Tangerang Selatan (BSD City)</option>
+                                <option value="Surabaya">Surabaya</option>
+                            @endif
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Area / Kawasan</label>
+                        <input type="text" name="location_area" id="propInputArea" placeholder="Contoh: Uluwatu, Badung" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Alamat Lengkap *</label>
+                    <input type="text" name="location_address" id="propInputAddress" required placeholder="Jl. Pantai Suluban No. 8, Pecatu" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Sertifikat / Legalitas *</label>
+                        <select name="legal_status" id="propInputLegal" required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                            <option value="SHM (Hak Milik)">SHM (Hak Milik)</option>
+                            <option value="HGB (Hak Guna Bangunan)">HGB (Hak Guna Bangunan)</option>
+                            <option value="Strata Title">Strata Title</option>
+                            <option value="Girik / Lainnya">Girik / Lainnya</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Status Listing</label>
+                        <select name="status" id="propInputStatus" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                            <option value="ACTIVE">Aktif Tayang</option>
+                            <option value="DRAFT">Draft Kurasi</option>
+                            <option value="PENDING_REVIEW">Menunggu Review</option>
+                            <option value="SOLD">Terjual</option>
+                            <option value="RENTED">Tersewa</option>
+                            <option value="ARCHIVED">Arsip</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Section 3: Spesifikasi Teknis -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                    <div>
+                        <label style="display: block; font-size: 0.72rem; font-weight: 700; color: #475569; margin-bottom: 2px;">KT</label>
+                        <input type="number" name="bedrooms" id="propInputBedrooms" value="3" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.72rem; font-weight: 700; color: #475569; margin-bottom: 2px;">KM</label>
+                        <input type="number" name="bathrooms" id="propInputBathrooms" value="2" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.72rem; font-weight: 700; color: #475569; margin-bottom: 2px;">LT (m²)</label>
+                        <input type="number" name="land_size" id="propInputLand" value="200" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.72rem; font-weight: 700; color: #475569; margin-bottom: 2px;">LB (m²)</label>
+                        <input type="number" name="building_size" id="propInputBuilding" value="180" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label style="display: block; font-size: 0.72rem; font-weight: 700; color: #475569; margin-bottom: 2px;">Jml Lantai</label>
+                        <input type="number" name="floors" id="propInputFloors" value="1" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.72rem; font-weight: 700; color: #475569; margin-bottom: 2px;">Listrik</label>
+                        <input type="text" name="electricity" id="propInputElectricity" value="3500 VA" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.72rem; font-weight: 700; color: #475569; margin-bottom: 2px;">Arah Hadap</label>
+                        <input type="text" name="orientation" id="propInputOrientation" value="Utara" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                </div>
+
+                <!-- Section 4: Foto & Media -->
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Foto Utama (URL atau Unggah File)</label>
+                    <input type="text" name="image_main" id="propInputImage" placeholder="https://images.unsplash.com/photo-..." style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC; margin-bottom: 6px;">
+                    <input type="file" name="photo_file" accept="image/*" style="font-size: 0.82rem; color: #64748B;">
+                </div>
+
+                <!-- Section 5: Deskripsi & Fitur -->
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Deskripsi Narasi *</label>
+                    <textarea name="description" id="propInputDesc" rows="3" required placeholder="Jelaskan konsep arsitektur, lanskap, dan keunggulan investasi..." style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC; font-family: inherit;"></textarea>
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Fasilitas & Fitur (Pisahkan dengan koma)</label>
+                    <input type="text" name="features" id="propInputFeatures" placeholder="Kolam Renang Privat, Fully Furnished, Carport 2 Mobil, Ocean View" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                </div>
+
+                <!-- Modal Actions -->
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+                    <button type="button" class="btn-fav-tool" onclick="closePropertyModal()">Batal</button>
+                    <button type="submit" id="propSubmitBtn" class="btn-primary">Simpan & Publikasikan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    function toggleSelectAll(master) {
+        const checkboxes = document.querySelectorAll('.prop-checkbox');
+        checkboxes.forEach(cb => cb.checked = master.checked);
+        updateBatchToolbar();
+    }
+
+    function updateBatchToolbar() {
+        const checked = document.querySelectorAll('.prop-checkbox:checked');
+        const count = checked.length;
+        const toolbar = document.getElementById('batchActionForm');
+        const countSpan = document.getElementById('selectedCount');
+        
+        if (count > 0) {
+            toolbar.style.display = 'flex';
+            countSpan.textContent = count;
+        } else {
+            toolbar.style.display = 'none';
+            const master = document.getElementById('selectAllProps');
+            if (master) master.checked = false;
+        }
+    }
+
+    function openPropertyModal(mode, data = null) {
+        const modal = document.getElementById('modalPropertyForm');
+        const form = document.getElementById('propMainForm');
+        const title = document.getElementById('propModalTitle');
+        const subtitle = document.getElementById('propModalSubtitle');
+        const submitBtn = document.getElementById('propSubmitBtn');
+
+        if (mode === 'create') {
+            title.textContent = 'Tambah Properti Baru';
+            subtitle.textContent = 'Lengkapi data spesifikasi dan kurasi properti.';
+            submitBtn.textContent = 'Simpan & Publikasikan';
+            form.action = "{{ route('admin.properties.store') }}";
+            form.reset();
+            document.getElementById('propInputId').value = '';
+            document.getElementById('propInputStatus').value = 'ACTIVE';
+        } else if (mode === 'edit' && data) {
+            title.textContent = 'Edit Properti ' + (data.id || '');
+            subtitle.textContent = 'Perbarui data spesifikasi, harga penawaran, atau status unit.';
+            submitBtn.textContent = 'Simpan Perubahan';
+            const cleanId = encodeURIComponent(data.id);
+            form.action = "/admin/properti/" + cleanId + "/update";
+            
+            document.getElementById('propInputId').value = data.id || '';
+            document.getElementById('propInputTitle').value = data.title || '';
+            document.getElementById('propInputCategory').value = data.category || 'Rumah Tapak Mewah';
+            document.getElementById('propInputTrxType').value = data.transaction_type || 'Jual';
+            document.getElementById('propInputPrice').value = data.price_formatted || (data.price ? 'Rp ' + data.price : '');
+            document.getElementById('propInputPriceNotes').value = data.price_notes || '';
+            document.getElementById('propInputCity').value = data.location_city || 'Jakarta Selatan';
+            document.getElementById('propInputArea').value = data.location_area || '';
+            document.getElementById('propInputAddress').value = data.location_address || '';
+            document.getElementById('propInputLegal').value = data.legal_status || 'SHM (Hak Milik)';
+            document.getElementById('propInputStatus').value = data.status || 'ACTIVE';
+            document.getElementById('propInputBedrooms').value = data.bedrooms || 3;
+            document.getElementById('propInputBathrooms').value = data.bathrooms || 2;
+            document.getElementById('propInputLand').value = data.land_size || 0;
+            document.getElementById('propInputBuilding').value = data.building_size || 0;
+            document.getElementById('propInputImage').value = data.image_main || '';
+            document.getElementById('propInputDesc').value = data.description || '';
+        }
+
+        modal.style.display = 'flex';
+    }
+
+    function closePropertyModal() {
+        document.getElementById('modalPropertyForm').style.display = 'none';
+    }
+    </script>
 </div>
 
 <!-- Modal Tambah Properti Baru -->
