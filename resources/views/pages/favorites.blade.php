@@ -17,19 +17,19 @@
     <!-- Header Section -->
     <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px; margin-bottom: 32px;">
         <div>
-            <span class="badge-tag badge-tag-navy" style="margin-bottom: 12px;">KOLEKSI PRIBADI TERSIMPAN</span>
+            <span class="badge-tag badge-tag-navy" style="margin-bottom: 12px;">{{ $globalSettings['favorites_badge'] ?? 'KOLEKSI PRIBADI TERSIMPAN' }}</span>
             <h1 style="font-size: clamp(2rem, 3.5vw, 2.75rem); color: var(--primary-navy); margin-bottom: 8px; line-height: 1.2; font-weight: 800;">
-                Properti Favorit Saya
+                {{ $globalSettings['favorites_title'] ?? 'Properti Favorit Saya' }}
             </h1>
             <p style="font-size: 1rem; color: var(--text-muted); line-height: 1.5; max-width: 680px;">
-                Daftar unit properti pilihan yang Anda simpan di perangkat ini. Anda dapat membandingkan spesifikasi teknis atau mengajukan jadwal survei privat sekaligus.
+                {{ $globalSettings['favorites_desc'] ?? 'Daftar unit properti pilihan yang Anda simpan di perangkat ini. Anda dapat membandingkan spesifikasi teknis atau mengajukan jadwal survei privat sekaligus.' }}
             </p>
         </div>
 
         <!-- Concierge Quick Action -->
-        <a href="https://wa.me/6281288992345?text=Halo%20Concierge%20Kumala,%20saya%20ingin%20berkonsultasi%20mengenai%20unit%20favorit%20saya." target="_blank" class="btn-teal" style="padding: 12px 20px; font-size: 0.9rem; border-radius: 8px;">
+        <a href="https://wa.me/{{ $globalSettings['hotline_wa_numeric'] ?? '6281199887711' }}?text=Halo%20Concierge%20Kumala,%20saya%20ingin%20berkonsultasi%20mengenai%20unit%20favorit%20saya." target="_blank" class="btn-teal" style="padding: 12px 20px; font-size: 0.9rem; border-radius: 8px;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <span>Konsultasi Semua Favorit via WA</span>
+            <span>{{ $globalSettings['favorites_cta'] ?? 'Konsultasi Semua Favorit via WA' }}</span>
         </a>
     </div>
 

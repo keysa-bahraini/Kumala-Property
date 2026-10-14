@@ -82,7 +82,10 @@ class AdminController extends Controller
         return view('admin.dashboard', compact('properties', 'metrics', 'priorityActions', 'auditLogs'));
     }
 
-    private static function getDefaultAuditLogs(): array
+    /**
+     * Page 9: Master Inventory Properti
+     */
+    public function properties(Request $request)
     {
         $search = $request->query('search', '');
         $status = $request->query('status', 'Semua');
@@ -116,6 +119,8 @@ class AdminController extends Controller
             'leads_total' => count(KumalaDataHub::getInquiries()),
             'portfolio_val' => 'Rp 482 M',
         ];
+
+        return view('admin.properties', compact('allProperties', 'metrics', 'search', 'status', 'type', 'region'));
     }
 
     /**
@@ -298,17 +303,62 @@ class AdminController extends Controller
     }
 
     /**
-     * Save settings from Admin (langsung menyinkronkan nomor WA, alamat, jam kerja ke seluruh userpage!)
+     * Save settings from Admin (langsung menyinkronkan logo, teks, dan seluruh userpage secara real-time)
      */
     public function saveSettings(Request $request)
     {
-        $updated = KumalaDataHub::updateSettings($request->all());
+        $payload = $request->except(['_token']);
+
+        // Handle logo file upload if provided
+        if ($request->hasFile('brand_logo_file') && $request->file('brand_logo_file')->isValid()) {
+            $file = $request->file('brand_logo_file');
+            $uploadDir = public_path('uploads/branding');
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            $filename = 'logo_' . time() . '.' . $file->getClientOriginalExtension();
+            $file->move($uploadDir, $filename);
+            $payload['brand_logo_url'] = asset('uploads/branding/' . $filename);
+        }
+        unset($payload['brand_logo_file']);
+
+        $updated = KumalaDataHub::updateSettings($payload);
 
         if ($request->wantsJson()) {
-            return response()->json(['success' => true, 'settings' => $updated]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Pengaturan sistem & seluruh konten portal publik berhasil diperbarui!',
+                'settings' => $updated
+            ]);
         }
 
-        return redirect()->route('admin.settings')->with('success', 'Pengaturan sistem & kontak resmi berhasil diperbarui dan disinkronkan ke seluruh portal publik!');
+        return redirect()->route('admin.settings')->with('success', 'Pengaturan sistem & seluruh konten portal publik berhasil diperbarui secara real-time!');
+    }
+
+    /**
+     * Admin Logout
+     */
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('admin.login')->with('success', 'Anda telah berhasil keluar dari portal admin.');
+    }
+
+    /**
+     * Store new property category from Admin
+     */
+    public function storeCategory(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:100',
+        ]);
+
+        KumalaDataHub::addCategory($request->all());
+
+        return redirect()->route('admin.settings')->with('success', 'Kategori properti baru berhasil ditambahkan.');
     }
 
     /**

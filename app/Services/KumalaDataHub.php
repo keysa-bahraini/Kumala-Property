@@ -26,7 +26,10 @@ class KumalaDataHub
         if (file_exists($path)) {
             $content = file_get_contents($path);
             $data = json_decode($content, true);
-            if (is_array($data) && isset($data['properties'], $data['submissions'], $data['inquiries'], $data['settings'])) {
+            if (is_array($data) && isset($data['properties'])) {
+                if (!isset($data['settings']) || !is_array($data['settings'])) {
+                    $data['settings'] = [];
+                }
                 return $data;
             }
         }
@@ -690,20 +693,98 @@ class KumalaDataHub
     public static function getSettings(): array
     {
         $data = self::loadData();
-        return $data['settings'] ?? [
-            'hotline_wa' => '+62 812-8899-2345',
-            'hotline_wa_numeric' => '6281288992345',
+        $stored = $data['settings'] ?? [];
+
+        $defaults = [
+            // 1. Branding & Identitas
+            'brand_name' => 'KUMALA PROPERTY',
+            'brand_subtitle' => 'JUAL & SEWA PROPERTI',
+            'brand_logo_url' => '',
+            'site_tagline' => 'Luxury Real Estate Atelier & Integrated Property Management Platform',
+            'footer_bio' => 'Kumala Property adalah platform real estate mewah terdepan di Indonesia. Portofolio hunian prestisius, villa tropis, penthouse, dan ruang komersial prima dengan kurasi arsitektural ketat dan legalitas 100% terverifikasi notaris.',
+            'footer_copyright' => '© 2026 Kumala Property. Seluruh hak cipta dilindungi undang-undang.',
+
+            // 2. Kontak & Jam Kerja
+            'hotline_wa' => '+62 811-9988-7711',
+            'hotline_wa_numeric' => '6281199887711',
+            'hotline_admin' => '+62 811-9988-7711',
+            'email_cs' => 'cs@kumalaproperty.id',
             'email_official' => 'concierge@kumalaproperty.id',
-            'email_business' => 'inquiries@kumalaproperty.id',
-            'address_hq' => 'Jl. Kemang Raya No. 42, Mampang Prapatan, Jakarta Selatan 12730',
+            'email_business' => 'vip@kumalaproperty.co.id',
+            'address' => 'Kumala Heritage Suite, Jl. Senopati No. 88, Kebayoran Baru, Jakarta Selatan 12190',
+            'address_hq' => 'Kumala Heritage Suite, Jl. Senopati No. 88, Kebayoran Baru, Jakarta Selatan 12190',
             'address_bali' => 'Jl. Pantai Suluban No. 8, Pecatu, Uluwatu, Badung, Bali 80361',
+            'office_hours' => 'Setiap Hari: 08:00 - 20:00 WIB',
             'hours_weekday' => '08.30 - 18.00 WIB',
             'hours_saturday' => '09.00 - 15.00 WIB',
             'hours_sunday' => 'Dengan Janji Temu',
+            'social_instagram' => '@kumala.realty',
+            'social_youtube' => 'Kumala Property Official',
+            'social_facebook' => 'Kumala Realty Indonesia',
+
+            // 3. Konten Beranda (Home)
+            'home_hero_badge' => 'ATELIER PROPERTI MEWAH & INVESTASI TERKURASI',
+            'home_hero_title' => 'Temukan Hunian Eksklusif & Aset Bernilai Abadi di Indonesia',
+            'home_hero_desc' => 'Menghubungkan pemilik properti bernilai tinggi dengan investor & pembeli eksklusif. Setiap unit diaudit dengan verifikasi dokumen legalitas notarial dan kurasi arsitektural menyeluruh.',
+            'home_trust_badge_1' => '100% SHM/HGB Terverifikasi Notaris',
+            'home_trust_badge_2' => '< 15 Menit Respon Private Concierge',
+            'home_trust_badge_3' => 'Zero Hidden Mark-up Fee',
+            'home_trust_badge_4' => 'Discretionary Off-Market Listing',
+            'home_curated_title' => 'Koleksi Pilihan Kurator',
+            'home_curated_subtitle' => 'Portofolio hunian residensial & komersial dengan standar arsitektural tertinggi',
+            'home_consignment_badge' => 'LAYANAN KONSINYASI & PEMASARAN RESMI',
+            'home_consignment_title' => 'Titipkan Properti Anda, Jangkau Pembeli & Penyewa Berkualitas',
+            'home_consignment_desc' => 'Tim kurator Kumala Property siap mendampingi proses valuasi presisi, produksi visual arsitektural berkelas, hingga finalisasi legalitas tuntas tanpa biaya di muka.',
+            'home_consignment_cta' => 'Titip Properti Sekarang',
+            'home_consignment_wa_cta' => 'Tanya Advisor via WA',
+            'home_consult_title' => 'Tidak Menemukan Kriteria yang Dicari?',
+            'home_consult_desc' => 'Konsultasikan preferensi properti impian Anda secara privat bersama Property Advisor kami. Kami siap mengurasi unit off-market sesuai ekspektasi Anda.',
+            'home_consult_cta' => 'Konsultasi via WhatsApp',
+
+            // 4. Konten Explore & Detail
+            'explore_badge' => 'KOLEKSI PILIHAN KUMALA',
+            'explore_title' => 'Eksplorasi Properti',
+            'explore_desc' => 'Temukan hunian eksklusif, villa tropis, apartemen modern, dan lahan strategis di kawasan prima.',
+            'explore_offmarket_title' => 'Mencari Properti Off-Market / Private Collection?',
+            'explore_offmarket_desc' => 'Sebagian besar aset paling bergengsi tidak dipublikasikan secara umum demi menjaga privasi pemilik. Hubungi Private Client Concierge kami untuk portofolio tertutup.',
+            'detail_concierge_title' => 'Tertarik dengan Properti Ini?',
+            'detail_concierge_desc' => 'Hubungi Private Client Concierge kami untuk jadwal survei privat atau dokumen legalitas lengkap.',
+            'detail_concierge_sla' => 'SLA Respon < 15 Menit • 7 Hari Seminggu',
+
+            // 5. Konten Titip Properti & Favorit
+            'titip_badge' => 'LAYANAN KONSINYASI & PEMASARAN RESMI',
+            'titip_title' => 'Titipkan Properti Anda, Jangkau Pembeli & Penyewa Berkualitas',
+            'titip_desc' => 'Tim kurator Kumala Property siap mendampingi proses valuasi presisi, produksi visual arsitektural berkelas, hingga finalisasi legalitas transaksi tuntas tanpa biaya di muka.',
+            'titip_benefit_1' => 'Valuasi & Konsultasi Gratis',
+            'titip_benefit_2' => 'Jejaring Investor Terverifikasi',
+            'titip_benefit_3' => 'Transparan & Legalitas Aman BPN',
+            'favorites_badge' => 'KOLEKSI PRIBADI TERSIMPAN',
+            'favorites_title' => 'Properti Favorit Saya',
+            'favorites_desc' => 'Daftar unit properti pilihan yang Anda simpan di perangkat ini. Anda dapat membandingkan spesifikasi teknis atau mengajukan jadwal survei privat sekaligus.',
+            'favorites_cta' => 'Konsultasi Semua Favorit via WA',
+
+            // 6. Konten Tentang Kami
+            'about_badge' => 'ATELIER REAL ESTATE INDEPENDEN',
+            'about_hero_title' => 'Kurasi Presisi untuk Koleksi Aset Bernilai Abadi',
+            'about_hero_desc' => 'Kumala Property lahir dari keyakinan mendasar bahwa transaksi properti prestisius bukan sekadar urusan nominal penawaran, melainkan tentang apresiasi terhadap integritas arsitektural, transparansi legalitas tanpa celah, serta komitmen mutlak terhadap privasi klien terhormat.',
+            'about_pillar_title' => 'Tiga Pilar Layanan Kumala',
+            'about_pillar_subtitle' => 'Landasan etika kerja yang membedakan kami dalam mendampingi pemilik maupun investor properti mewah.',
+            'about_p1_title' => '1. Transparansi Tanpa Kompromi',
+            'about_p1_desc' => 'Tidak ada harga titipan atau manipulasi margin. Pembeli dan penjual mendapatkan keterbukaan valuasi objektif berbasis Comparative Market Analysis (CMA).',
+            'about_p2_title' => '2. Kurasi Estetika & Keandalan Struktur',
+            'about_p2_desc' => 'Setiap unit melalui inspeksi fisik mendalam terhadap material bangunan, pencahayaan alami, zonasi lingkungan sekitar, dan potensi apresiasi investasi jangka panjang.',
+            'about_p3_title' => '3. Pendampingan Privat & Obyektif',
+            'about_p3_desc' => 'Private Client Concierge kami tidak bertindak sebagai sales agresif, melainkan penasihat aset yang berdedikasi menjaga kepentingan hukum dan kenyamanan Anda hingga penandatanganan AJB.',
+
+            // 7. Parameter & Notifikasi
+            'standard_commission_pct' => '2.5',
+            'standard_commission_rent_pct' => '5.0',
             'auto_watermark' => true,
             'whatsapp_notify' => true,
             'email_notify' => true,
         ];
+
+        return array_merge($defaults, $stored);
     }
 
     public static function updateSettings(array $newSettings): array
@@ -716,7 +797,7 @@ class KumalaDataHub
             $data['settings']['hotline_wa_numeric'] = preg_replace('/[^0-9]/', '', $newSettings['hotline_wa']);
         }
 
-        self::appendAuditLog($data, 'Pembaruan Konfigurasi Sistem & Kontak Resmi', 'Super Admin', 'Config Saved');
+        self::appendAuditLog($data, 'Pembaruan Konfigurasi Sistem & Konten Portal Publik', 'Super Admin', 'Config Saved');
         self::saveData($data);
         return $data['settings'];
     }
@@ -731,6 +812,26 @@ class KumalaDataHub
     {
         $data = self::loadData();
         return $data['categories'] ?? [];
+    }
+
+    public static function addCategory(array $data): array
+    {
+        $store = self::loadData();
+        $name = trim($data['name'] ?? 'Kategori Baru');
+        $subtypes = trim($data['subtypes'] ?? '');
+
+        $newCategory = [
+            'name' => $name,
+            'subtypes' => $subtypes,
+            'active' => true,
+            'count' => 0,
+        ];
+
+        $store['categories'][] = $newCategory;
+        self::appendAuditLog($store, "Kategori properti baru '{$name}' ditambahkan oleh admin.", 'Admin Operator', 'Created');
+        self::saveData($store);
+
+        return $newCategory;
     }
 
     // =========================================================================

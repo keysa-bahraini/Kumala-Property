@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\InquiryRequest;
+use App\Http\Requests\TitipPropertiRequest;
 use App\Services\KumalaDataHub;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;

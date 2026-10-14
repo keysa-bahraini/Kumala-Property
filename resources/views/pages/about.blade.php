@@ -16,12 +16,12 @@
 
     <!-- Hero Narrative Header -->
     <div style="margin-bottom: 48px; max-width: 860px;">
-        <span class="badge-tag badge-tag-teal" style="margin-bottom: 14px;">ATELIER REAL ESTATE INDEPENDEN</span>
+        <span class="badge-tag badge-tag-teal" style="margin-bottom: 14px;">{{ $globalSettings['about_badge'] ?? 'ATELIER REAL ESTATE INDEPENDEN' }}</span>
         <h1 style="font-size: clamp(2.2rem, 4vw, 3.1rem); color: var(--primary-navy); margin-bottom: 18px; line-height: 1.2; font-weight: 800;">
-            Kurasi Presisi untuk Koleksi Aset Bernilai Abadi
+            {{ $globalSettings['about_hero_title'] ?? 'Kurasi Presisi untuk Koleksi Aset Bernilai Abadi' }}
         </h1>
         <p style="font-size: 1.1rem; color: var(--text-muted); line-height: 1.7;">
-            Kumala Property lahir dari keyakinan mendasar bahwa transaksi properti prestisius bukan sekadar urusan nominal penawaran, melainkan tentang apresiasi terhadap integritas arsitektural, transparansi legalitas tanpa celah, serta komitmen mutlak terhadap privasi klien terhormat.
+            {{ $globalSettings['about_hero_desc'] ?? 'Kumala Property lahir dari keyakinan mendasar bahwa transaksi properti prestisius bukan sekadar urusan nominal penawaran, melainkan tentang apresiasi terhadap integritas arsitektural, transparansi legalitas tanpa celah, serta komitmen mutlak terhadap privasi klien terhormat.' }}
         </p>
     </div>
 
@@ -56,9 +56,9 @@
     <div style="margin-bottom: 70px;">
         <div style="text-align: center; max-width: 680px; margin: 0 auto 40px;">
             <span class="badge-tag badge-tag-navy" style="margin-bottom: 10px;">PRINSIP OPERASIONAL</span>
-            <h2 style="font-size: 2rem; color: var(--primary-navy); margin-bottom: 10px;">Tiga Pilar Layanan Kumala</h2>
+            <h2 style="font-size: 2rem; color: var(--primary-navy); margin-bottom: 10px;">{{ $globalSettings['about_pillar_title'] ?? 'Tiga Pilar Layanan Kumala' }}</h2>
             <p style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.6;">
-                Landasan etika kerja yang membedakan kami dalam mendampingi pemilik maupun investor properti mewah.
+                {{ $globalSettings['about_pillar_subtitle'] ?? 'Landasan etika kerja yang membedakan kami dalam mendampingi pemilik maupun investor properti mewah.' }}
             </p>
         </div>
 
@@ -67,9 +67,9 @@
                 <div class="pilar-icon">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 </div>
-                <h3 style="font-size: 1.25rem; color: var(--primary-navy); margin-bottom: 10px;">1. Transparansi Tanpa Kompromi</h3>
+                <h3 style="font-size: 1.25rem; color: var(--primary-navy); margin-bottom: 10px;">{{ $globalSettings['about_p1_title'] ?? '1. Transparansi Tanpa Kompromi' }}</h3>
                 <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
-                    Tidak ada harga titipan atau manipulasi margin. Pembeli dan penjual mendapatkan keterbukaan valuasi objektif berbasis Comparative Market Analysis (CMA).
+                    {{ $globalSettings['about_p1_desc'] ?? 'Tidak ada harga titipan atau manipulasi margin. Pembeli dan penjual mendapatkan keterbukaan valuasi objektif berbasis Comparative Market Analysis (CMA).' }}
                 </p>
             </div>
 
@@ -77,9 +77,9 @@
                 <div class="pilar-icon">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
                 </div>
-                <h3 style="font-size: 1.25rem; color: var(--primary-navy); margin-bottom: 10px;">2. Kurasi Estetika & Keandalan Struktur</h3>
+                <h3 style="font-size: 1.25rem; color: var(--primary-navy); margin-bottom: 10px;">{{ $globalSettings['about_p2_title'] ?? '2. Kurasi Estetika & Keandalan Struktur' }}</h3>
                 <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
-                    Setiap unit melalui inspeksi fisik mendalam terhadap material bangunan, pencahayaan alami, zonasi lingkungan sekitar, dan potensi apresiasi investasi jangka panjang.
+                    {{ $globalSettings['about_p2_desc'] ?? 'Setiap unit melalui inspeksi fisik mendalam terhadap material bangunan, pencahayaan alami, zonasi lingkungan sekitar, dan potensi apresiasi investasi jangka panjang.' }}
                 </p>
             </div>
 
@@ -87,9 +87,9 @@
                 <div class="pilar-icon">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 </div>
-                <h3 style="font-size: 1.25rem; color: var(--primary-navy); margin-bottom: 10px;">3. Pendampingan Privat & Obyektif</h3>
+                <h3 style="font-size: 1.25rem; color: var(--primary-navy); margin-bottom: 10px;">{{ $globalSettings['about_p3_title'] ?? '3. Pendampingan Privat & Obyektif' }}</h3>
                 <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;">
-                    Private Client Concierge kami tidak bertindak sebagai sales agresif, melainkan penasihat aset yang berdedikasi menjaga kepentingan hukum dan kenyamanan Anda hingga penandatanganan AJB.
+                    {{ $globalSettings['about_p3_desc'] ?? 'Private Client Concierge kami tidak bertindak sebagai sales agresif, melainkan penasihat aset yang berdedikasi menjaga kepentingan hukum dan kenyamanan Anda hingga penandatanganan AJB.' }}
                 </p>
             </div>
         </div>
@@ -196,10 +196,10 @@
             <div class="office-box" style="margin-bottom: 24px;">
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                     <div class="office-badge">PERWAKILAN REGIONAL</div>
-                    <strong style="font-size: 1.1rem; color: var(--primary-navy);">Bali & Nusa Tenggara</strong>
+                    <strong style="font-size: 1.1rem; color: var(--primary-navy);">Bali &amp; Nusa Tenggara</strong>
                 </div>
                 <p style="font-size: 0.88rem; color: #475569; line-height: 1.5; margin-bottom: 12px;">
-                    Sunset Boulevard Suites Kav. 12, Jl. Sunset Road No. 42, Kuta, Kabupaten Badung, Bali 80361
+                    {{ $globalSettings['address_bali'] ?? 'Jl. Pantai Suluban No. 8, Pecatu, Uluwatu, Badung, Bali 80361' }}
                 </p>
                 <div style="display: flex; gap: 16px; font-size: 0.82rem; color: var(--text-muted);">
                     <span>Senin - Sabtu: 09.00 - 17.00 WITA</span>
@@ -216,7 +216,7 @@
                     </div>
                     <div>
                         <span style="display: block; font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">HOTLINE WHATSAPP CLIENT CARE</span>
-                        <strong style="color: var(--primary-navy); font-size: 0.95rem;">+62 812-8899-2345 (Tersedia 24/7)</strong>
+                        <strong style="color: var(--primary-navy); font-size: 0.95rem;">{{ $globalSettings['hotline_wa'] ?? '+62 811-9988-7711' }} (Tersedia 24/7)</strong>
                     </div>
                 </div>
 
@@ -226,7 +226,7 @@
                     </div>
                     <div>
                         <span style="display: block; font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">EMAIL KORESPONDENSI RESMI</span>
-                        <strong style="color: var(--primary-navy); font-size: 0.95rem;">concierge@kumalaproperty.id</strong>
+                        <strong style="color: var(--primary-navy); font-size: 0.95rem;">{{ $globalSettings['email_official'] ?? 'concierge@kumalaproperty.id' }}</strong>
                     </div>
                 </div>
             </div>

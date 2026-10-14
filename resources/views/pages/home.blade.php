@@ -13,15 +13,15 @@
         <div style="max-width: 860px; margin: 0 auto 36px; text-align: center;">
             <div style="display: inline-flex; align-items: center; gap: 8px; background: #E6FBF5; border: 1px solid #99EEDB; padding: 5px 16px; border-radius: var(--radius-pill); margin-bottom: 20px;">
                 <span style="width: 7px; height: 7px; border-radius: 50%; background: #00B488;"></span>
-                <span style="font-size: 0.74rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #00838F;">ATELIER PROPERTI MEWAH &amp; INVESTASI TERKURASI</span>
+                <span style="font-size: 0.74rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #00838F;">{{ $globalSettings['home_hero_badge'] ?? 'ATELIER PROPERTI MEWAH & INVESTASI TERKURASI' }}</span>
             </div>
 
             <h1 style="font-size: clamp(2.3rem, 4.8vw, 3.6rem); font-weight: 800; line-height: 1.15; color: #0E1E2E; margin-bottom: 18px; letter-spacing: -0.02em;">
-                Temukan Hunian Eksklusif &amp; Aset Bernilai Abadi di Indonesia
+                {{ $globalSettings['home_hero_title'] ?? 'Temukan Hunian Eksklusif & Aset Bernilai Abadi di Indonesia' }}
             </h1>
 
             <p style="font-size: 1.05rem; color: #526071; line-height: 1.65; max-width: 700px; margin: 0 auto;">
-                Menghubungkan pemilik properti bernilai tinggi dengan investor &amp; pembeli eksklusif. Setiap unit diaudit dengan verifikasi dokumen legalitas notarial dan kurasi arsitektural menyeluruh.
+                {{ $globalSettings['home_hero_desc'] ?? 'Menghubungkan pemilik properti bernilai tinggi dengan investor & pembeli eksklusif. Setiap unit diaudit dengan verifikasi dokumen legalitas notarial dan kurasi arsitektural menyeluruh.' }}
             </p>
         </div>
 
@@ -159,13 +159,13 @@
             <div>
                 <div style="display: inline-flex; align-items: center; gap: 6px; background: #FFFFFF; border: 1px solid #DDE3EA; color: #00838F; padding: 4px 12px; border-radius: var(--radius-pill); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px;">
                     <span style="width: 6px; height: 6px; border-radius: 50%; background: #00B488;"></span>
-                    <span>KOLEKSI PILIHAN KUMALA</span>
+                    <span>{{ $globalSettings['home_curated_badge'] ?? 'KOLEKSI PILIHAN KUMALA' }}</span>
                 </div>
                 <h2 style="font-size: 2.1rem; color: #0E1E2E; font-weight: 800; margin: 0 0 6px 0; letter-spacing: -0.01em;">
-                    Koleksi Properti Unggulan
+                    {{ $globalSettings['home_curated_title'] ?? 'Koleksi Properti Unggulan' }}
                 </h2>
                 <p style="color: #64748B; font-size: 0.94rem; margin: 0;">
-                    Temukan hunian eksklusif, villa tropis, apartemen modern, dan lahan strategis di kawasan prima.
+                    {{ $globalSettings['home_curated_subtitle'] ?? 'Temukan hunian eksklusif, villa tropis, apartemen modern, dan lahan strategis di kawasan prima.' }}
                 </p>
             </div>
 
@@ -447,30 +447,30 @@
             <div style="max-width: 640px;">
                 <div style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.74rem; font-weight: 800; color: #00838F; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;">
                     <span style="width: 6px; height: 6px; border-radius: 50%; background: #00B488;"></span>
-                    <span>LAYANAN KONSINYASI &amp; PEMASARAN RESMI</span>
+                    <span>{{ $globalSettings['home_consignment_badge'] ?? 'LAYANAN KONSINYASI & PEMASARAN RESMI' }}</span>
                 </div>
                 
                 <h2 style="font-size: 1.95rem; font-weight: 800; color: #0E1E2E; line-height: 1.25; margin: 0 0 10px 0; letter-spacing: -0.01em;">
-                    Titipkan Properti Anda, Jangkau Pembeli &amp; Penyewa Berkualitas
+                    {{ $globalSettings['home_consignment_title'] ?? 'Titipkan Properti Anda, Jangkau Pembeli & Penyewa Berkualitas' }}
                 </h2>
                 
                 <p style="font-size: 0.92rem; color: #64748B; line-height: 1.6; margin: 0 0 18px 0;">
-                    Tim kurator Kumala Property siap mendampingi proses valuasi presisi, produksi visual arsitektural berkelas, hingga finalisasi legalitas tuntas tanpa biaya di muka.
+                    {{ $globalSettings['home_consignment_desc'] ?? 'Tim kurator Kumala Property siap mendampingi proses valuasi presisi, produksi visual arsitektural berkelas, hingga finalisasi legalitas tuntas tanpa biaya di muka.' }}
                 </p>
 
                 <!-- 3 Benefits Pills -->
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <div style="background: #F8FAFC; border: 1px solid #DDE3EA; border-radius: 6px; padding: 5px 12px; font-size: 0.78rem; font-weight: 600; color: #1E293B; display: inline-flex; align-items: center; gap: 6px;">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00B488" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                        <span>Valuasi &amp; Konsultasi Gratis</span>
+                        <span>{{ $globalSettings['titip_benefit_1'] ?? 'Valuasi & Konsultasi Gratis' }}</span>
                     </div>
                     <div style="background: #F8FAFC; border: 1px solid #DDE3EA; border-radius: 6px; padding: 5px 12px; font-size: 0.78rem; font-weight: 600; color: #1E293B; display: inline-flex; align-items: center; gap: 6px;">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00B488" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                        <span>Jejaring Investor Terverifikasi</span>
+                        <span>{{ $globalSettings['titip_benefit_2'] ?? 'Jejaring Investor Terverifikasi' }}</span>
                     </div>
                     <div style="background: #F8FAFC; border: 1px solid #DDE3EA; border-radius: 6px; padding: 5px 12px; font-size: 0.78rem; font-weight: 600; color: #1E293B; display: inline-flex; align-items: center; gap: 6px;">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00B488" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                        <span>Transparan &amp; Legalitas Aman BPN</span>
+                        <span>{{ $globalSettings['titip_benefit_3'] ?? 'Transparan & Legalitas Aman BPN' }}</span>
                     </div>
                 </div>
             </div>
@@ -478,12 +478,12 @@
             <!-- CTA Actions -->
             <div style="display: flex; flex-direction: column; gap: 10px; min-width: 240px;">
                 <a href="{{ route('titip-properti') }}" style="background-color: #0E1E2E; color: #FFFFFF; border-radius: 8px; padding: 12px 24px; font-size: 0.88rem; font-weight: 700; text-decoration: none; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.15s;">
-                    <span>Titip Properti Sekarang</span>
+                    <span>{{ $globalSettings['home_consignment_cta'] ?? 'Titip Properti Sekarang' }}</span>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                 </a>
-                <a href="https://wa.me/6281288992345?text=Halo%20Kumala%20Property,%20saya%20ingin%20konsultasi%20titip%20properti." target="_blank" style="background-color: #FFFFFF; color: #0E1E2E; border: 1.5px solid #DDE3EA; border-radius: 8px; padding: 11px 20px; font-size: 0.88rem; font-weight: 700; text-decoration: none; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.15s;">
+                <a href="https://wa.me/{{ $globalSettings['hotline_wa_numeric'] ?? '6281199887711' }}?text=Halo%20Kumala%20Property,%20saya%20ingin%20konsultasi%20titip%20properti." target="_blank" style="background-color: #FFFFFF; color: #0E1E2E; border: 1.5px solid #DDE3EA; border-radius: 8px; padding: 11px 20px; font-size: 0.88rem; font-weight: 700; text-decoration: none; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.15s;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00B488" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                    <span>Tanya Advisor via WA</span>
+                    <span>{{ $globalSettings['home_consignment_wa_cta'] ?? 'Tanya Advisor via WA' }}</span>
                 </a>
             </div>
 
@@ -504,17 +504,17 @@
                 </div>
                 <div>
                     <h3 style="font-size: 1.15rem; font-weight: 800; color: #0E1E2E; margin: 0 0 4px 0;">
-                        Tidak Menemukan Kriteria yang Dicari?
+                        {{ $globalSettings['home_consult_title'] ?? 'Tidak Menemukan Kriteria yang Dicari?' }}
                     </h3>
                     <p style="font-size: 0.88rem; color: #64748B; margin: 0; max-width: 620px;">
-                        Konsultasikan preferensi properti impian Anda secara privat bersama Property Advisor kami. Kami siap mengurasi unit off-market sesuai ekspektasi Anda.
+                        {{ $globalSettings['home_consult_desc'] ?? 'Konsultasikan preferensi properti impian Anda secara privat bersama Property Advisor kami. Kami siap mengurasi unit off-market sesuai ekspektasi Anda.' }}
                     </p>
                 </div>
             </div>
 
-            <a href="https://wa.me/6281288992345?text=Halo%20Kumala%20Property,%20saya%20ingin%20konsultasi%20kriteria%20properti%20khusus." target="_blank" style="background-color: #00B488; color: #FFFFFF; border-radius: 8px; padding: 11px 22px; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; transition: background 0.15s;">
+            <a href="https://wa.me/{{ $globalSettings['hotline_wa_numeric'] ?? '6281199887711' }}?text=Halo%20Kumala%20Property,%20saya%20ingin%20konsultasi%20kriteria%20properti%20khusus." target="_blank" style="background-color: #00B488; color: #FFFFFF; border-radius: 8px; padding: 11px 22px; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; transition: background 0.15s;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                <span>Konsultasi via WhatsApp</span>
+                <span>{{ $globalSettings['home_consult_cta'] ?? 'Konsultasi via WhatsApp' }}</span>
             </a>
 
         </div>

@@ -45,32 +45,36 @@ Route::post('/admin/login', [AdminController::class, 'authenticate'])->name('adm
 Route::get('/admin/logout', [AdminController::class, 'logout'])->name('admin.logout');
 Route::post('/admin/logout', [AdminController::class, 'logout'])->name('admin.logout.post');
 
-// Halaman 8: Admin Operational Dashboard
-Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+// Halaman 8 - 13: Admin Operational Suite (Protected by Auth)
+Route::middleware('auth')->group(function () {
+    // Halaman 8: Admin Operational Dashboard
+    Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 
-// Halaman 9: Manajemen Properti (Master Inventory Hub)
-Route::get('/admin/properti', [AdminController::class, 'properties'])->name('admin.properties');
-Route::post('/admin/properti', [AdminController::class, 'storeProperty'])->name('admin.properties.store');
-Route::post('/admin/properti/{id}/status', [AdminController::class, 'updatePropertyStatus'])->name('admin.properties.status');
-Route::delete('/admin/properti/{id}', [AdminController::class, 'deleteProperty'])->name('admin.properties.delete');
+    // Halaman 9: Manajemen Properti (Master Inventory Hub)
+    Route::get('/admin/properti', [AdminController::class, 'properties'])->name('admin.properties');
+    Route::post('/admin/properti', [AdminController::class, 'storeProperty'])->name('admin.properties.store');
+    Route::post('/admin/properti/{id}/status', [AdminController::class, 'updatePropertyStatus'])->name('admin.properties.status');
+    Route::delete('/admin/properti/{id}', [AdminController::class, 'deleteProperty'])->name('admin.properties.delete');
 
-// Halaman 10: Manajemen Listing Masuk (Gatekeeper Verification)
-Route::get('/admin/listing-masuk', [AdminController::class, 'submissions'])->name('admin.submissions');
-Route::post('/admin/listing-masuk/{id}/approve', [AdminController::class, 'approveSubmission'])->name('admin.submissions.approve');
-Route::post('/admin/listing-masuk/{id}/status', [AdminController::class, 'updateSubmissionStatus'])->name('admin.submissions.status');
+    // Halaman 10: Manajemen Listing Masuk (Gatekeeper Verification)
+    Route::get('/admin/listing-masuk', [AdminController::class, 'submissions'])->name('admin.submissions');
+    Route::post('/admin/listing-masuk/{id}/approve', [AdminController::class, 'approveSubmission'])->name('admin.submissions.approve');
+    Route::post('/admin/listing-masuk/{id}/status', [AdminController::class, 'updateSubmissionStatus'])->name('admin.submissions.status');
 
-// Halaman 11: Riwayat Terjual & Tersewa (Closing Archive)
-Route::get('/admin/riwayat-transaksi', [AdminController::class, 'transactions'])->name('admin.transactions');
-Route::post('/admin/riwayat-transaksi', [AdminController::class, 'storeTransaction'])->name('admin.transactions.store');
+    // Halaman 11: Riwayat Terjual & Tersewa (Closing Archive)
+    Route::get('/admin/riwayat-transaksi', [AdminController::class, 'transactions'])->name('admin.transactions');
+    Route::post('/admin/riwayat-transaksi', [AdminController::class, 'storeTransaction'])->name('admin.transactions.store');
 
-// Halaman 12: Manajemen Data Inquiry (Lead Pipeline CRM)
-Route::get('/admin/inquiry', [AdminController::class, 'inquiries'])->name('admin.inquiries');
-Route::post('/admin/inquiry/{id}/stage', [AdminController::class, 'updateInquiryStage'])->name('admin.inquiries.stage');
-Route::post('/admin/inquiry/survey', [AdminController::class, 'addSurvey'])->name('admin.inquiries.survey');
+    // Halaman 12: Manajemen Data Inquiry (Lead Pipeline CRM)
+    Route::get('/admin/inquiry', [AdminController::class, 'inquiries'])->name('admin.inquiries');
+    Route::post('/admin/inquiry/{id}/stage', [AdminController::class, 'updateInquiryStage'])->name('admin.inquiries.stage');
+    Route::post('/admin/inquiry/survey', [AdminController::class, 'addSurvey'])->name('admin.inquiries.survey');
 
-// Halaman 13: Pengaturan Sistem & Master Data
-Route::get('/admin/pengaturan', [AdminController::class, 'settings'])->name('admin.settings');
-Route::post('/admin/pengaturan', [AdminController::class, 'saveSettings'])->name('admin.settings.save');
+    // Halaman 13: Pengaturan Sistem & Master Data
+    Route::get('/admin/pengaturan', [AdminController::class, 'settings'])->name('admin.settings');
+    Route::post('/admin/pengaturan', [AdminController::class, 'saveSettings'])->name('admin.settings.save');
+    Route::post('/admin/pengaturan/kategori', [AdminController::class, 'storeCategory'])->name('admin.settings.category.store');
+});
 
 Route::get('/admin', function() {
     return redirect()->route('admin.dashboard');

@@ -289,9 +289,9 @@
                     <span>LAYANAN PRIVATE CONCIERGE</span>
                 </div>
 
-                <h3 style="font-size: 1.35rem; color: var(--primary-navy); margin-bottom: 8px;">Tertarik dengan Properti Ini?</h3>
+                <h3 style="font-size: 1.35rem; color: var(--primary-navy); margin-bottom: 8px;">{{ $globalSettings['detail_concierge_title'] ?? 'Tertarik dengan Properti Ini?' }}</h3>
                 <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 20px;">
-                    Tim penasihat Kumala Property siap mendampingi survei lokasi privat, uji kelayakan legalitas notarial, dan negosiasi langsung tanpa biaya awal.
+                    {{ $globalSettings['detail_concierge_desc'] ?? 'Tim penasihat Kumala Property siap mendampingi survei lokasi privat, uji kelayakan legalitas notarial, dan negosiasi langsung tanpa biaya awal.' }}
                 </p>
 
                 <!-- Inquiry Tab Selector -->
@@ -358,7 +358,7 @@
                         ATAU HUBUNGI LANGSUNG
                     </div>
 
-                    <a href="https://wa.me/6281288992345?text=Halo%20Concierge%20Kumala,%20saya%20tertarik%20dengan%20listing%20{{ urlencode($property['title']) }}%20({{ $property['id'] }})." target="_blank" class="btn-teal" style="width: 100%; border-radius: 10px; padding: 12px; font-size: 0.95rem;">
+                    <a href="https://wa.me/{{ $globalSettings['hotline_wa_numeric'] ?? '6281199887711' }}?text=Halo%20Concierge%20Kumala,%20saya%20tertarik%20dengan%20listing%20{{ urlencode($property['title']) }}%20({{ $property['id'] }})." target="_blank" class="btn-teal" style="width: 100%; border-radius: 10px; padding: 12px; font-size: 0.95rem;">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                         <span>Tanya Cepat via WhatsApp</span>
                     </a>
@@ -591,7 +591,6 @@ function handleInquirySubmit(e) {
     e.preventDefault();
     const form = e.target;
     const btn = document.getElementById('btn-submit-inquiry');
-    const form = document.getElementById('inquiry-form');
     btn.disabled = true;
     btn.innerHTML = '<span>Mengirim permohonan...</span>';
 

@@ -22,6 +22,20 @@ class UserSeeder extends Seeder
                 'avatar' => 'AP',
             ],
             [
+                'name' => 'Super Admin Kumala',
+                'email' => 'admin@kumalaproperty.co.id',
+                'password' => Hash::make('PropertySecure2024!'),
+                'role' => 'super_admin',
+                'avatar' => 'SA',
+            ],
+            [
+                'name' => 'Admin Utama',
+                'email' => 'admin@kumalaproperty.id',
+                'password' => Hash::make('admin'),
+                'role' => 'super_admin',
+                'avatar' => 'AU',
+            ],
+            [
                 'name' => 'Farhan Kamil',
                 'email' => 'farhan@kumalaproperty.com',
                 'password' => Hash::make('@adminkumala'),

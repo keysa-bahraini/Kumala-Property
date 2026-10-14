@@ -1,6 +1,204 @@
 {
     "properties": [
         {
+            "id": "#KP-8835",
+            "slug": "villa-sunset-cliff-uluwatu-audit-unit-302",
+            "title": "Villa Sunset Cliff Uluwatu Audit Unit",
+            "category": "Villa Mewah",
+            "transaction_type": "Jual",
+            "price": 12500000000,
+            "price_formatted": "Rp 12.500.000.000",
+            "price_short": "Rp 12.5 Miliar",
+            "price_label": "Harga Penawaran Eksklusif",
+            "price_notes": "Legalitas Lengkap • Siap Transaksi",
+            "location_city": "Bali - Badung",
+            "location_area": "Uluwatu",
+            "location_address": "Jl. Pantai Suluban No. 99, Badung, Bali",
+            "legal_status": "SHM (Hak Milik)",
+            "verified": true,
+            "featured": true,
+            "highlight_badge": "Listing Baru",
+            "land_size": 450,
+            "building_size": 320,
+            "floors": 2,
+            "bedrooms": 4,
+            "bathrooms": 4,
+            "orientation": "Utara",
+            "electricity": "4400 VA",
+            "water_source": "PDAM",
+            "garage": "2 Mobil",
+            "year_built": "2026",
+            "furnishing": "Semi Furnished",
+            "specs_tags": [
+                "4 Kamar Tidur",
+                "LT 450m²",
+                "Private Pool"
+            ],
+            "image_main": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+            "images": [
+                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+                "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80",
+                "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=800&q=80"
+            ],
+            "description": "Unit villa terkurasi diajukan melalui audit suite otomatis dengan kolam renang pribadi dan pemandangan laut.",
+            "features": [
+                {
+                    "title": "Keamanan 24 Jam",
+                    "desc": "One gate security system.",
+                    "icon": "shield"
+                },
+                {
+                    "title": "Akses Strategis",
+                    "desc": "Dekat pusat bisnis dan area komersial.",
+                    "icon": "map-pin"
+                }
+            ],
+            "distance_points": [
+                {
+                    "time": "10 Menit",
+                    "place": "Pusat Kota / CBD"
+                },
+                {
+                    "time": "25 Menit",
+                    "place": "Akses Tol / Bandara"
+                }
+            ],
+            "status": "ACTIVE",
+            "created_at": "2026-10-13 07:52:00"
+        },
+        {
+            "id": "#KP-8834",
+            "slug": "villa-sunset-cliff-uluwatu-audit-unit-800",
+            "title": "Villa Sunset Cliff Uluwatu Audit Unit",
+            "category": "Villa Mewah",
+            "transaction_type": "Jual",
+            "price": 12500000000,
+            "price_formatted": "Rp 12.500.000.000",
+            "price_short": "Rp 12.5 Miliar",
+            "price_label": "Harga Penawaran Eksklusif",
+            "price_notes": "Legalitas Lengkap • Siap Transaksi",
+            "location_city": "Bali - Badung",
+            "location_area": "Uluwatu",
+            "location_address": "Jl. Pantai Suluban No. 99, Badung, Bali",
+            "legal_status": "SHM (Hak Milik)",
+            "verified": true,
+            "featured": true,
+            "highlight_badge": "Listing Baru",
+            "land_size": 450,
+            "building_size": 320,
+            "floors": 2,
+            "bedrooms": 4,
+            "bathrooms": 4,
+            "orientation": "Utara",
+            "electricity": "4400 VA",
+            "water_source": "PDAM",
+            "garage": "2 Mobil",
+            "year_built": "2026",
+            "furnishing": "Semi Furnished",
+            "specs_tags": [
+                "4 Kamar Tidur",
+                "LT 450m²",
+                "Private Pool"
+            ],
+            "image_main": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+            "images": [
+                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+                "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80",
+                "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=800&q=80"
+            ],
+            "description": "Unit villa terkurasi diajukan melalui audit suite otomatis dengan kolam renang pribadi dan pemandangan laut.",
+            "features": [
+                {
+                    "title": "Keamanan 24 Jam",
+                    "desc": "One gate security system.",
+                    "icon": "shield"
+                },
+                {
+                    "title": "Akses Strategis",
+                    "desc": "Dekat pusat bisnis dan area komersial.",
+                    "icon": "map-pin"
+                }
+            ],
+            "distance_points": [
+                {
+                    "time": "10 Menit",
+                    "place": "Pusat Kota / CBD"
+                },
+                {
+                    "time": "25 Menit",
+                    "place": "Akses Tol / Bandara"
+                }
+            ],
+            "status": "ACTIVE",
+            "created_at": "2026-10-13 07:51:16"
+        },
+        {
+            "id": "#KP-8833",
+            "slug": "villa-sunset-cliff-uluwatu-test-408",
+            "title": "Villa Sunset Cliff Uluwatu Test",
+            "category": "Villa Mewah",
+            "transaction_type": "Jual",
+            "price": 15000000000,
+            "price_formatted": "Rp 15.000.000.000",
+            "price_short": "Rp 15 Miliar",
+            "price_label": "Harga Penawaran Eksklusif",
+            "price_notes": "Legalitas Lengkap • Siap Transaksi",
+            "location_city": "Badung, Bali",
+            "location_area": "Uluwatu",
+            "location_address": "Jl. Pantai Suluban No. 8",
+            "legal_status": "SHM (Hak Milik)",
+            "verified": true,
+            "featured": true,
+            "highlight_badge": "Listing Baru",
+            "land_size": 500,
+            "building_size": 350,
+            "floors": 2,
+            "bedrooms": 4,
+            "bathrooms": 4,
+            "orientation": "Utara",
+            "electricity": "4400 VA",
+            "water_source": "PDAM",
+            "garage": "2 Mobil",
+            "year_built": "2026",
+            "furnishing": "Semi Furnished",
+            "specs_tags": [
+                "4 Kamar Tidur",
+                "LT 500m²",
+                "Private Pool"
+            ],
+            "image_main": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+            "images": [
+                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+                "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80",
+                "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=800&q=80"
+            ],
+            "description": "Villa mewah pemandangan tebing laut lepas.",
+            "features": [
+                {
+                    "title": "Keamanan 24 Jam",
+                    "desc": "One gate security system.",
+                    "icon": "shield"
+                },
+                {
+                    "title": "Akses Strategis",
+                    "desc": "Dekat pusat bisnis dan area komersial.",
+                    "icon": "map-pin"
+                }
+            ],
+            "distance_points": [
+                {
+                    "time": "10 Menit",
+                    "place": "Pusat Kota / CBD"
+                },
+                {
+                    "time": "25 Menit",
+                    "place": "Akses Tol / Bandara"
+                }
+            ],
+            "status": "ACTIVE",
+            "created_at": "2026-10-13 06:35:34"
+        },
+        {
             "id": "#KP-8832",
             "slug": "the-royal-cliff-villa-jimbaran-730",
             "title": "The Royal Cliff Villa Jimbaran",
@@ -213,7 +411,7 @@
             "legal_status": "SHM (Hak Milik)",
             "verified": true,
             "featured": true,
-            "highlight_badge": "Ocean Sunset",
+            "highlight_badge": "TERJUAL",
             "land_size": 850,
             "building_size": 620,
             "floors": 2,
@@ -284,7 +482,8 @@
                     "time": "35 Menit",
                     "place": "Bandara Int'l Ngurah Rai"
                 }
-            ]
+            ],
+            "status": "SOLD"
         },
         {
             "id": "#KP-8822",
@@ -671,6 +870,153 @@
     ],
     "submissions": [
         {
+            "id": "#TP-216",
+            "title": "Villa Sunset Cliff Uluwatu Audit Unit",
+            "owner": "Ibu Ratna Audit",
+            "phone": "+62 81388887777",
+            "email": "ratna.audit@test.com",
+            "price": "Rp 12.500.000.000",
+            "asking_val": 12500000000,
+            "valuation_range": "Rp 11.9 Miliar - Rp 13.5 Miliar",
+            "trx_type": "Jual",
+            "category": "Villa Mewah",
+            "city_region": "Bali - Badung",
+            "specific_area": "Uluwatu",
+            "location": "Bali - Badung - Uluwatu",
+            "address": "Jl. Pantai Suluban No. 99, Badung, Bali",
+            "land_size": 450,
+            "building_size": 320,
+            "bedrooms": "4 KT",
+            "bathrooms": "4 KM",
+            "electricity": "4400 VA",
+            "legal": "SHM (Hak Milik)",
+            "ownership": "Pemilik Langsung",
+            "facilities": [
+                "pool",
+                "furnished",
+                "carport",
+                "shm",
+                "pbg"
+            ],
+            "time_ago": "Baru saja",
+            "status": "revision",
+            "priority": "P1 - Hot Asset",
+            "photos_count": 3,
+            "photos": [
+                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+                "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80",
+                "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=800&q=80"
+            ],
+            "checklist": {
+                "identity": true,
+                "maps": true,
+                "shm_match": true,
+                "photos_hd": true
+            },
+            "notes": "Perlu foto tambahan.",
+            "property_id": "#KP-8835",
+            "property_slug": "villa-sunset-cliff-uluwatu-audit-unit-302",
+            "created_at": "2026-10-13 07:52:00"
+        },
+        {
+            "id": "#TP-215",
+            "title": "Villa Sunset Cliff Uluwatu Audit Unit",
+            "owner": "Ibu Ratna Audit",
+            "phone": "+62 81388887777",
+            "email": "ratna.audit@test.com",
+            "price": "Rp 12.500.000.000",
+            "asking_val": 12500000000,
+            "valuation_range": "Rp 11.9 Miliar - Rp 13.5 Miliar",
+            "trx_type": "Jual",
+            "category": "Villa Mewah",
+            "city_region": "Bali - Badung",
+            "specific_area": "Uluwatu",
+            "location": "Bali - Badung - Uluwatu",
+            "address": "Jl. Pantai Suluban No. 99, Badung, Bali",
+            "land_size": 450,
+            "building_size": 320,
+            "bedrooms": "4 KT",
+            "bathrooms": "4 KM",
+            "electricity": "4400 VA",
+            "legal": "SHM (Hak Milik)",
+            "ownership": "Pemilik Langsung",
+            "facilities": [
+                "pool",
+                "furnished",
+                "carport",
+                "shm",
+                "pbg"
+            ],
+            "time_ago": "Baru saja",
+            "status": "approved",
+            "priority": "P1 - Hot Asset",
+            "photos_count": 3,
+            "photos": [
+                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+                "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80",
+                "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=800&q=80"
+            ],
+            "checklist": {
+                "identity": true,
+                "maps": true,
+                "shm_match": true,
+                "photos_hd": true
+            },
+            "notes": "Disetujui dari audit suite test.",
+            "property_id": "#KP-8834",
+            "property_slug": "villa-sunset-cliff-uluwatu-audit-unit-800",
+            "created_at": "2026-10-13 07:51:16"
+        },
+        {
+            "id": "#TP-214",
+            "title": "Villa Sunset Cliff Uluwatu Test",
+            "owner": "Budi Santoso",
+            "phone": "+62 81234567890",
+            "email": "budi@example.com",
+            "price": "Rp 15.000.000.000",
+            "asking_val": 15000000000,
+            "valuation_range": "Rp 14.3 Miliar - Rp 16.2 Miliar",
+            "trx_type": "Jual",
+            "category": "Villa Mewah",
+            "city_region": "Badung, Bali",
+            "specific_area": "Uluwatu",
+            "location": "Badung, Bali - Uluwatu",
+            "address": "Jl. Pantai Suluban No. 8",
+            "land_size": 500,
+            "building_size": 350,
+            "bedrooms": "4 KT",
+            "bathrooms": "4 KM",
+            "electricity": "4400 VA",
+            "legal": "SHM (Hak Milik)",
+            "ownership": "Pemilik Langsung",
+            "facilities": [
+                "pool",
+                "furnished",
+                "carport",
+                "shm",
+                "pbg"
+            ],
+            "time_ago": "Baru saja",
+            "status": "pending",
+            "priority": "P1 - Hot Asset",
+            "photos_count": 3,
+            "photos": [
+                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+                "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80",
+                "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=800&q=80"
+            ],
+            "checklist": {
+                "identity": true,
+                "maps": true,
+                "shm_match": true,
+                "photos_hd": true
+            },
+            "notes": "Villa mewah pemandangan tebing laut lepas.",
+            "property_id": "#KP-8833",
+            "property_slug": "villa-sunset-cliff-uluwatu-test-408",
+            "created_at": "2026-10-13 06:35:34"
+        },
+        {
             "id": "#TP-213",
             "title": "The Royal Cliff Villa Jimbaran",
             "owner": "Budi Santoso",
@@ -1025,6 +1371,57 @@
     ],
     "inquiries": [
         {
+            "id": "#IQ-2219",
+            "client_name": "Bpk. Hendrawan Audit",
+            "phone": "081299998888",
+            "email": "hendrawan.audit@test.com",
+            "buyer_type": "Calon Pembeli Eksklusif (HNWIs)",
+            "time_ago": "Baru saja",
+            "sla_badge": "SLA Hijau (< 15 mnt)",
+            "sla_status": "urgent",
+            "stage": "Survei",
+            "property_id": "#KP-8834",
+            "property_title": "Villa Sunset Cliff Uluwatu Audit Unit",
+            "property_price": "Rp 12.5 Miliar",
+            "quote": "Rencana: Cash Keras (Diskon Khusus Nego) | Tgl Survei: 2026-10-16 | Permintaan jadwal survei dari uji audit otomatis sistem.",
+            "assigned_to": "Private Client Concierge",
+            "created_at": "2026-10-13 07:51:59"
+        },
+        {
+            "id": "#IQ-2218",
+            "client_name": "Bpk. Hendrawan Audit",
+            "phone": "081299998888",
+            "email": "hendrawan.audit@test.com",
+            "buyer_type": "Calon Pembeli Eksklusif (HNWIs)",
+            "time_ago": "Baru saja",
+            "sla_badge": "SLA Hijau (< 15 mnt)",
+            "sla_status": "urgent",
+            "stage": "Survei",
+            "property_id": "#KP-8833",
+            "property_title": "Villa Sunset Cliff Uluwatu Test",
+            "property_price": "Rp 15 Miliar",
+            "quote": "Rencana: Cash Keras (Diskon Khusus Nego) | Tgl Survei: 2026-10-16 | Permintaan jadwal survei dari uji audit otomatis sistem.",
+            "assigned_to": "Private Client Concierge",
+            "created_at": "2026-10-13 07:51:15"
+        },
+        {
+            "id": "#IQ-2217",
+            "client_name": "Dewi Lestari",
+            "phone": "081987654321",
+            "email": "dewi@example.com",
+            "buyer_type": "Calon Pembeli Eksklusif (HNWIs)",
+            "time_ago": "Baru saja",
+            "sla_badge": "SLA Hijau (< 15 mnt)",
+            "sla_status": "urgent",
+            "stage": "Baru",
+            "property_id": "KP-2024-001",
+            "property_title": "Villa Cliffside Horizon Uluwatu",
+            "property_price": "Rp 15 Miliar",
+            "quote": "Saya tertarik survei lokasi hari Sabtu ini.",
+            "assigned_to": "Private Client Concierge",
+            "created_at": "2026-10-13 06:35:34"
+        },
+        {
             "id": "#IQ-2216",
             "client_name": "Ibu Jennifer Kusumo",
             "phone": "081299881122",
@@ -1101,7 +1498,7 @@
             "time_ago": "12 menit lalu",
             "sla_badge": "SLA Hijau (12 mnt)",
             "sla_status": "urgent",
-            "stage": "Baru",
+            "stage": "Follow-Up",
             "property_id": "#KP-8821",
             "property_title": "Villa Cliffside Horizon Uluwatu",
             "property_price": "Rp 42 Miliar",
@@ -1162,9 +1559,50 @@
             "client": "Mr. Thomas Vance",
             "agent": "Aditya Pratama",
             "status": "Terkonfirmasi"
+        },
+        {
+            "time": "10:00 WIB",
+            "property": "Villa Cliffside",
+            "client": "Bpk. Hendra",
+            "agent": "Tim Concierge Kumala",
+            "status": "Terkonfirmasi"
         }
     ],
     "transactions": [
+        {
+            "id": "#CLS-2025-035",
+            "date": "13 Oct 2026",
+            "property_id": "#KP-8821",
+            "property_title": "Closing Penthouse Test",
+            "property_image": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80",
+            "location": "Jakarta Selatan",
+            "trx_type": "JUAL",
+            "asking_price": "Rp 10.000.000.000",
+            "deal_price": "Rp 9.500.000.000",
+            "diff_pct": "-5.0%",
+            "parties": "Penjual & Pembeli Terverifikasi PPAT",
+            "commission_val": "Rp 237.500.000 (2.5%)",
+            "notary": "Notaris Rekanan Kumala PPAT",
+            "status_doc": "AJB Selesai",
+            "days_on_market": "30 Hari"
+        },
+        {
+            "id": "#CLS-2025-034",
+            "date": "13 Oct 2026",
+            "property_id": "#KP-8821",
+            "property_title": "Properti Closing",
+            "property_image": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80",
+            "location": "Jakarta Selatan",
+            "trx_type": "TERJUAL - JUAL BELI",
+            "asking_price": "Rp 10.000.000.000",
+            "deal_price": "Rp 40.000.000.000",
+            "diff_pct": "-5.0%",
+            "parties": "Penjual: Bpk. Made / Pembeli: Konsorsium Bali",
+            "commission_val": "Rp 237.500.000 (2.5%)",
+            "notary": "Dra. Sri Wahyuni, S.H.",
+            "status_doc": "AJB Selesai",
+            "days_on_market": "30 Hari"
+        },
         {
             "id": "#CLS-2025-031",
             "date": "14 Mar 2025",
@@ -1204,7 +1642,7 @@
         "hotline_wa": "+62 811-9988-7711",
         "hotline_wa_numeric": "6281199887711",
         "email_official": "concierge@kumalaproperty.id",
-        "email_business": "inquiries@kumalaproperty.id",
+        "email_business": "vip@kumalaproperty.co.id",
         "address_hq": "Jl. Kemang Raya No. 42, Mampang Prapatan, Jakarta Selatan 12730",
         "address_bali": "Jl. Pantai Suluban No. 8, Pecatu, Uluwatu, Badung, Bali 80361",
         "hours_weekday": "08.30 - 18.00 WIB",
@@ -1215,7 +1653,14 @@
         "email_notify": true,
         "email_cs": "vip@kumalaproperty.id",
         "address": "Kumala Heritage Suite, Jl. Senopati No. 88, Kebayoran Baru, Jakarta Selatan 12190",
-        "office_hours": "Setiap Hari: 08:00 - 20:00 WIB"
+        "office_hours": "Setiap Hari: 08:00 - 20:00 WIB",
+        "hotline_admin": "+62 899-9999-0000",
+        "standard_commission_pct": "3.0",
+        "standard_commission_rent_pct": "6.0",
+        "notify_new_submission": "1",
+        "brand_name": "KUMALA PROPERTY",
+        "brand_subtitle": "JUAL & SEWA PROPERTI",
+        "home_hero_title": "Temukan Hunian Eksklusif & Aset Bernilai Abadi di Indonesia"
     },
     "regions": [
         {
@@ -1273,9 +1718,105 @@
             "subtypes": "Sky Villa, Penthouse SCBD, High-rise",
             "active": true,
             "count": 14
+        },
+        {
+            "name": "Penthouse Sky Duplex",
+            "subtypes": "Duplex, Sky Villa, Panoramic View",
+            "active": true,
+            "count": 0
+        },
+        {
+            "name": "Penthouse Sky Duplex 91",
+            "subtypes": "Duplex, Sky Villa, Panoramic View",
+            "active": true,
+            "count": 0
+        },
+        {
+            "name": "Penthouse Sky Duplex 24",
+            "subtypes": "Duplex, Sky Villa, Panoramic View",
+            "active": true,
+            "count": 0
         }
     ],
     "priority_actions": [
+        {
+            "id": "#TP-216",
+            "type": "listing",
+            "title": "Pengajuan Titip Baru: Villa Sunset Cliff Uluwatu Audit Unit",
+            "owner": "Ibu Ratna Audit",
+            "phone": "+62 81388887777",
+            "time_ago": "Baru saja",
+            "sla_status": "warning",
+            "sla_badge": "SLA Respon < 4 Jam",
+            "detail": "Harga pengajuan Rp 12.500.000.000. Unit telah tayang perdana di katalog publik (#KP-8835).",
+            "btn_action_1": "Verifikasi SHM BPN",
+            "btn_action_2": "Tinjau & Kurasi Unit"
+        },
+        {
+            "id": "#IQ-2219",
+            "type": "inquiry",
+            "title": "Inquiry Baru: Villa Sunset Cliff Uluwatu Audit Unit",
+            "owner": "Bpk. Hendrawan Audit",
+            "phone": "081299998888",
+            "time_ago": "Baru saja",
+            "sla_status": "urgent",
+            "sla_badge": "SLA Respon < 15 mnt",
+            "detail": "Rencana: Cash Keras (Diskon Khusus Nego) | Tgl Survei: 2026-10-16 | Permintaan jadwal survei dari uji audit otomatis sistem.",
+            "btn_action_1": "Hubungi via WhatsApp",
+            "btn_action_2": "Jadwalkan Survei"
+        },
+        {
+            "id": "#TP-215",
+            "type": "listing",
+            "title": "Pengajuan Titip Baru: Villa Sunset Cliff Uluwatu Audit Unit",
+            "owner": "Ibu Ratna Audit",
+            "phone": "+62 81388887777",
+            "time_ago": "Baru saja",
+            "sla_status": "warning",
+            "sla_badge": "SLA Respon < 4 Jam",
+            "detail": "Harga pengajuan Rp 12.500.000.000. Unit telah tayang perdana di katalog publik (#KP-8834).",
+            "btn_action_1": "Verifikasi SHM BPN",
+            "btn_action_2": "Tinjau & Kurasi Unit"
+        },
+        {
+            "id": "#IQ-2218",
+            "type": "inquiry",
+            "title": "Inquiry Baru: Villa Sunset Cliff Uluwatu Test",
+            "owner": "Bpk. Hendrawan Audit",
+            "phone": "081299998888",
+            "time_ago": "Baru saja",
+            "sla_status": "urgent",
+            "sla_badge": "SLA Respon < 15 mnt",
+            "detail": "Rencana: Cash Keras (Diskon Khusus Nego) | Tgl Survei: 2026-10-16 | Permintaan jadwal survei dari uji audit otomatis sistem.",
+            "btn_action_1": "Hubungi via WhatsApp",
+            "btn_action_2": "Jadwalkan Survei"
+        },
+        {
+            "id": "#IQ-2217",
+            "type": "inquiry",
+            "title": "Inquiry Baru: Villa Cliffside Horizon Uluwatu",
+            "owner": "Dewi Lestari",
+            "phone": "081987654321",
+            "time_ago": "Baru saja",
+            "sla_status": "urgent",
+            "sla_badge": "SLA Respon < 15 mnt",
+            "detail": "Saya tertarik survei lokasi hari Sabtu ini.",
+            "btn_action_1": "Hubungi via WhatsApp",
+            "btn_action_2": "Jadwalkan Survei"
+        },
+        {
+            "id": "#TP-214",
+            "type": "listing",
+            "title": "Pengajuan Titip Baru: Villa Sunset Cliff Uluwatu Test",
+            "owner": "Budi Santoso",
+            "phone": "+62 81234567890",
+            "time_ago": "Baru saja",
+            "sla_status": "warning",
+            "sla_badge": "SLA Respon < 4 Jam",
+            "detail": "Harga pengajuan Rp 15.000.000.000. Unit telah tayang perdana di katalog publik (#KP-8833).",
+            "btn_action_1": "Verifikasi SHM BPN",
+            "btn_action_2": "Tinjau & Kurasi Unit"
+        },
         {
             "id": "#TP-213",
             "type": "listing",
@@ -1447,6 +1988,222 @@
         }
     ],
     "audit_logs": [
+        {
+            "timestamp": "07:53 WIB",
+            "action": "Status pengajuan #TP-216 diperbarui menjadi revision",
+            "user": "Admin Curator",
+            "status": "Status Changed"
+        },
+        {
+            "timestamp": "07:53 WIB",
+            "action": "Transaksi Closing #CLS-2025-035 Dicatatkan untuk unit #KP-8821",
+            "user": "Admin Closing Dept",
+            "status": "Deal Closed"
+        },
+        {
+            "timestamp": "07:53 WIB",
+            "action": "Penghapusan listing #KP-8836",
+            "user": "Admin Operator",
+            "status": "Deleted"
+        },
+        {
+            "timestamp": "07:53 WIB",
+            "action": "Perubahan status properti #KP-8836 ke SOLD",
+            "user": "Admin Operator",
+            "status": "Updated"
+        },
+        {
+            "timestamp": "07:53 WIB",
+            "action": "Penerbitan Listing Baru #KP-8836",
+            "user": "Admin Operator",
+            "status": "Published"
+        },
+        {
+            "timestamp": "07:52 WIB",
+            "action": "Tahapan Lead #IQ-2219 diubah ke Survei",
+            "user": "Admin Concierge",
+            "status": "Stage Advanced"
+        },
+        {
+            "timestamp": "07:52 WIB",
+            "action": "Pembaruan Konfigurasi Sistem & Konten Portal Publik",
+            "user": "Super Admin",
+            "status": "Config Saved"
+        },
+        {
+            "timestamp": "07:52 WIB",
+            "action": "Kategori properti baru 'Penthouse Sky Duplex 24' ditambahkan oleh admin.",
+            "user": "Admin Operator",
+            "status": "Created"
+        },
+        {
+            "timestamp": "07:52 WIB",
+            "action": "Pengajuan Titip Properti Baru #TP-216 (#KP-8835) dari Ibu Ratna Audit",
+            "user": "Portal Publik (User)",
+            "status": "Published"
+        },
+        {
+            "timestamp": "07:52 WIB",
+            "action": "Penerbitan Listing Baru #KP-8835",
+            "user": "Admin Operator",
+            "status": "Published"
+        },
+        {
+            "timestamp": "07:51 WIB",
+            "action": "Inquiry Baru #IQ-2219 untuk properti #KP-8834 dari Bpk. Hendrawan Audit",
+            "user": "Portal Publik (User)",
+            "status": "Lead Created"
+        },
+        {
+            "timestamp": "07:51 WIB",
+            "action": "Tahapan Lead #IQ-2218 diubah ke Survei",
+            "user": "Admin Concierge",
+            "status": "Stage Advanced"
+        },
+        {
+            "timestamp": "07:51 WIB",
+            "action": "Pembaruan Konfigurasi Sistem & Konten Portal Publik",
+            "user": "Super Admin",
+            "status": "Config Saved"
+        },
+        {
+            "timestamp": "07:51 WIB",
+            "action": "Pengajuan Titip Properti Baru #TP-215 (#KP-8834) dari Ibu Ratna Audit",
+            "user": "Portal Publik (User)",
+            "status": "Published"
+        },
+        {
+            "timestamp": "07:51 WIB",
+            "action": "Penerbitan Listing Baru #KP-8834",
+            "user": "Admin Operator",
+            "status": "Published"
+        },
+        {
+            "timestamp": "07:51 WIB",
+            "action": "Inquiry Baru #IQ-2218 untuk properti #KP-8833 dari Bpk. Hendrawan Audit",
+            "user": "Portal Publik (User)",
+            "status": "Lead Created"
+        },
+        {
+            "timestamp": "07:43 WIB",
+            "action": "Pembaruan Konfigurasi Sistem & Konten Portal Publik",
+            "user": "Super Admin",
+            "status": "Config Saved"
+        },
+        {
+            "timestamp": "09:40 WIB",
+            "action": "Pembaruan Konfigurasi Sistem & Konten Portal Publik",
+            "user": "Super Admin",
+            "status": "Config Saved"
+        },
+        {
+            "timestamp": "07:40 WIB",
+            "action": "Pembaruan Konfigurasi Sistem & Konten Portal Publik",
+            "user": "Super Admin",
+            "status": "Config Saved"
+        },
+        {
+            "timestamp": "09:27 WIB",
+            "action": "Pembaruan Konfigurasi Sistem & Konten Portal Publik",
+            "user": "Super Admin",
+            "status": "Config Saved"
+        },
+        {
+            "timestamp": "07:27 WIB",
+            "action": "Pembaruan Konfigurasi Sistem & Konten Portal Publik",
+            "user": "Super Admin",
+            "status": "Config Saved"
+        },
+        {
+            "timestamp": "09:20 WIB",
+            "action": "Pembaruan Konfigurasi Sistem & Konten Portal Publik",
+            "user": "Super Admin",
+            "status": "Config Saved"
+        },
+        {
+            "timestamp": "07:20 WIB",
+            "action": "Pembaruan Konfigurasi Sistem & Konten Portal Publik",
+            "user": "Super Admin",
+            "status": "Config Saved"
+        },
+        {
+            "timestamp": "09:10 WIB",
+            "action": "Pembaruan Konfigurasi Sistem & Konten Portal Publik",
+            "user": "Super Admin",
+            "status": "Config Saved"
+        },
+        {
+            "timestamp": "07:09 WIB",
+            "action": "Pembaruan Konfigurasi Sistem & Konten Portal Publik",
+            "user": "Super Admin",
+            "status": "Config Saved"
+        },
+        {
+            "timestamp": "08:58 WIB",
+            "action": "Pembaruan Konfigurasi Sistem & Konten Portal Publik",
+            "user": "Super Admin",
+            "status": "Config Saved"
+        },
+        {
+            "timestamp": "06:58 WIB",
+            "action": "Pembaruan Konfigurasi Sistem & Konten Portal Publik",
+            "user": "Super Admin",
+            "status": "Config Saved"
+        },
+        {
+            "timestamp": "06:56 WIB",
+            "action": "Pembaruan Konfigurasi Sistem & Konten Portal Publik",
+            "user": "Super Admin",
+            "status": "Config Saved"
+        },
+        {
+            "timestamp": "06:55 WIB",
+            "action": "Pembaruan Konfigurasi Sistem & Konten Portal Publik",
+            "user": "Super Admin",
+            "status": "Config Saved"
+        },
+        {
+            "timestamp": "06:54 WIB",
+            "action": "Pembaruan Konfigurasi Sistem & Konten Portal Publik",
+            "user": "Super Admin",
+            "status": "Config Saved"
+        },
+        {
+            "timestamp": "06:35 WIB",
+            "action": "Inquiry Baru #IQ-2217 untuk properti KP-2024-001 dari Dewi Lestari",
+            "user": "Portal Publik (User)",
+            "status": "Lead Created"
+        },
+        {
+            "timestamp": "06:35 WIB",
+            "action": "Pengajuan Titip Properti Baru #TP-214 (#KP-8833) dari Budi Santoso",
+            "user": "Portal Publik (User)",
+            "status": "Published"
+        },
+        {
+            "timestamp": "06:35 WIB",
+            "action": "Penerbitan Listing Baru #KP-8833",
+            "user": "Admin Operator",
+            "status": "Published"
+        },
+        {
+            "timestamp": "06:22 WIB",
+            "action": "Pembaruan Konfigurasi Sistem & Kontak Resmi",
+            "user": "Super Admin",
+            "status": "Config Saved"
+        },
+        {
+            "timestamp": "06:22 WIB",
+            "action": "Tahapan Lead #IQ-2209 diubah ke Follow-Up",
+            "user": "Admin Concierge",
+            "status": "Stage Advanced"
+        },
+        {
+            "timestamp": "06:22 WIB",
+            "action": "Transaksi Closing #CLS-2025-034 Dicatatkan untuk unit #KP-8821",
+            "user": "Admin Closing Dept",
+            "status": "Deal Closed"
+        },
         {
             "timestamp": "07:32 WIB",
             "action": "Pengajuan Titip Properti Baru #TP-213 (#KP-8832) dari Budi Santoso",

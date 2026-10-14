@@ -6,6 +6,10 @@
     <title>@yield('title', 'Kumala Property - Jual & Sewa Properti Eksklusif')</title>
     <meta name="description" content="@yield('meta_description', 'Platform real estate mewah terdepan di Indonesia. Portofolio hunian prestisius, villa tropis, penthouse, dan ruang komersial prima dengan kurasi arsitektural ketat.')">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <!-- Teal K Favicon (Sama persis seperti foto userpage) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2300838F'/%3E%3Ctext x='32' y='47' font-family='sans-serif' font-weight='900' font-size='42' fill='%23FFFFFF' text-anchor='middle'%3EK%3C/text%3E%3C/svg%3E">
+    <link rel="alternate icon" type="image/png" href="{{ asset('favicon.png') }}?v=4">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}?v=4">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,14 +30,18 @@
             <!-- Brand Logo -->
             <a href="{{ route('home') }}" class="brand-logo" id="header-brand-logo">
                 <div class="brand-icon-box">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                        <polyline points="9 22 9 12 15 12 15 22"/>
-                    </svg>
+                    @if(!empty($globalSettings['brand_logo_url']))
+                        <img src="{{ $globalSettings['brand_logo_url'] }}" alt="{{ $globalSettings['brand_name'] ?? 'KUMALA PROPERTY' }}" style="max-height: 28px; width: auto; object-fit: contain; border-radius: 4px;">
+                    @else
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            <polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                    @endif
                 </div>
                 <div class="brand-text">
-                    <span class="brand-title">KUMALA PROPERTY</span>
-                    <span class="brand-subtitle">JUAL & SEWA PROPERTI</span>
+                    <span class="brand-title">{{ $globalSettings['brand_name'] ?? 'KUMALA PROPERTY' }}</span>
+                    <span class="brand-subtitle">{{ $globalSettings['brand_subtitle'] ?? 'JUAL & SEWA PROPERTI' }}</span>
                 </div>
             </a>
 
@@ -158,18 +166,22 @@
                 <div class="footer-col-brand">
                     <div class="brand-logo">
                         <div class="brand-icon-box">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                                <polyline points="9 22 9 12 15 12 15 22"/>
-                            </svg>
+                            @if(!empty($globalSettings['brand_logo_url']))
+                                <img src="{{ $globalSettings['brand_logo_url'] }}" alt="{{ $globalSettings['brand_name'] ?? 'KUMALA PROPERTY' }}" style="max-height: 28px; width: auto; object-fit: contain; border-radius: 4px;">
+                            @else
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                                    <polyline points="9 22 9 12 15 12 15 22"/>
+                                </svg>
+                            @endif
                         </div>
                         <div class="brand-text">
-                            <span class="brand-title" style="color: #FFFFFF;">KUMALA PROPERTY</span>
-                            <span class="brand-subtitle" style="color: #94A3B8;">JUAL & SEWA PROPERTI</span>
+                            <span class="brand-title" style="color: #FFFFFF;">{{ $globalSettings['brand_name'] ?? 'KUMALA PROPERTY' }}</span>
+                            <span class="brand-subtitle" style="color: #94A3B8;">{{ $globalSettings['brand_subtitle'] ?? 'JUAL & SEWA PROPERTI' }}</span>
                         </div>
                     </div>
                     <p class="footer-brand-desc">
-                        Jual & Sewa Properti Eksklusif. Menghadirkan portofolio hunian prestisius dan ruang komersial prima dengan pendekatan kuratorial berstandar tinggi.
+                        {{ $globalSettings['footer_bio'] ?? 'Jual & Sewa Properti Eksklusif. Menghadirkan portofolio hunian prestisius dan ruang komersial prima dengan pendekatan kuratorial berstandar tinggi.' }}
                     </p>
                     <div class="footer-tags">
                         <span class="footer-tag">JUAL</span>
@@ -227,7 +239,7 @@
 
             <!-- Bottom Bar -->
             <div class="footer-bottom-bar">
-                <p>&copy; {{ date('Y') }} Kumala Property. Seluruh hak cipta dilindungi undang-undang.</p>
+                <p>{{ $globalSettings['footer_copyright'] ?? '© ' . date('Y') . ' Kumala Property. Seluruh hak cipta dilindungi undang-undang.' }}</p>
                 <div class="footer-bottom-links">
                     <a href="#">Privasi & Syarat</a>
                     <span>•</span>

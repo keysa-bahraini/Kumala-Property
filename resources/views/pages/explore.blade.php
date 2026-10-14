@@ -8,9 +8,9 @@
     <!-- Top Header Area -->
     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
         <div>
-            <div class="badge-pill-header">KOLEKSI PILIHAN KUMALA</div>
-            <h1 style="font-size: 2.2rem; color: var(--primary-navy); margin-bottom: 6px;">Eksplorasi Properti</h1>
-            <p style="color: var(--text-muted); font-size: 0.95rem;">Temukan hunian eksklusif, villa tropis, apartemen modern, dan lahan strategis di kawasan prima.</p>
+            <div class="badge-pill-header">{{ $globalSettings['explore_badge'] ?? 'KOLEKSI PILIHAN KUMALA' }}</div>
+            <h1 style="font-size: 2.2rem; color: var(--primary-navy); margin-bottom: 6px;">{{ $globalSettings['explore_title'] ?? 'Eksplorasi Properti' }}</h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">{{ $globalSettings['explore_desc'] ?? 'Temukan hunian eksklusif, villa tropis, apartemen modern, dan lahan strategis di kawasan prima.' }}</p>
         </div>
 
         <!-- Status Katalog Widget -->
@@ -252,14 +252,14 @@
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5Zm0 0a9 9 0 1 1 18 0m0 0v5a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3Z"/></svg>
             </div>
             <div>
-                <h3 style="font-size: 1.2rem; color: var(--primary-navy); margin-bottom: 4px;">Tidak Menemukan Kriteria yang Dicari?</h3>
+                <h3 style="font-size: 1.2rem; color: var(--primary-navy); margin-bottom: 4px;">{{ $globalSettings['explore_offmarket_title'] ?? 'Tidak Menemukan Kriteria yang Dicari?' }}</h3>
                 <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; max-width: 580px;">
-                    Konsultasikan preferensi properti impian Anda secara privat bersama Property Advisor kami. Kami siap mengurasi unit off-market sesuai kriteria Anda.
+                    {{ $globalSettings['explore_offmarket_desc'] ?? 'Konsultasikan preferensi properti impian Anda secara privat bersama Property Advisor kami. Kami siap mengurasi unit off-market sesuai kriteria Anda.' }}
                 </p>
             </div>
         </div>
 
-        <a href="https://wa.me/6281288992345?text=Halo%20Property%20Advisor%20Kumala,%20saya%20mencari%20properti%20dengan%20kriteria%20khusus." target="_blank" class="btn-cta-whatsapp" style="padding: 11px 22px;">
+        <a href="https://wa.me/{{ $globalSettings['hotline_wa_numeric'] ?? '6281199887711' }}?text=Halo%20Property%20Advisor%20Kumala,%20saya%20mencari%20properti%20dengan%20kriteria%20khusus." target="_blank" class="btn-cta-whatsapp" style="padding: 11px 22px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             <span>Konsultasi via WhatsApp</span>
         </a>
