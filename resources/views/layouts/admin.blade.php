@@ -35,6 +35,11 @@
             box-sizing: border-box;
         }
 
+        html, body {
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+
         body {
             background-color: var(--admin-bg-body);
             color: #0F172A;
@@ -293,9 +298,10 @@
         .admin-content {
             padding: 24px 32px 48px;
             flex: 1;
+            min-width: 0;
+            max-width: 100%;
         }
 
-        /* Mobile Responsive */
         .mobile-hamburger {
             display: none;
             background: none;
@@ -307,6 +313,8 @@
             border-radius: 6px;
             align-items: center;
             justify-content: center;
+            min-width: 44px;
+            min-height: 44px;
         }
         .mobile-hamburger:hover {
             background: #F1F5F9;
@@ -335,6 +343,8 @@
             border-radius: 6px;
             align-items: center;
             justify-content: center;
+            min-width: 44px;
+            min-height: 44px;
         }
         .admin-sidebar-close:hover {
             color: #FFFFFF;
@@ -413,7 +423,7 @@
             </div>
             <div class="admin-brand-text">
                 <span class="admin-brand-title">Kumala Property</span>
-                <span class="admin-brand-badge">ADMIN SUITE</span>
+                <span class="admin-brand-badge">KUMALA ADMIN SUITE</span>
             </div>
             <button type="button" class="admin-sidebar-close" onclick="closeAdminSidebar()" title="Tutup Menu">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>

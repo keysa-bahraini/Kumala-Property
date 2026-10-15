@@ -65,7 +65,7 @@
     <!-- Interactive Media Gallery Grid -->
     <div class="gallery-grid" style="margin-bottom: 32px; border-radius: 14px; overflow: hidden; border: 1px solid var(--border-color);">
         <!-- Main Image -->
-        <div style="grid-column: 1 / 2; grid-row: 1 / 3; position: relative; overflow: hidden; background: #0E2238;">
+        <div style="position: relative; overflow: hidden; background: #0E2238;">
             <img src="{{ $property['images'][0] ?? $property['image_main'] }}" alt="{{ $property['title'] }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;" class="gallery-hover-img">
             <div style="position: absolute; bottom: 16px; left: 16px; background: rgba(14, 34, 56, 0.9); padding: 8px 14px; border-radius: 6px; color: #FFFFFF; font-size: 0.82rem; font-weight: 600; border: 1px solid rgba(255,255,255,0.15);">
                 {{ $property['location_area'] }} • Dokumentasi Asli Tim Kumala
@@ -404,7 +404,7 @@
             </a>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 26px;">
+        <div class="property-grid-cards" style="margin-top: 24px;">
             @foreach($relatedProperties as $rel)
             <div class="property-card">
                 <div class="card-media-wrapper" style="height: 220px;">

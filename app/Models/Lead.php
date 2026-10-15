@@ -23,12 +23,14 @@ class Lead extends Model
         'client_phone',
         'client_email',
         'buyer_category',
+        'buyer_type',
         'message',
         'quote',
         'inquiry_type',
         'payment_scheme',
         'survey_date_preference',
         'assigned_agent',
+        'assigned_to',
         'stage',
         'sla_minutes',
         'sla_badge',
@@ -39,6 +41,21 @@ class Lead extends Model
     protected $casts = [
         'sla_minutes' => 'integer',
     ];
+
+    public function getNameAttribute(): ?string
+    {
+        return $this->client_name;
+    }
+
+    public function getPhoneAttribute(): ?string
+    {
+        return $this->client_phone;
+    }
+
+    public function getEmailAttribute(): ?string
+    {
+        return $this->client_email;
+    }
 
     public function property(): BelongsTo
     {

@@ -12,7 +12,7 @@ class PropertyDataService
     public static function transform(Property $p): array
     {
         $images = [];
-        if ($p->relationLoaded('photos') && $p->photos->isNotEmpty()) {
+        if ($p->relationLoaded('photos') && $p->photos && $p->photos->isNotEmpty()) {
             $images = $p->photos->pluck('photo_url')->toArray();
         } elseif ($p->photos()->exists()) {
             $images = $p->photos()->pluck('photo_url')->toArray();
@@ -22,7 +22,7 @@ class PropertyDataService
         }
 
         $features = [];
-        if ($p->relationLoaded('features') && $p->features->isNotEmpty()) {
+        if ($p->relationLoaded('features') && $p->features && $p->features->isNotEmpty()) {
             $features = $p->features->map(fn($f) => [
                 'title' => $f->title,
                 'desc' => $f->desc,

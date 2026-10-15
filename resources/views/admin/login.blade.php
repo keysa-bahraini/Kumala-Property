@@ -283,7 +283,7 @@
         </div>
 
         <h1 class="login-title">Kumala Property Portal</h1>
-        <p class="login-subtitle">Masuk ke Panel Kontrol Operasional & Pemasaran Properti</p>
+        <p class="login-subtitle">Masuk ke Portal Internal &amp; Panel Kontrol Operasional Properti</p>
 
         @if($errors->any())
         <div style="background: #FEE2E2; border: 1px solid #FCA5A5; color: #DC2626; padding: 8px 12px; border-radius: 6px; font-size: 0.78rem; margin-bottom: 16px; text-align: left;">
@@ -304,7 +304,7 @@
                     <span class="input-icon-left">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
                     </span>
-                    <input type="text" id="email" name="email" value="{{ old('email', 'admin@kumalaproperty.co.id') }}" required placeholder="admin@kumalaproperty.co.id">
+                    <input type="text" id="email" name="email" value="{{ old('email', 'admin@kumalaproperty.com') }}" required placeholder="admin@kumalaproperty.com">
                 </div>
             </div>
 

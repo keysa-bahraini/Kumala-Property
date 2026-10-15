@@ -66,7 +66,7 @@
     </div>
 
     <!-- Favorite Cards Grid Container -->
-    <div id="favorites-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; margin-bottom: 50px;">
+    <div id="favorites-grid" class="property-grid-cards" style="margin-bottom: 50px;">
         @foreach($allProperties as $prop)
         <div class="property-card fav-item-card" data-prop-id="{{ $prop['id'] }}" data-prop-trx="{{ $prop['transaction_type'] }}" style="display: none;">
             <div class="card-media-wrapper">
@@ -165,8 +165,8 @@
             </button>
         </div>
 
-        <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
+        <div class="table-responsive">
+            <table style="width: 100%; min-width: 620px; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
                 <thead>
                     <tr style="background: #F8FAFC; border-bottom: 2px solid var(--border-color);">
                         <th style="padding: 12px 16px; color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase;">Parameter</th>

@@ -45,6 +45,8 @@ return new class extends Migration
             $table->string('furnishing')->nullable();
             $table->json('specs_tags')->nullable();
             $table->text('image_main');
+            $table->json('images')->nullable();
+            $table->json('features')->nullable();
             $table->string('video_tour_url')->nullable();
             $table->string('pdf_factsheet_url')->nullable();
             $table->text('description');

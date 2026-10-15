@@ -2,13 +2,26 @@
 
 namespace App\Services;
 
+use App\Models\AuditLog;
+use App\Models\Category;
+use App\Models\Lead;
+use App\Models\PriorityAction;
+use App\Models\Property;
+use App\Models\PropertyFeature;
+use App\Models\PropertyPhoto;
+use App\Models\Region;
+use App\Models\Setting;
+use App\Models\Submission;
+use App\Models\Survey;
+use App\Models\Transaction;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+
 class KumalaDataHub
 {
     protected static ?string $storageFile = null;
 
-    /**
-     * Get path to json storage file
-     */
     protected static function getStoragePath(): string
     {
         if (self::$storageFile === null) {
@@ -18,77 +31,85 @@ class KumalaDataHub
     }
 
     /**
-     * Load all data from store (or initialize with default dataset)
+     * Optional file sync / fallback
      */
-    public static function loadData(): array
+    public static function loadFallbackData(): array
     {
         $path = self::getStoragePath();
         if (file_exists($path)) {
             $content = file_get_contents($path);
             $data = json_decode($content, true);
             if (is_array($data) && isset($data['properties'])) {
-                if (!isset($data['settings']) || !is_array($data['settings'])) {
-                    $data['settings'] = [];
-                }
                 return $data;
             }
         }
-
-        // Initialize default seed dataset
-        $data = self::getDefaultSeedData();
-        self::saveData($data);
-        return $data;
-    }
-
-    /**
-     * Save data atomically
-     */
-    public static function saveData(array $data): bool
-    {
-        $path = self::getStoragePath();
-        $dir = dirname($path);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-        return file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) !== false;
+        return [];
     }
 
     // =========================================================================
-    // 1. PROPERTIES MANAGEMENT
+    // 1. PROPERTIES MANAGEMENT (Eloquent Database Layer)
     // =========================================================================
 
     public static function getAllProperties(bool $activeOnly = false): array
     {
-        $data = self::loadData();
-        $properties = $data['properties'] ?? [];
+        try {
+            $query = Property::orderBy('created_at', 'desc');
+            if ($activeOnly) {
+                $query->where('status', 'ACTIVE');
+            }
+            $properties = $query->get();
 
-        if ($activeOnly) {
-            return array_values(array_filter($properties, function ($p) {
-                return ($p['status'] ?? 'ACTIVE') === 'ACTIVE';
-            }));
+            if ($properties->isNotEmpty()) {
+                return $properties->map(fn($p) => self::transformProperty($p))->toArray();
+            }
+        } catch (\Throwable $e) {
+            Log::warning('KumalaDataHub::getAllProperties fallback to file: ' . $e->getMessage());
         }
 
-        return $properties;
+        // Fallback
+        $fb = self::loadFallbackData()['properties'] ?? [];
+        if ($activeOnly) {
+            return array_values(array_filter($fb, fn($p) => ($p['status'] ?? 'ACTIVE') === 'ACTIVE'));
+        }
+        return $fb;
     }
 
     public static function findPropertyBySlug(string $slug): ?array
     {
+        try {
+            $prop = Property::where('slug', $slug)->first();
+            if ($prop) {
+                return self::transformProperty($prop);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('KumalaDataHub::findPropertyBySlug fallback: ' . $e->getMessage());
+        }
+
+        // Fallback
         $all = self::getAllProperties();
-        foreach ($all as $prop) {
-            if (($prop['slug'] ?? '') === $slug) {
-                return $prop;
+        foreach ($all as $item) {
+            if (($item['slug'] ?? '') === $slug) {
+                return $item;
             }
         }
-        // Fallback to first property if not found
         return $all[0] ?? null;
     }
 
     public static function findPropertyById(string $id): ?array
     {
+        try {
+            $prop = Property::where('id', $id)->first();
+            if ($prop) {
+                return self::transformProperty($prop);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('KumalaDataHub::findPropertyById fallback: ' . $e->getMessage());
+        }
+
         $all = self::getAllProperties();
-        foreach ($all as $prop) {
-            if (($prop['id'] ?? '') === $id) {
-                return $prop;
+        foreach ($all as $item) {
+            if (($item['id'] ?? '') === $id) {
+                return $item;
             }
         }
         return null;
@@ -96,25 +117,59 @@ class KumalaDataHub
 
     public static function filterProperties(?string $type = null, ?string $category = null, ?string $location = null, ?string $priceRange = null): array
     {
-        $items = self::getAllProperties(true);
+        try {
+            $query = Property::where('status', 'ACTIVE');
 
-        return array_values(array_filter($items, function ($item) use ($type, $category, $location, $priceRange) {
             if ($type && $type !== 'Semua') {
-                if (strtolower($item['transaction_type'] ?? '') !== strtolower($type)) {
-                    return false;
+                $query->where('transaction_type', $type);
+            }
+
+            if ($category && $category !== 'Semua Tipe Properti' && $category !== 'Semua') {
+                $query->where(function ($q) use ($category) {
+                    $q->where('category', 'LIKE', "%{$category}%")
+                      ->orWhere('title', 'LIKE', "%{$category}%");
+                });
+            }
+
+            if ($location && $location !== 'Semua Wilayah' && $location !== 'Semua') {
+                $query->where(function ($q) use ($location) {
+                    $q->where('location_city', 'LIKE', "%{$location}%")
+                      ->orWhere('location_area', 'LIKE', "%{$location}%")
+                      ->orWhere('location_address', 'LIKE', "%{$location}%");
+                });
+            }
+
+            if ($priceRange && $priceRange !== 'Semua Rentang Harga') {
+                if ($priceRange === '< 5 Miliar' || $priceRange === 'under_5b') {
+                    $query->where('price', '<', 5000000000);
+                } elseif ($priceRange === '5 - 15 Miliar' || $priceRange === '5b_15b') {
+                    $query->whereBetween('price', [5000000000, 15000000000]);
+                } elseif ($priceRange === '15 - 30 Miliar' || $priceRange === '15b_30b') {
+                    $query->whereBetween('price', [15000000000, 30000000000]);
+                } elseif ($priceRange === '> 30 Miliar' || $priceRange === 'above_30b') {
+                    $query->where('price', '>', 30000000000);
                 }
             }
+
+            $results = $query->orderBy('created_at', 'desc')->get();
+            return $results->map(fn($p) => self::transformProperty($p))->toArray();
+        } catch (\Throwable $e) {
+            Log::warning('KumalaDataHub::filterProperties fallback: ' . $e->getMessage());
+        }
+
+        // Fallback filter
+        $items = self::getAllProperties(true);
+        return array_values(array_filter($items, function ($item) use ($type, $category, $location, $priceRange) {
+            if ($type && $type !== 'Semua') {
+                if (strtolower($item['transaction_type'] ?? '') !== strtolower($type)) return false;
+            }
             if ($category && $category !== 'Semua Tipe Properti' && $category !== 'Semua') {
-                if (stripos($item['category'] ?? '', $category) === false && stripos($category, $item['category'] ?? '') === false) {
-                    return false;
-                }
+                if (stripos($item['category'] ?? '', $category) === false && stripos($category, $item['category'] ?? '') === false) return false;
             }
             if ($location && $location !== 'Semua Wilayah' && $location !== 'Semua') {
                 $city = $item['location_city'] ?? '';
                 $area = $item['location_area'] ?? '';
-                if (stripos($city, $location) === false && stripos($area, $location) === false) {
-                    return false;
-                }
+                if (stripos($city, $location) === false && stripos($area, $location) === false) return false;
             }
             if ($priceRange && $priceRange !== 'Semua Rentang Harga') {
                 $p = $item['price'] ?? 0;
@@ -129,32 +184,55 @@ class KumalaDataHub
 
     public static function addProperty(array $newProperty): array
     {
-        $data = self::loadData();
-        
-        $idNumber = 8820 + count($data['properties']) + 1;
-        $id = '#KP-' . $idNumber;
-        
-        $title = $newProperty['title'] ?? 'Properti Baru Kumala';
-        $slug = \Illuminate\Support\Str::slug($title) . '-' . rand(100, 999);
+        $id = $newProperty['id'] ?? null;
+        if (empty($id)) {
+            $count = Property::count();
+            $id = '#KP-' . (8820 + $count + 1);
+        }
 
-        $property = array_merge([
+        $title = $newProperty['title'] ?? 'Properti Baru Kumala';
+        $slug = $newProperty['slug'] ?? (Str::slug($title) . '-' . rand(100, 999));
+        $price = (float)($newProperty['price'] ?? 1000000000);
+
+        $specsTags = $newProperty['specs_tags'] ?? [
+            ($newProperty['bedrooms'] ?? 3) . ' Kamar Tidur',
+            'LT ' . ($newProperty['land_size'] ?? 200) . 'm²',
+            'LB ' . ($newProperty['building_size'] ?? 180) . 'm²',
+        ];
+
+        $images = !empty($newProperty['images']) && is_array($newProperty['images']) ? $newProperty['images'] : [
+            $newProperty['image_main'] ?? 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+        ];
+
+        $features = !empty($newProperty['features']) && is_array($newProperty['features']) ? $newProperty['features'] : [
+            ['title' => 'Keamanan 24 Jam', 'desc' => 'One gate security system.', 'icon' => 'shield'],
+            ['title' => 'Akses Strategis', 'desc' => 'Dekat pusat bisnis dan area komersial.', 'icon' => 'map-pin'],
+        ];
+
+        $distancePoints = $newProperty['distance_points'] ?? [
+            ['time' => '10 Menit', 'place' => 'Pusat Kota / CBD'],
+            ['time' => '25 Menit', 'place' => 'Akses Tol / Bandara'],
+        ];
+
+        $propData = [
             'id' => $id,
             'slug' => $slug,
             'title' => $title,
             'category' => $newProperty['category'] ?? 'Rumah Mewah',
             'transaction_type' => $newProperty['transaction_type'] ?? 'Jual',
-            'price' => (float)($newProperty['price'] ?? 1000000000),
-            'price_formatted' => 'Rp ' . number_format((float)($newProperty['price'] ?? 1000000000), 0, ',', '.'),
-            'price_short' => self::formatShortPrice((float)($newProperty['price'] ?? 1000000000)),
+            'price' => $price,
+            'price_formatted' => 'Rp ' . number_format($price, 0, ',', '.'),
+            'price_short' => self::formatShortPrice($price),
             'price_label' => ($newProperty['transaction_type'] ?? 'Jual') === 'Jual' ? 'Harga Penawaran Eksklusif' : 'Biaya Sewa',
-            'price_notes' => 'Legalitas Lengkap • Siap Transaksi',
+            'price_notes' => $newProperty['price_notes'] ?? 'Legalitas Lengkap • Siap Transaksi',
+            'price_negotiable' => true,
             'location_city' => $newProperty['location_city'] ?? 'Jakarta Selatan',
             'location_area' => $newProperty['location_area'] ?? 'Kebayoran Baru',
             'location_address' => $newProperty['location_address'] ?? 'Jakarta Selatan, DKI Jakarta',
             'legal_status' => $newProperty['legal_status'] ?? 'SHM (Hak Milik)',
             'verified' => true,
-            'featured' => true,
-            'highlight_badge' => 'Listing Baru',
+            'featured' => (bool)($newProperty['featured'] ?? true),
+            'highlight_badge' => $newProperty['highlight_badge'] ?? 'Listing Baru',
             'land_size' => (int)($newProperty['land_size'] ?? 200),
             'building_size' => (int)($newProperty['building_size'] ?? 180),
             'floors' => (int)($newProperty['floors'] ?? 2),
@@ -162,102 +240,130 @@ class KumalaDataHub
             'bathrooms' => (int)($newProperty['bathrooms'] ?? 3),
             'orientation' => $newProperty['orientation'] ?? 'Utara',
             'electricity' => $newProperty['electricity'] ?? '4400 VA',
-            'water_source' => 'PDAM',
-            'garage' => '2 Mobil',
-            'year_built' => date('Y'),
+            'water_source' => $newProperty['water_source'] ?? 'PDAM',
+            'garage' => $newProperty['garage'] ?? '2 Mobil',
+            'year_built' => (string)($newProperty['year_built'] ?? date('Y')),
             'furnishing' => $newProperty['furnishing'] ?? 'Semi Furnished',
-            'specs_tags' => [
-                ($newProperty['bedrooms'] ?? 3) . ' Kamar Tidur',
-                'LT ' . ($newProperty['land_size'] ?? 200) . 'm²',
-                'LB ' . ($newProperty['building_size'] ?? 180) . 'm²'
-            ],
-            'image_main' => $newProperty['image_main'] ?? 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
-            'images' => $newProperty['images'] ?? [
-                'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
-                'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80',
-            ],
-            'description' => $newProperty['description'] ?? 'Hunian eksklusif terkurasi oleh Kumala Property dengan standar spesifikasi premium dan legalitas aman.',
-            'features' => [
-                ['title' => 'Keamanan 24 Jam', 'desc' => 'One gate security system.', 'icon' => 'shield'],
-                ['title' => 'Akses Strategis', 'desc' => 'Dekat pusat bisnis dan area komersial.', 'icon' => 'map-pin']
-            ],
-            'distance_points' => [
-                ['time' => '10 Menit', 'place' => 'Pusat Kota / CBD'],
-                ['time' => '25 Menit', 'place' => 'Akses Tol / Bandara'],
-            ],
-            'status' => 'ACTIVE',
-            'created_at' => date('Y-m-d H:i:s'),
-        ], $newProperty);
+            'specs_tags' => $specsTags,
+            'image_main' => $newProperty['image_main'] ?? $images[0],
+            'images' => $images,
+            'features' => $features,
+            'description' => $newProperty['description'] ?? 'Hunian eksklusif terkurasi oleh Kumala Property dengan standar spesifikasi premium.',
+            'distance_points' => $distancePoints,
+            'status' => $newProperty['status'] ?? 'ACTIVE',
+        ];
 
-        // Prepend to properties so it appears on top
-        array_unshift($data['properties'], $property);
+        try {
+            $createdProp = Property::create($propData);
 
-        // Add audit trail
-        self::appendAuditLog($data, 'Penerbitan Listing Baru ' . $id, 'Admin Operator', 'Published');
+            // Populate child photos
+            foreach ($images as $idx => $photoUrl) {
+                PropertyPhoto::create([
+                    'property_id' => $id,
+                    'photo_url' => $photoUrl,
+                    'caption' => $title . ' - Foto ' . ($idx + 1),
+                    'is_main' => ($idx === 0),
+                    'sort_order' => $idx,
+                ]);
+            }
 
-        self::saveData($data);
-        return $property;
+            // Populate child features
+            foreach ($features as $feat) {
+                PropertyFeature::create([
+                    'property_id' => $id,
+                    'title' => $feat['title'] ?? 'Fasilitas Unggulan',
+                    'desc' => $feat['desc'] ?? '',
+                    'icon' => $feat['icon'] ?? 'star',
+                ]);
+            }
+
+            self::logAction("Penerbitan Listing Baru {$id}: {$title}", 'Admin Operator', 'Published');
+            return self::transformProperty($createdProp);
+        } catch (\Throwable $e) {
+            Log::error('KumalaDataHub::addProperty DB Error: ' . $e->getMessage());
+            return $propData;
+        }
     }
 
     public static function updatePropertyStatus(string $id, string $status): bool
     {
-        $data = self::loadData();
-        foreach ($data['properties'] as &$prop) {
-            if (($prop['id'] ?? '') === $id) {
-                $prop['status'] = $status;
+        try {
+            $prop = Property::where('id', $id)->first();
+            if ($prop) {
+                $prop->status = $status;
                 if ($status === 'SOLD') {
-                    $prop['highlight_badge'] = 'TERJUAL';
+                    $prop->highlight_badge = 'TERJUAL';
                 } elseif ($status === 'RENTED') {
-                    $prop['highlight_badge'] = 'TERSEWA';
+                    $prop->highlight_badge = 'TERSEWA';
                 }
-                self::appendAuditLog($data, "Perubahan status properti {$id} ke {$status}", 'Admin Operator', 'Updated');
-                self::saveData($data);
+                $prop->save();
+
+                self::logAction("Perubahan status properti {$id} ke {$status}", 'Admin Operator', 'Updated');
                 return true;
             }
+        } catch (\Throwable $e) {
+            Log::error('KumalaDataHub::updatePropertyStatus Error: ' . $e->getMessage());
         }
         return false;
     }
 
     public static function deleteProperty(string $id): bool
     {
-        $data = self::loadData();
-        $initialCount = count($data['properties']);
-        $data['properties'] = array_values(array_filter($data['properties'], function ($p) use ($id) {
-            return ($p['id'] ?? '') !== $id;
-        }));
+        try {
+            $prop = Property::where('id', $id)->first();
+            if ($prop) {
+                PropertyPhoto::where('property_id', $id)->delete();
+                PropertyFeature::where('property_id', $id)->delete();
+                $prop->delete();
 
-        if (count($data['properties']) < $initialCount) {
-            self::appendAuditLog($data, "Penghapusan listing {$id}", 'Admin Operator', 'Deleted');
-            self::saveData($data);
-            return true;
+                self::logAction("Penghapusan listing {$id}", 'Admin Operator', 'Deleted');
+                return true;
+            }
+        } catch (\Throwable $e) {
+            Log::error('KumalaDataHub::deleteProperty Error: ' . $e->getMessage());
         }
         return false;
     }
 
     // =========================================================================
-    // 2. CONSIGNMENT SUBMISSIONS (TITIP PROPERTI)
+    // 2. CONSIGNMENT SUBMISSIONS (Titip Properti)
     // =========================================================================
 
     public static function getSubmissions(?string $status = null): array
     {
-        $data = self::loadData();
-        $submissions = $data['submissions'] ?? [];
-
-        if ($status && $status !== 'all') {
-            return array_values(array_filter($submissions, function ($s) use ($status) {
-                return ($s['status'] ?? '') === $status;
-            }));
+        try {
+            $query = Submission::orderBy('created_at', 'desc');
+            if ($status && $status !== 'all') {
+                $query->where('status', $status);
+            }
+            $submissions = $query->get();
+            return $submissions->map(fn($s) => self::transformSubmission($s))->toArray();
+        } catch (\Throwable $e) {
+            Log::warning('KumalaDataHub::getSubmissions fallback: ' . $e->getMessage());
         }
 
-        return $submissions;
+        $all = self::loadFallbackData()['submissions'] ?? [];
+        if ($status && $status !== 'all') {
+            return array_values(array_filter($all, fn($s) => ($s['status'] ?? '') === $status));
+        }
+        return $all;
     }
 
     public static function findSubmissionById(string $id): ?array
     {
-        $submissions = self::getSubmissions();
-        foreach ($submissions as $sub) {
-            if (($sub['id'] ?? '') === $id) {
-                return $sub;
+        try {
+            $sub = Submission::where('id', $id)->first();
+            if ($sub) {
+                return self::transformSubmission($sub);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('KumalaDataHub::findSubmissionById fallback: ' . $e->getMessage());
+        }
+
+        $all = self::getSubmissions();
+        foreach ($all as $item) {
+            if (($item['id'] ?? '') === $id) {
+                return $item;
             }
         }
         return null;
@@ -265,15 +371,15 @@ class KumalaDataHub
 
     public static function createSubmission(array $input): array
     {
-        $data = self::loadData();
-        $id = '#TP-' . (count($data['submissions']) + 205);
+        $count = Submission::count();
+        $id = '#TP-' . ($count + 205);
 
-        // 1. Parse Price
+        // 1. Price
         $rawPrice = $input['asking_price'] ?? ($input['price'] ?? '0');
         $priceNum = (float)str_replace(['Rp', '.', ' ', ','], '', (string)$rawPrice);
         if ($priceNum <= 0) $priceNum = 3500000000;
 
-        // 2. Parse Phone
+        // 2. Phone
         $rawPhone = $input['owner_phone'] ?? ($input['phone'] ?? '');
         $phoneDigits = preg_replace('/[^0-9]/', '', (string)$rawPhone);
         if (str_starts_with($phoneDigits, '62')) {
@@ -286,20 +392,18 @@ class KumalaDataHub
             $formattedPhone = '+62 812-8899-2345';
         }
 
-        // 3. Parse Category & Trx
+        // 3. Category & Transaction
         $category = $input['property_category'] ?? ($input['category'] ?? 'Rumah Mewah');
         $trxType = $input['transaction_type'] ?? ($input['trx_type'] ?? 'Jual');
-        if ($trxType === 'Keduanya') {
-            $trxType = 'Jual';
-        }
+        if ($trxType === 'Keduanya') $trxType = 'Jual';
 
-        // 4. Parse Locations
+        // 4. Locations
         $cityRegion = $input['city_region'] ?? 'Jakarta Selatan';
         $specificArea = $input['specific_area'] ?? 'Kawasan Prime';
         $locationStr = $cityRegion . ' - ' . $specificArea;
-        $address = $input['full_address'] ?? ($input['address'] ?? ($input['location_address'] ?? 'Alamat lengkap terverifikasi oleh Kurator Kumala.'));
+        $address = $input['full_address'] ?? ($input['address'] ?? ($input['location_address'] ?? 'Alamat lengkap terverifikasi.'));
 
-        // 5. Parse Specs
+        // 5. Specs
         $landSize = (int)($input['land_size'] ?? 250);
         $buildingSize = (int)($input['building_size'] ?? 200);
         $bedStr = (string)($input['bedrooms'] ?? '3 KT');
@@ -307,44 +411,35 @@ class KumalaDataHub
         $bathStr = (string)($input['bathrooms'] ?? '3 KM');
         $bathInt = (int)filter_var($bathStr, FILTER_SANITIZE_NUMBER_INT) ?: 3;
 
-        // 6. Parse Facilities & Legal
+        // 6. Facilities & Legal
         $facilities = (array)($input['facilities'] ?? ['pool', 'furnished', 'carport', 'shm', 'pbg']);
         $legal = in_array('shm', $facilities) ? 'SHM (Hak Milik)' : ($input['legal_status'] ?? 'SHM (Hak Milik)');
         if (stripos($category, 'Apartemen') !== false || stripos($category, 'Penthouse') !== false) {
             $legal = 'Strata Title';
         }
 
-        // 7. Parse Photos
+        // 7. Photos
         $defaultPhotos = [
             'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
             'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80',
             'https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=800&q=80',
         ];
-        if (stripos($category, 'Apartemen') !== false || stripos($category, 'Penthouse') !== false) {
-            $defaultPhotos = [
-                'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
-                'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80',
-            ];
-        }
         $photos = !empty($input['photos']) && is_array($input['photos']) ? array_values($input['photos']) : $defaultPhotos;
 
         // 8. Description & Title
         $title = !empty($input['property_title']) ? trim($input['property_title']) : (!empty($input['title']) ? trim($input['title']) : "{$category} Eksklusif di {$specificArea}");
-        $description = !empty($input['description']) ? trim($input['description']) : "Properti konsinyasi resmi dititipkan oleh pemilik langsung melalui portal Kumala Property. Berkas legalitas terkurasi dan siap transaksi.";
+        $description = !empty($input['description']) ? trim($input['description']) : "Properti konsinyasi resmi dititipkan oleh pemilik langsung melalui portal Kumala Property.";
 
-        // 9. Generate Specs Tags for Public Card
         $specsTags = [
             "{$bedInt} Kamar Tidur",
             "LT {$landSize}m²",
-            "LB {$buildingSize}m²"
+            "LB {$buildingSize}m²",
         ];
         if (in_array('pool', $facilities)) {
             $specsTags[2] = 'Private Pool';
-        } elseif (in_array('ocean_view', $facilities)) {
-            $specsTags[2] = 'Full Ocean View';
         }
 
-        // 10. Automatically Create & Publish Property to Public Catalog (Userpage)
+        // 9. Automatically create Property Catalog Unit in MySQL
         $newProp = self::addProperty([
             'title' => $title,
             'category' => $category,
@@ -366,139 +461,104 @@ class KumalaDataHub
             'status' => 'ACTIVE',
         ]);
 
-        // 11. Create Submission Record for Admin Gatekeeper
-        $submission = [
+        // 10. Create Submission Record in MySQL
+        $subModel = Submission::create([
             'id' => $id,
+            'property_id' => $newProp['id'],
+            'property_slug' => $newProp['slug'],
             'title' => $title,
-            'owner' => $input['owner_name'] ?? 'Bpk/Ibu Pemilik',
-            'phone' => $formattedPhone,
-            'email' => $input['owner_email'] ?? 'pemilik@kumalaproperty.id',
-            'price' => 'Rp ' . number_format($priceNum, 0, ',', '.'),
-            'asking_val' => $priceNum,
-            'valuation_range' => self::formatValuationRange($priceNum),
+            'owner_name' => $input['owner_name'] ?? 'Bpk/Ibu Pemilik',
+            'owner_phone' => $formattedPhone,
+            'owner_email' => $input['owner_email'] ?? 'pemilik@kumalaproperty.id',
+            'owner_status' => ($input['ownership_status'] ?? '') === 'agent_official' ? 'Kuasa Jual Resmi' : 'Pemilik Langsung',
             'trx_type' => $trxType,
             'category' => $category,
             'city_region' => $cityRegion,
             'specific_area' => $specificArea,
             'location' => $locationStr,
             'address' => $address,
+            'asking_price' => 'Rp ' . number_format($priceNum, 0, ',', '.'),
+            'asking_val' => (int)$priceNum,
+            'valuation_range' => self::formatValuationRange($priceNum),
             'land_size' => $landSize,
             'building_size' => $buildingSize,
             'bedrooms' => "{$bedInt} KT",
             'bathrooms' => "{$bathInt} KM",
             'electricity' => ($input['electricity'] ?? '4400') . ' VA',
             'legal' => $legal,
-            'ownership' => ($input['ownership_status'] ?? '') === 'agent_official' ? 'Kuasa Jual Resmi' : 'Pemilik Langsung',
             'facilities' => $facilities,
-            'time_ago' => 'Baru saja',
-            'status' => 'pending',
-            'priority' => 'P1 - Hot Asset',
-            'photos_count' => count($photos),
             'photos' => $photos,
-            'checklist' => [
-                'identity' => true,
-                'maps' => true,
-                'shm_match' => true,
-                'photos_hd' => true,
-            ],
+            'photos_count' => count($photos),
+            'priority' => 'P1 - Hot Asset',
+            'status' => 'pending',
+            'checklist' => ['identity' => true, 'maps' => true, 'shm_match' => true, 'photos_hd' => true],
             'notes' => $description,
-            'property_id' => $newProp['id'],
-            'property_slug' => $newProp['slug'],
-            'created_at' => date('Y-m-d H:i:s'),
-        ];
+            'time_ago' => 'Baru saja',
+            'submitted_at' => now(),
+        ]);
 
-        // Reload data to ensure newly added property from addProperty() is preserved
-        $data = self::loadData();
-
-        // Prepend to submissions list
-        array_unshift($data['submissions'], $submission);
-
-        // Add priority action in dashboard
-        self::appendPriorityAction($data, [
-            'id' => $id,
+        // Priority Action in MySQL
+        PriorityAction::create([
+            'action_id' => $id,
             'type' => 'listing',
-            'title' => 'Pengajuan Titip Baru: ' . $submission['title'],
-            'owner' => $submission['owner'],
-            'phone' => $submission['phone'],
+            'title' => 'Pengajuan Titip Baru: ' . $title,
+            'owner' => $subModel->owner_name,
+            'phone' => $subModel->owner_phone,
             'time_ago' => 'Baru saja',
             'sla_status' => 'warning',
             'sla_badge' => 'SLA Respon < 4 Jam',
-            'detail' => 'Harga pengajuan ' . $submission['price'] . '. Unit telah tayang perdana di katalog publik (' . $newProp['id'] . ').',
+            'detail' => 'Harga pengajuan ' . $subModel->asking_price . '. Unit telah tayang perdana di katalog publik (' . $newProp['id'] . ').',
             'btn_action_1' => 'Verifikasi SHM BPN',
             'btn_action_2' => 'Tinjau & Kurasi Unit',
         ]);
 
-        self::appendAuditLog($data, "Pengajuan Titip Properti Baru {$id} ({$newProp['id']}) dari {$submission['owner']}", 'Portal Publik (User)', 'Published');
+        self::logAction("Pengajuan Titip Properti Baru {$id} ({$newProp['id']}) dari {$subModel->owner_name}", 'Portal Publik (User)', 'Published');
 
-        self::saveData($data);
-        return $submission;
+        return self::transformSubmission($subModel);
     }
 
     public static function approveSubmission(string $id, string $curatorNotes = ''): ?array
     {
-        $data = self::loadData();
-        $targetSub = null;
-
-        foreach ($data['submissions'] as &$sub) {
-            if (($sub['id'] ?? '') === $id) {
-                $sub['status'] = 'approved';
+        try {
+            $sub = Submission::where('id', $id)->first();
+            if ($sub) {
+                $sub->status = 'approved';
                 if ($curatorNotes) {
-                    $sub['notes'] = $curatorNotes;
+                    $sub->notes = $curatorNotes;
                 }
-                $targetSub = $sub;
-                break;
-            }
-        }
+                $sub->save();
 
-        if ($targetSub) {
-            self::saveData($data);
+                self::logAction("Persetujuan kurasi unit {$id}", 'Admin Curator', 'Approved');
 
-            // If property is already linked, return it; otherwise create it
-            if (!empty($targetSub['property_id'])) {
-                $existingProp = self::findPropertyById($targetSub['property_id']);
-                if ($existingProp) {
-                    return $existingProp;
+                if ($sub->property_id) {
+                    $prop = Property::where('id', $sub->property_id)->first();
+                    if ($prop) {
+                        return self::transformProperty($prop);
+                    }
                 }
             }
-
-            // Fallback create if not exists
-            $newProp = self::addProperty([
-                'title' => $targetSub['title'],
-                'category' => $targetSub['category'],
-                'transaction_type' => $targetSub['trx_type'],
-                'price' => (float)($targetSub['asking_val'] ?? 3000000000),
-                'location_city' => $targetSub['city_region'] ?? (explode(' - ', $targetSub['location'])[0] ?? 'Jakarta Selatan'),
-                'location_area' => $targetSub['specific_area'] ?? (explode(' - ', $targetSub['location'])[1] ?? 'Kawasan Prime'),
-                'location_address' => $targetSub['address'],
-                'legal_status' => $targetSub['legal'],
-                'land_size' => $targetSub['land_size'],
-                'building_size' => $targetSub['building_size'],
-                'bedrooms' => (int)filter_var($targetSub['bedrooms'], FILTER_SANITIZE_NUMBER_INT) ?: 3,
-                'bathrooms' => (int)filter_var($targetSub['bathrooms'], FILTER_SANITIZE_NUMBER_INT) ?: 3,
-                'image_main' => $targetSub['photos'][0] ?? 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
-                'images' => $targetSub['photos'] ?? [],
-                'description' => $targetSub['notes'],
-            ]);
-
-            return $newProp;
+        } catch (\Throwable $e) {
+            Log::error('KumalaDataHub::approveSubmission Error: ' . $e->getMessage());
         }
-
         return null;
     }
 
     public static function updateSubmissionStatus(string $id, string $status, string $notes = ''): bool
     {
-        $data = self::loadData();
-        foreach ($data['submissions'] as &$sub) {
-            if (($sub['id'] ?? '') === $id) {
-                $sub['status'] = $status;
+        try {
+            $sub = Submission::where('id', $id)->first();
+            if ($sub) {
+                $sub->status = $status;
                 if ($notes) {
-                    $sub['notes'] = $notes;
+                    $sub->notes = $notes;
                 }
-                self::appendAuditLog($data, "Status pengajuan {$id} diperbarui menjadi {$status}", 'Admin Curator', 'Status Changed');
-                self::saveData($data);
+                $sub->save();
+
+                self::logAction("Status pengajuan {$id} diperbarui menjadi {$status}", 'Admin Curator', 'Status Changed');
                 return true;
             }
+        } catch (\Throwable $e) {
+            Log::error('KumalaDataHub::updateSubmissionStatus Error: ' . $e->getMessage());
         }
         return false;
     }
@@ -509,38 +569,37 @@ class KumalaDataHub
 
     public static function getInquiries(?string $stage = null): array
     {
-        $data = self::loadData();
-        $inquiries = $data['inquiries'] ?? [];
-
-        if ($stage && $stage !== 'all') {
-            return array_values(array_filter($inquiries, function ($inq) use ($stage) {
-                return strtolower($inq['stage'] ?? '') === strtolower($stage);
-            }));
+        try {
+            $query = Lead::orderBy('created_at', 'desc');
+            if ($stage && $stage !== 'all') {
+                $query->where('stage', $stage);
+            }
+            $leads = $query->get();
+            return $leads->map(fn($l) => self::transformLead($l))->toArray();
+        } catch (\Throwable $e) {
+            Log::warning('KumalaDataHub::getInquiries fallback: ' . $e->getMessage());
         }
 
-        return $inquiries;
+        $all = self::loadFallbackData()['inquiries'] ?? [];
+        if ($stage && $stage !== 'all') {
+            return array_values(array_filter($all, fn($i) => strtolower($i['stage'] ?? '') === strtolower($stage)));
+        }
+        return $all;
     }
 
     public static function createInquiry(array $input): array
     {
-        $data = self::loadData();
-        $id = '#IQ-' . (count($data['inquiries']) + 2210);
+        $count = Lead::count();
+        $id = '#IQ-' . ($count + 2210);
 
         $propertyId = $input['property_id'] ?? '#KP-8821';
         $propertyTitle = $input['property_title'] ?? 'Properti Terpilih Kumala';
         $propertyPrice = $input['property_price'] ?? 'Rp 15 Miliar';
 
-        // Match property title if slug or ID provided
         if (!empty($input['property_slug'])) {
             $prop = self::findPropertyBySlug($input['property_slug']);
             if ($prop) {
                 $propertyId = $prop['id'];
-                $propertyTitle = $prop['title'];
-                $propertyPrice = $prop['price_short'];
-            }
-        } elseif (!empty($input['property_id'])) {
-            $prop = self::findPropertyById($input['property_id']);
-            if ($prop) {
                 $propertyTitle = $prop['title'];
                 $propertyPrice = $prop['price_short'];
             }
@@ -554,82 +613,107 @@ class KumalaDataHub
         if ($scheme) $quoteParts[] = "Rencana: {$scheme}";
         if ($surveyDate) $quoteParts[] = "Tgl Survei: {$surveyDate}";
         if ($userNotes) $quoteParts[] = $userNotes;
-        $finalQuote = !empty($quoteParts) ? implode(' | ', $quoteParts) : 'Menanyakan ketersediaan jadwal survei privat dan legalitas lengkap unit.';
+        $finalQuote = !empty($quoteParts) ? implode(' | ', $quoteParts) : 'Menanyakan jadwal survei privat dan legalitas lengkap unit.';
 
-        $inquiry = [
+        $lead = Lead::create([
             'id' => $id,
-            'client_name' => $input['name'] ?? ($input['client_name'] ?? 'Calon Pembeli VIP'),
-            'phone' => $input['phone'] ?? '+62 812-3456-7890',
-            'email' => $input['email'] ?? 'klien@investor.id',
-            'buyer_type' => $input['buyer_type'] ?? 'Calon Pembeli Eksklusif (HNWIs)',
-            'time_ago' => 'Baru saja',
-            'sla_badge' => 'SLA Hijau (< 15 mnt)',
-            'sla_status' => 'urgent',
-            'stage' => 'Baru',
             'property_id' => $propertyId,
             'property_title' => $propertyTitle,
             'property_price' => $propertyPrice,
+            'client_name' => $input['name'] ?? ($input['client_name'] ?? 'Calon Pembeli VIP'),
+            'client_phone' => $input['phone'] ?? '+62 812-3456-7890',
+            'client_email' => $input['email'] ?? 'klien@investor.id',
+            'buyer_category' => $input['buyer_type'] ?? 'Calon Pembeli Eksklusif (HNWIs)',
+            'buyer_type' => $input['buyer_type'] ?? 'Calon Pembeli Eksklusif (HNWIs)',
             'quote' => $finalQuote,
+            'message' => $finalQuote,
+            'stage' => 'Baru',
+            'assigned_agent' => 'Private Client Concierge',
             'assigned_to' => 'Private Client Concierge',
-            'created_at' => date('Y-m-d H:i:s'),
-        ];
+            'sla_badge' => 'SLA Hijau (< 15 mnt)',
+            'sla_status' => 'urgent',
+            'time_ago' => 'Baru saja',
+        ]);
 
-        array_unshift($data['inquiries'], $inquiry);
-
-        // Add priority action in dashboard
-        self::appendPriorityAction($data, [
-            'id' => $id,
+        PriorityAction::create([
+            'action_id' => $id,
             'type' => 'inquiry',
-            'title' => 'Inquiry Baru: ' . $inquiry['property_title'],
-            'owner' => $inquiry['client_name'],
-            'phone' => $inquiry['phone'],
+            'title' => 'Inquiry Baru: ' . $propertyTitle,
+            'owner' => $lead->client_name,
+            'phone' => $lead->client_phone,
             'time_ago' => 'Baru saja',
             'sla_status' => 'urgent',
             'sla_badge' => 'SLA Respon < 15 mnt',
-            'detail' => $inquiry['quote'],
+            'detail' => $finalQuote,
             'btn_action_1' => 'Hubungi via WhatsApp',
             'btn_action_2' => 'Jadwalkan Survei',
         ]);
 
-        self::appendAuditLog($data, "Inquiry Baru {$id} untuk properti {$propertyId} dari {$inquiry['client_name']}", 'Portal Publik (User)', 'Lead Created');
+        self::logAction("Inquiry Baru {$id} untuk properti {$propertyId} dari {$lead->client_name}", 'Portal Publik (User)', 'Lead Created');
 
-        self::saveData($data);
-        return $inquiry;
+        return self::transformLead($lead);
     }
 
     public static function updateInquiryStage(string $id, string $newStage): bool
     {
-        $data = self::loadData();
-        foreach ($data['inquiries'] as &$inq) {
-            if (($inq['id'] ?? '') === $id) {
-                $inq['stage'] = $newStage;
-                self::appendAuditLog($data, "Tahapan Lead {$id} diubah ke {$newStage}", 'Admin Concierge', 'Stage Advanced');
-                self::saveData($data);
+        try {
+            $lead = Lead::where('id', $id)->first();
+            if ($lead) {
+                $lead->stage = $newStage;
+                $lead->save();
+
+                self::logAction("Tahapan Lead {$id} diubah ke {$newStage}", 'Admin Concierge', 'Stage Advanced');
                 return true;
             }
+        } catch (\Throwable $e) {
+            Log::error('KumalaDataHub::updateInquiryStage Error: ' . $e->getMessage());
         }
         return false;
     }
 
     public static function getSurveysToday(): array
     {
-        $data = self::loadData();
-        return $data['surveys_today'] ?? [];
+        try {
+            $surveys = Survey::orderBy('created_at', 'desc')->get();
+            if ($surveys->isNotEmpty()) {
+                return $surveys->map(fn($s) => [
+                    'time' => $s->survey_time,
+                    'property' => $s->property_title,
+                    'client' => $s->client_name,
+                    'agent' => $s->agent_name,
+                    'status' => $s->status,
+                ])->toArray();
+            }
+        } catch (\Throwable $e) {
+            Log::warning('KumalaDataHub::getSurveysToday fallback: ' . $e->getMessage());
+        }
+
+        return self::loadFallbackData()['surveys_today'] ?? [];
     }
 
     public static function addSurvey(array $survey): array
     {
-        $data = self::loadData();
-        $item = [
-            'time' => $survey['time'] ?? '14:00 WIB',
-            'property' => $survey['property'] ?? 'Unit Terpilih',
-            'client' => $survey['client'] ?? 'Klien VIP',
-            'agent' => $survey['agent'] ?? 'Tim Concierge Kumala',
-            'status' => 'Terkonfirmasi',
-        ];
-        $data['surveys_today'][] = $item;
-        self::saveData($data);
-        return $item;
+        try {
+            $item = Survey::create([
+                'property_title' => $survey['property'] ?? 'Unit Terpilih',
+                'client_name' => $survey['client'] ?? 'Klien VIP',
+                'agent_name' => $survey['agent'] ?? 'Tim Concierge Kumala',
+                'survey_time' => $survey['time'] ?? '14:00 WIB',
+                'survey_date' => now()->toDateString(),
+                'status' => 'Terkonfirmasi',
+            ]);
+
+            return [
+                'time' => $item->survey_time,
+                'property' => $item->property_title,
+                'client' => $item->client_name,
+                'agent' => $item->agent_name,
+                'status' => $item->status,
+            ];
+        } catch (\Throwable $e) {
+            Log::error('KumalaDataHub::addSurvey Error: ' . $e->getMessage());
+            return $survey;
+        }
     }
 
     // =========================================================================
@@ -638,16 +722,26 @@ class KumalaDataHub
 
     public static function getTransactions(): array
     {
-        $data = self::loadData();
-        return $data['transactions'] ?? [];
+        try {
+            $transactions = Transaction::orderBy('created_at', 'desc')->get();
+            if ($transactions->isNotEmpty()) {
+                return $transactions->map(fn($t) => self::transformTransaction($t))->toArray();
+            }
+        } catch (\Throwable $e) {
+            Log::warning('KumalaDataHub::getTransactions fallback: ' . $e->getMessage());
+        }
+
+        return self::loadFallbackData()['transactions'] ?? [];
     }
 
     public static function createTransaction(array $input): array
     {
-        $data = self::loadData();
-        $id = '#CLS-2025-0' . (count($data['transactions']) + 32);
+        $count = Transaction::count();
+        $id = '#CLS-2025-0' . ($count + 32);
 
-        $transaction = [
+        $dealVal = (int)preg_replace('/[^0-9]/', '', (string)($input['deal_price'] ?? '9500000000')) ?: 9500000000;
+
+        $t = Transaction::create([
             'id' => $id,
             'date' => date('d M Y'),
             'property_id' => $input['property_id'] ?? '#KP-8821',
@@ -657,33 +751,23 @@ class KumalaDataHub
             'trx_type' => $input['trx_type'] ?? 'TERJUAL - JUAL BELI',
             'asking_price' => $input['asking_price'] ?? 'Rp 10.000.000.000',
             'deal_price' => $input['deal_price'] ?? 'Rp 9.500.000.000',
+            'deal_val' => $dealVal,
             'diff_pct' => $input['diff_pct'] ?? '-5.0%',
             'parties' => $input['parties'] ?? 'Penjual & Pembeli Terverifikasi PPAT',
             'commission_val' => $input['commission_val'] ?? 'Rp 237.500.000 (2.5%)',
             'notary' => $input['notary'] ?? 'Notaris Rekanan Kumala PPAT',
             'status_doc' => 'AJB Selesai',
             'days_on_market' => ($input['days_on_market'] ?? 30) . ' Hari',
-        ];
+        ]);
 
-        array_unshift($data['transactions'], $transaction);
-
-        // Mark property as SOLD/RENTED in local data
         if (!empty($input['property_id'])) {
-            $isSewa = stripos($transaction['trx_type'], 'SEWA') !== false;
-            $newStatus = $isSewa ? 'RENTED' : 'SOLD';
-            foreach ($data['properties'] as &$prop) {
-                if (($prop['id'] ?? '') === $input['property_id']) {
-                    $prop['status'] = $newStatus;
-                    $prop['highlight_badge'] = $isSewa ? 'TERSEWA' : 'TERJUAL';
-                    break;
-                }
-            }
+            $isSewa = stripos($t->trx_type, 'SEWA') !== false;
+            self::updatePropertyStatus($input['property_id'], $isSewa ? 'RENTED' : 'SOLD');
         }
 
-        self::appendAuditLog($data, "Transaksi Closing {$id} Dicatatkan untuk unit {$transaction['property_id']}", 'Admin Closing Dept', 'Deal Closed');
+        self::logAction("Transaksi Closing {$id} Dicatatkan untuk unit {$t->property_id}", 'Admin Closing Dept', 'Deal Closed');
 
-        self::saveData($data);
-        return $transaction;
+        return self::transformTransaction($t);
     }
 
     // =========================================================================
@@ -692,19 +776,13 @@ class KumalaDataHub
 
     public static function getSettings(): array
     {
-        $data = self::loadData();
-        $stored = $data['settings'] ?? [];
-
         $defaults = [
-            // 1. Branding & Identitas
             'brand_name' => 'KUMALA PROPERTY',
             'brand_subtitle' => 'JUAL & SEWA PROPERTI',
             'brand_logo_url' => '',
             'site_tagline' => 'Luxury Real Estate Atelier & Integrated Property Management Platform',
             'footer_bio' => 'Kumala Property adalah platform real estate mewah terdepan di Indonesia. Portofolio hunian prestisius, villa tropis, penthouse, dan ruang komersial prima dengan kurasi arsitektural ketat dan legalitas 100% terverifikasi notaris.',
             'footer_copyright' => '© 2026 Kumala Property. Seluruh hak cipta dilindungi undang-undang.',
-
-            // 2. Kontak & Jam Kerja
             'hotline_wa' => '+62 811-9988-7711',
             'hotline_wa_numeric' => '6281199887711',
             'hotline_admin' => '+62 811-9988-7711',
@@ -721,11 +799,12 @@ class KumalaDataHub
             'social_instagram' => '@kumala.realty',
             'social_youtube' => 'Kumala Property Official',
             'social_facebook' => 'Kumala Realty Indonesia',
-
-            // 3. Konten Beranda (Home)
-            'home_hero_badge' => 'ATELIER PROPERTI MEWAH & INVESTASI TERKURASI',
             'home_hero_title' => 'Temukan Hunian Eksklusif & Aset Bernilai Abadi di Indonesia',
             'home_hero_desc' => 'Menghubungkan pemilik properti bernilai tinggi dengan investor & pembeli eksklusif. Setiap unit diaudit dengan verifikasi dokumen legalitas notarial dan kurasi arsitektural menyeluruh.',
+            'home_hero_bg_image' => '',
+            'home_hero_bg_overlay' => '0.45',
+            'home_hero_bg_position' => 'center',
+            'home_hero_text_theme' => 'auto',
             'home_trust_badge_1' => '100% SHM/HGB Terverifikasi Notaris',
             'home_trust_badge_2' => '< 15 Menit Respon Private Concierge',
             'home_trust_badge_3' => 'Zero Hidden Mark-up Fee',
@@ -738,20 +817,16 @@ class KumalaDataHub
             'home_consignment_cta' => 'Titip Properti Sekarang',
             'home_consignment_wa_cta' => 'Tanya Advisor via WA',
             'home_consult_title' => 'Tidak Menemukan Kriteria yang Dicari?',
-            'home_consult_desc' => 'Konsultasikan preferensi properti impian Anda secara privat bersama Property Advisor kami. Kami siap mengurasi unit off-market sesuai ekspektasi Anda.',
+            'home_consult_desc' => 'Konsultasikan preferensi properti impian Anda secara privat bersama Property Advisor kami.',
             'home_consult_cta' => 'Konsultasi via WhatsApp',
-
-            // 4. Konten Explore & Detail
             'explore_badge' => 'KOLEKSI PILIHAN KUMALA',
             'explore_title' => 'Eksplorasi Properti',
             'explore_desc' => 'Temukan hunian eksklusif, villa tropis, apartemen modern, dan lahan strategis di kawasan prima.',
             'explore_offmarket_title' => 'Mencari Properti Off-Market / Private Collection?',
-            'explore_offmarket_desc' => 'Sebagian besar aset paling bergengsi tidak dipublikasikan secara umum demi menjaga privasi pemilik. Hubungi Private Client Concierge kami untuk portofolio tertutup.',
+            'explore_offmarket_desc' => 'Sebagian besar aset paling bergengsi tidak dipublikasikan secara umum demi menjaga privasi pemilik.',
             'detail_concierge_title' => 'Tertarik dengan Properti Ini?',
             'detail_concierge_desc' => 'Hubungi Private Client Concierge kami untuk jadwal survei privat atau dokumen legalitas lengkap.',
             'detail_concierge_sla' => 'SLA Respon < 15 Menit • 7 Hari Seminggu',
-
-            // 5. Konten Titip Properti & Favorit
             'titip_badge' => 'LAYANAN KONSINYASI & PEMASARAN RESMI',
             'titip_title' => 'Titipkan Properti Anda, Jangkau Pembeli & Penyewa Berkualitas',
             'titip_desc' => 'Tim kurator Kumala Property siap mendampingi proses valuasi presisi, produksi visual arsitektural berkelas, hingga finalisasi legalitas transaksi tuntas tanpa biaya di muka.',
@@ -760,23 +835,19 @@ class KumalaDataHub
             'titip_benefit_3' => 'Transparan & Legalitas Aman BPN',
             'favorites_badge' => 'KOLEKSI PRIBADI TERSIMPAN',
             'favorites_title' => 'Properti Favorit Saya',
-            'favorites_desc' => 'Daftar unit properti pilihan yang Anda simpan di perangkat ini. Anda dapat membandingkan spesifikasi teknis atau mengajukan jadwal survei privat sekaligus.',
+            'favorites_desc' => 'Daftar unit properti pilihan yang Anda simpan di perangkat ini.',
             'favorites_cta' => 'Konsultasi Semua Favorit via WA',
-
-            // 6. Konten Tentang Kami
             'about_badge' => 'ATELIER REAL ESTATE INDEPENDEN',
             'about_hero_title' => 'Kurasi Presisi untuk Koleksi Aset Bernilai Abadi',
-            'about_hero_desc' => 'Kumala Property lahir dari keyakinan mendasar bahwa transaksi properti prestisius bukan sekadar urusan nominal penawaran, melainkan tentang apresiasi terhadap integritas arsitektural, transparansi legalitas tanpa celah, serta komitmen mutlak terhadap privasi klien terhormat.',
+            'about_hero_desc' => 'Kumala Property lahir dari keyakinan mendasar bahwa transaksi properti prestisius bukan sekadar nominal penawaran, melainkan tentang integritas arsitektural dan legalitas tanpa celah.',
             'about_pillar_title' => 'Tiga Pilar Layanan Kumala',
-            'about_pillar_subtitle' => 'Landasan etika kerja yang membedakan kami dalam mendampingi pemilik maupun investor properti mewah.',
+            'about_pillar_subtitle' => 'Landasan etika kerja yang membedakan kami dalam mendampingi klien.',
             'about_p1_title' => '1. Transparansi Tanpa Kompromi',
-            'about_p1_desc' => 'Tidak ada harga titipan atau manipulasi margin. Pembeli dan penjual mendapatkan keterbukaan valuasi objektif berbasis Comparative Market Analysis (CMA).',
+            'about_p1_desc' => 'Tidak ada harga titipan atau manipulasi margin. Penjual dan pembeli mendapatkan keterbukaan valuasi objektif.',
             'about_p2_title' => '2. Kurasi Estetika & Keandalan Struktur',
-            'about_p2_desc' => 'Setiap unit melalui inspeksi fisik mendalam terhadap material bangunan, pencahayaan alami, zonasi lingkungan sekitar, dan potensi apresiasi investasi jangka panjang.',
+            'about_p2_desc' => 'Setiap unit melalui inspeksi fisik mendalam terhadap material bangunan, pencahayaan alami, dan zonasi lingkungan.',
             'about_p3_title' => '3. Pendampingan Privat & Obyektif',
-            'about_p3_desc' => 'Private Client Concierge kami tidak bertindak sebagai sales agresif, melainkan penasihat aset yang berdedikasi menjaga kepentingan hukum dan kenyamanan Anda hingga penandatanganan AJB.',
-
-            // 7. Parameter & Notifikasi
+            'about_p3_desc' => 'Private Client Concierge kami mendampingi dari awal hingga penandatanganan AJB.',
             'standard_commission_pct' => '2.5',
             'standard_commission_rent_pct' => '5.0',
             'auto_watermark' => true,
@@ -784,54 +855,114 @@ class KumalaDataHub
             'email_notify' => true,
         ];
 
-        return array_merge($defaults, $stored);
+        try {
+            $dbSettings = Setting::all()->pluck('value', 'key')->toArray();
+            return array_merge($defaults, $dbSettings);
+        } catch (\Throwable $e) {
+            Log::warning('KumalaDataHub::getSettings fallback: ' . $e->getMessage());
+        }
+
+        return $defaults;
     }
 
     public static function updateSettings(array $newSettings): array
     {
-        $data = self::loadData();
-        $data['settings'] = array_merge($data['settings'] ?? [], $newSettings);
-        
-        // Sanitize numeric WA if provided
-        if (!empty($newSettings['hotline_wa'])) {
-            $data['settings']['hotline_wa_numeric'] = preg_replace('/[^0-9]/', '', $newSettings['hotline_wa']);
-        }
+        try {
+            if (!empty($newSettings['hotline_wa'])) {
+                $newSettings['hotline_wa_numeric'] = preg_replace('/[^0-9]/', '', $newSettings['hotline_wa']);
+            }
 
-        self::appendAuditLog($data, 'Pembaruan Konfigurasi Sistem & Konten Portal Publik', 'Super Admin', 'Config Saved');
-        self::saveData($data);
-        return $data['settings'];
+            foreach ($newSettings as $k => $v) {
+                Setting::updateOrCreate(
+                    ['key' => $k],
+                    ['value' => is_array($v) ? json_encode($v) : (string)$v, 'group' => 'general']
+                );
+            }
+
+            self::logAction('Pembaruan Konfigurasi Sistem & Konten Portal Publik', 'Super Admin', 'Config Saved');
+            return self::getSettings();
+        } catch (\Throwable $e) {
+            Log::error('KumalaDataHub::updateSettings Error: ' . $e->getMessage());
+            return $newSettings;
+        }
     }
 
-    public static function getRegions(): array
+    public static function saveSettings(array $newSettings): array
     {
-        $data = self::loadData();
-        return $data['regions'] ?? [];
+        return self::updateSettings($newSettings);
     }
 
     public static function getCategories(): array
     {
-        $data = self::loadData();
-        return $data['categories'] ?? [];
+        try {
+            $categories = Category::where('is_active', true)->get();
+            if ($categories->isNotEmpty()) {
+                return $categories->map(fn($c) => [
+                    'name' => $c->name,
+                    'slug' => $c->slug,
+                    'icon' => $c->icon ?: 'home',
+                    'count' => $c->count ?: 0,
+                    'subtypes' => $c->subtypes,
+                    'active' => (bool)$c->is_active,
+                ])->toArray();
+            }
+        } catch (\Throwable $e) {
+            Log::warning('KumalaDataHub::getCategories fallback: ' . $e->getMessage());
+        }
+
+        return self::loadFallbackData()['categories'] ?? [];
     }
 
     public static function addCategory(array $data): array
     {
-        $store = self::loadData();
         $name = trim($data['name'] ?? 'Kategori Baru');
+        $slug = Str::slug($name);
         $subtypes = trim($data['subtypes'] ?? '');
 
-        $newCategory = [
-            'name' => $name,
-            'subtypes' => $subtypes,
-            'active' => true,
-            'count' => 0,
-        ];
+        try {
+            $cat = Category::create([
+                'name' => $name,
+                'slug' => $slug,
+                'icon' => $data['icon'] ?? 'home',
+                'count' => 0,
+                'subtypes' => $subtypes,
+                'is_active' => true,
+            ]);
 
-        $store['categories'][] = $newCategory;
-        self::appendAuditLog($store, "Kategori properti baru '{$name}' ditambahkan oleh admin.", 'Admin Operator', 'Created');
-        self::saveData($store);
+            self::logAction("Kategori properti baru '{$name}' ditambahkan oleh admin.", 'Admin Operator', 'Created');
 
-        return $newCategory;
+            return [
+                'name' => $cat->name,
+                'slug' => $cat->slug,
+                'subtypes' => $cat->subtypes,
+                'active' => true,
+                'count' => 0,
+            ];
+        } catch (\Throwable $e) {
+            Log::error('KumalaDataHub::addCategory Error: ' . $e->getMessage());
+            return ['name' => $name, 'subtypes' => $subtypes, 'active' => true, 'count' => 0];
+        }
+    }
+
+    public static function getRegions(): array
+    {
+        try {
+            $regions = Region::where('is_active', true)->get();
+            if ($regions->isNotEmpty()) {
+                return $regions->map(fn($r) => [
+                    'name' => $r->name,
+                    'slug' => $r->slug ?: Str::slug($r->name),
+                    'city' => $r->city,
+                    'area' => $r->area,
+                    'image' => $r->image,
+                    'active' => (bool)$r->is_active,
+                ])->toArray();
+            }
+        } catch (\Throwable $e) {
+            Log::warning('KumalaDataHub::getRegions fallback: ' . $e->getMessage());
+        }
+
+        return self::loadFallbackData()['regions'] ?? [];
     }
 
     // =========================================================================
@@ -840,28 +971,43 @@ class KumalaDataHub
 
     public static function getDashboardMetrics(): array
     {
-        $data = self::loadData();
-        $properties = $data['properties'] ?? [];
-        $submissions = $data['submissions'] ?? [];
-        $inquiries = $data['inquiries'] ?? [];
-        $transactions = $data['transactions'] ?? [];
+        try {
+            $activeUnits = Property::where('status', 'ACTIVE')->count();
+            $jualUnits = Property::where('status', 'ACTIVE')->where('transaction_type', 'Jual')->count();
+            $sewaUnits = Property::where('status', 'ACTIVE')->where('transaction_type', 'Sewa')->count();
 
-        $activeProps = array_filter($properties, fn($p) => ($p['status'] ?? 'ACTIVE') === 'ACTIVE');
-        $jualCount = count(array_filter($activeProps, fn($p) => strtolower($p['transaction_type'] ?? '') === 'jual'));
-        $sewaCount = count(array_filter($activeProps, fn($p) => strtolower($p['transaction_type'] ?? '') === 'sewa'));
+            $pendingSubmissions = Submission::where('status', 'pending')->count();
+            $newInquiries = Lead::where('stage', 'Baru')->count();
+            $closingUnits = Transaction::count();
+            $closingSum = Transaction::sum('deal_val');
 
-        $pendingSubs = count(array_filter($submissions, fn($s) => ($s['status'] ?? 'pending') === 'pending'));
-        $newInqs = count(array_filter($inquiries, fn($i) => strtolower($i['stage'] ?? 'baru') === 'baru'));
+            $closingFormatted = $closingSum > 0 ? self::formatShortPrice($closingSum) : 'Rp 18.4 Miliar';
+
+            return [
+                'active_units' => $activeUnits,
+                'active_jual' => $jualUnits,
+                'active_sewa' => $sewaUnits,
+                'active_growth' => '+' . min($activeUnits, 8) . ' unit aktif',
+                'pending_review' => $pendingSubmissions,
+                'new_inquiries' => $newInquiries,
+                'avg_sla_minutes' => 15,
+                'closing_month_units' => $closingUnits,
+                'closing_month_val' => $closingFormatted,
+                'closing_target_pct' => 88,
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('KumalaDataHub::getDashboardMetrics fallback: ' . $e->getMessage());
+        }
 
         return [
-            'active_units' => count($activeProps),
-            'active_jual' => $jualCount,
-            'active_sewa' => $sewaCount,
-            'active_growth' => '+' . min(count($activeProps), 8) . ' unit aktif',
-            'pending_review' => $pendingSubs,
-            'new_inquiries' => $newInqs,
+            'active_units' => 12,
+            'active_jual' => 8,
+            'active_sewa' => 4,
+            'active_growth' => '+8 unit aktif',
+            'pending_review' => 4,
+            'new_inquiries' => 6,
             'avg_sla_minutes' => 18,
-            'closing_month_units' => count($transactions),
+            'closing_month_units' => 4,
             'closing_month_val' => 'Rp 18.4 Miliar',
             'closing_target_pct' => 85,
         ];
@@ -869,54 +1015,52 @@ class KumalaDataHub
 
     public static function getPriorityActions(): array
     {
-        $data = self::loadData();
         $actions = [];
 
-        // 1. Pending Submissions (Titip Properti baru dari user)
-        $submissions = $data['submissions'] ?? [];
-        foreach ($submissions as $sub) {
-            if (($sub['status'] ?? 'pending') === 'pending') {
+        try {
+            // 1. Pending Submissions
+            $pendingSubs = Submission::where('status', 'pending')->orderBy('created_at', 'desc')->take(5)->get();
+            foreach ($pendingSubs as $sub) {
                 $actions[] = [
-                    'id' => $sub['id'],
+                    'id' => $sub->id,
                     'category' => 'listing',
                     'type' => 'listing',
-                    'title' => $sub['title'],
-                    'owner' => 'Pemilik: ' . ($sub['owner'] ?? 'Klien Titip'),
-                    'phone' => $sub['phone'] ?? '',
-                    'time_ago' => $sub['time_ago'] ?? 'Baru saja',
+                    'title' => $sub->title,
+                    'owner' => 'Pemilik: ' . ($sub->owner_name ?? 'Klien Titip'),
+                    'phone' => $sub->owner_phone ?? '',
+                    'time_ago' => $sub->time_ago ?? 'Baru saja',
                     'sla_status' => 'warning',
                     'sla_badge' => 'LISTING TITIP BARU',
                     'tag_badge' => 'LISTING TITIP BARU',
                     'tag_class' => 'badge-cyan',
-                    'detail' => 'Harga: ' . ($sub['price'] ?? 'Rp -') . ' | Lokasi: ' . ($sub['location'] ?? ''),
-                    'image' => $sub['photos'][0] ?? 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=300&q=80',
+                    'detail' => 'Harga: ' . ($sub->asking_price ?? 'Rp -') . ' | Lokasi: ' . ($sub->location ?? ''),
+                    'image' => !empty($sub->photos) ? $sub->photos[0] : 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=300&q=80',
                     'btn_action_1' => 'Verifikasi SHM',
                     'btn_url_1' => route('admin.submissions'),
                     'btn_action_2' => 'Tinjau & Kurasi',
                     'btn_url_2' => route('admin.submissions'),
                 ];
             }
-        }
 
-        // 2. New Inquiries (Lead baru masuk dari web detail)
-        $inquiries = $data['inquiries'] ?? [];
-        foreach ($inquiries as $inq) {
-            if (strtolower($inq['stage'] ?? 'baru') === 'baru') {
-                $cleanPhone = preg_replace('/[^0-9]/', '', $inq['phone'] ?? '');
-                if (substr($cleanPhone, 0, 1) === '0') $cleanPhone = '62' . substr($cleanPhone, 1);
+            // 2. New Inquiries
+            $newInqs = Lead::where('stage', 'Baru')->orderBy('created_at', 'desc')->take(5)->get();
+            foreach ($newInqs as $inq) {
+                $cleanPhone = preg_replace('/[^0-9]/', '', $inq->client_phone ?? '');
+                if (str_starts_with($cleanPhone, '0')) $cleanPhone = '62' . substr($cleanPhone, 1);
+
                 $actions[] = [
-                    'id' => $inq['id'],
+                    'id' => $inq->id,
                     'category' => 'inquiry',
                     'type' => 'inquiry',
-                    'title' => 'Inquiry: ' . ($inq['property_title'] ?? 'Listing Minat'),
-                    'owner' => 'Klien: ' . ($inq['client_name'] ?? 'Klien VIP'),
-                    'phone' => $inq['phone'] ?? '',
-                    'time_ago' => $inq['time_ago'] ?? 'Baru saja',
+                    'title' => 'Inquiry: ' . ($inq->property_title ?? 'Listing Minat'),
+                    'owner' => 'Klien: ' . ($inq->client_name ?? 'Klien VIP'),
+                    'phone' => $inq->client_phone ?? '',
+                    'time_ago' => $inq->time_ago ?? 'Baru saja',
                     'sla_status' => 'urgent',
                     'sla_badge' => 'INQUIRY BELI SEGERA',
                     'tag_badge' => 'INQUIRY BELI SEGERA',
                     'tag_class' => 'badge-peach',
-                    'detail' => ($inq['quote'] ?? 'Permintaan info unit & jadwal survei.'),
+                    'detail' => $inq->quote ?? 'Permintaan info unit & jadwal survei.',
                     'image' => 'https://images.unsplash.com/photo-1541971875076-8f970d573be6?auto=format&fit=crop&w=300&q=80',
                     'btn_action_1' => 'Buka Leads',
                     'btn_url_1' => route('admin.inquiries'),
@@ -924,62 +1068,242 @@ class KumalaDataHub
                     'btn_url_2' => 'https://wa.me/' . $cleanPhone,
                 ];
             }
-        }
 
-        // 3. Transactions & Seed Priority Actions
-        $storedActions = $data['priority_actions'] ?? [];
-        foreach ($storedActions as $sa) {
-            $alreadyExists = false;
-            foreach ($actions as $act) {
-                if (($act['id'] ?? '') === ($sa['id'] ?? '')) {
-                    $alreadyExists = true;
-                    break;
+            // 3. Stored Priority Actions from table
+            $dbActions = PriorityAction::where('is_resolved', false)->orderBy('created_at', 'desc')->take(10)->get();
+            foreach ($dbActions as $sa) {
+                $exists = false;
+                foreach ($actions as $act) {
+                    if (($act['id'] ?? '') === $sa->action_id) {
+                        $exists = true;
+                        break;
+                    }
+                }
+                if (!$exists) {
+                    $cat = $sa->type ?? 'listing';
+                    $actions[] = [
+                        'id' => $sa->action_id,
+                        'category' => $cat,
+                        'type' => $cat,
+                        'title' => $sa->title,
+                        'owner' => $sa->owner,
+                        'phone' => $sa->phone,
+                        'time_ago' => $sa->time_ago ?? 'Baru saja',
+                        'sla_status' => $sa->sla_status,
+                        'sla_badge' => $sa->sla_badge,
+                        'tag_badge' => $sa->sla_badge,
+                        'tag_class' => ($cat === 'inquiry') ? 'badge-peach' : (($cat === 'closing') ? 'badge-teal' : 'badge-cyan'),
+                        'detail' => $sa->detail,
+                        'image' => 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=300&q=80',
+                        'btn_action_1' => $sa->btn_action_1 ?: 'Tinjau Unit',
+                        'btn_url_1' => ($cat === 'inquiry') ? route('admin.inquiries') : route('admin.submissions'),
+                        'btn_action_2' => $sa->btn_action_2 ?: 'Hubungi Klien',
+                        'btn_url_2' => route('admin.dashboard'),
+                    ];
                 }
             }
-            if (!$alreadyExists) {
-                $sa['category'] = $sa['type'] ?? 'listing';
-                $sa['tag_badge'] = $sa['sla_badge'] ?? 'PRIORITAS';
-                $sa['tag_class'] = ($sa['category'] === 'inquiry') ? 'badge-peach' : (($sa['category'] === 'closing') ? 'badge-teal' : 'badge-cyan');
-                $sa['image'] = $sa['image'] ?? 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=300&q=80';
-                $actions[] = $sa;
+
+            if (!empty($actions)) {
+                return $actions;
             }
+        } catch (\Throwable $e) {
+            Log::warning('KumalaDataHub::getPriorityActions fallback: ' . $e->getMessage());
         }
 
-        return $actions;
+        return self::loadFallbackData()['priority_actions'] ?? [];
     }
 
     public static function getAuditLogs(): array
     {
-        $data = self::loadData();
-        return array_slice($data['audit_logs'] ?? [], 0, 10);
+        try {
+            $logs = AuditLog::orderBy('created_at', 'desc')->take(10)->get();
+            if ($logs->isNotEmpty()) {
+                return $logs->map(fn($l) => [
+                    'timestamp' => $l->timestamp_display ?? ($l->created_at ? $l->created_at->format('H:i') . ' WIB' : 'Hari ini'),
+                    'action' => $l->action,
+                    'user' => $l->user,
+                    'status' => $l->status,
+                ])->toArray();
+            }
+        } catch (\Throwable $e) {
+            Log::warning('KumalaDataHub::getAuditLogs fallback: ' . $e->getMessage());
+        }
+
+        return self::loadFallbackData()['audit_logs'] ?? [];
+    }
+
+    public static function logAction(string $action, string $user, string $status): void
+    {
+        try {
+            AuditLog::create([
+                'timestamp_display' => date('H:i') . ' WIB',
+                'action' => $action,
+                'user' => $user,
+                'status' => $status,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('KumalaDataHub::logAction Error: ' . $e->getMessage());
+        }
     }
 
     // =========================================================================
-    // INTERNAL HELPERS
+    // TRANSFORMERS (Converting Eloquent Models to View-Ready Arrays)
     // =========================================================================
 
-    protected static function appendAuditLog(array &$data, string $action, string $user, string $status): void
+    public static function transformProperty(Property $p): array
     {
-        if (!isset($data['audit_logs'])) {
-            $data['audit_logs'] = [];
+        $images = is_array($p->images) && !empty($p->images) ? $p->images : [];
+        if (empty($images)) {
+            if ($p->relationLoaded('photos') && $p->photos && $p->photos->isNotEmpty()) {
+                $images = $p->photos->pluck('photo_url')->toArray();
+            } elseif ($p->image_main) {
+                $images = [$p->image_main];
+            }
         }
-        array_unshift($data['audit_logs'], [
-            'timestamp' => date('H:i') . ' WIB',
-            'action' => $action,
-            'user' => $user,
-            'status' => $status,
+
+        $features = is_array($p->features) && !empty($p->features) ? $p->features : [];
+        if (empty($features) && $p->relationLoaded('features') && $p->features && $p->features->isNotEmpty()) {
+            $features = $p->features->map(fn($f) => [
+                'title' => $f->title,
+                'desc' => $f->desc,
+                'icon' => $f->icon ?: 'shield',
+            ])->toArray();
+        }
+
+        $specsTags = is_array($p->specs_tags) ? $p->specs_tags : (json_decode($p->specs_tags ?? '[]', true) ?: []);
+        $distancePoints = is_array($p->distance_points) ? $p->distance_points : (json_decode($p->distance_points ?? '[]', true) ?: []);
+
+        return [
+            'id' => $p->id,
+            'slug' => $p->slug,
+            'title' => $p->title,
+            'category' => $p->category,
+            'transaction_type' => $p->transaction_type,
+            'price' => (float)$p->price,
+            'price_formatted' => $p->price_formatted ?: ('Rp ' . number_format($p->price, 0, ',', '.')),
+            'price_short' => $p->price_short ?: self::formatShortPrice((float)$p->price),
+            'price_label' => $p->price_label ?: ($p->transaction_type === 'Sewa' ? 'Biaya Sewa' : 'Harga Penawaran Eksklusif'),
+            'price_notes' => $p->price_notes ?: 'Legalitas Lengkap • Siap Transaksi',
+            'location_city' => $p->location_city,
+            'location_area' => $p->location_area,
+            'location_address' => $p->location_address,
+            'legal_status' => $p->legal_status ?: 'SHM (Hak Milik)',
+            'verified' => (bool)$p->verified,
+            'featured' => (bool)$p->featured,
+            'highlight_badge' => $p->highlight_badge,
+            'land_size' => (int)$p->land_size,
+            'building_size' => (int)$p->building_size,
+            'floors' => (int)$p->floors,
+            'bedrooms' => (int)$p->bedrooms,
+            'bathrooms' => (int)$p->bathrooms,
+            'orientation' => $p->orientation ?: 'Utara',
+            'electricity' => $p->electricity ?: '4400 VA',
+            'water_source' => $p->water_source ?: 'PDAM',
+            'garage' => $p->garage ?: '2 Mobil',
+            'year_built' => (string)($p->year_built ?: date('Y')),
+            'furnishing' => $p->furnishing ?: 'Semi Furnished',
+            'specs_tags' => $specsTags,
+            'image_main' => $p->image_main ?: ($images[0] ?? ''),
+            'images' => $images,
+            'description' => $p->description,
+            'features' => $features,
+            'distance_points' => $distancePoints,
+            'status' => $p->status ?: 'ACTIVE',
+            'created_at' => $p->created_at ? $p->created_at->format('Y-m-d H:i:s') : date('Y-m-d H:i:s'),
+        ];
+    }
+
+    public static function transformSubmission(Submission $s): array
+    {
+        $photos = is_array($s->photos) ? $s->photos : (json_decode($s->photos ?? '[]', true) ?: []);
+        $checklist = is_array($s->checklist) ? $s->checklist : (json_decode($s->checklist ?? '[]', true) ?: [
+            'identity' => true, 'maps' => true, 'shm_match' => true, 'photos_hd' => true
         ]);
+        $facilities = is_array($s->facilities) ? $s->facilities : (json_decode($s->facilities ?? '[]', true) ?: []);
+
+        return [
+            'id' => $s->id,
+            'property_id' => $s->property_id,
+            'property_slug' => $s->property_slug,
+            'title' => $s->title,
+            'owner' => $s->owner_name,
+            'owner_name' => $s->owner_name,
+            'phone' => $s->owner_phone,
+            'owner_phone' => $s->owner_phone,
+            'email' => $s->owner_email,
+            'owner_email' => $s->owner_email,
+            'price' => $s->asking_price ?: ('Rp ' . number_format($s->asking_val, 0, ',', '.')),
+            'asking_val' => (int)$s->asking_val,
+            'valuation_range' => $s->valuation_range ?: self::formatValuationRange((float)$s->asking_val),
+            'trx_type' => $s->trx_type,
+            'category' => $s->category,
+            'city_region' => $s->city_region,
+            'specific_area' => $s->specific_area,
+            'location' => $s->location,
+            'address' => $s->address,
+            'land_size' => (int)$s->land_size,
+            'building_size' => (int)$s->building_size,
+            'bedrooms' => $s->bedrooms,
+            'bathrooms' => $s->bathrooms,
+            'electricity' => $s->electricity,
+            'legal' => $s->legal,
+            'ownership' => $s->owner_status,
+            'facilities' => $facilities,
+            'time_ago' => $s->time_ago ?: 'Baru saja',
+            'status' => $s->status,
+            'priority' => $s->priority,
+            'photos_count' => (int)($s->photos_count ?: count($photos)),
+            'photos' => $photos,
+            'checklist' => $checklist,
+            'notes' => $s->notes,
+            'created_at' => $s->created_at ? $s->created_at->format('Y-m-d H:i:s') : date('Y-m-d H:i:s'),
+        ];
     }
 
-    protected static function appendPriorityAction(array &$data, array $action): void
+    public static function transformLead(Lead $l): array
     {
-        if (!isset($data['priority_actions'])) {
-            $data['priority_actions'] = [];
-        }
-        array_unshift($data['priority_actions'], $action);
+        return [
+            'id' => $l->id,
+            'client_name' => $l->client_name,
+            'phone' => $l->client_phone,
+            'email' => $l->client_email,
+            'buyer_type' => $l->buyer_category ?: ($l->buyer_type ?: 'HNWIs'),
+            'time_ago' => $l->time_ago ?: 'Baru saja',
+            'sla_badge' => $l->sla_badge ?: 'SLA Hijau (< 15 mnt)',
+            'sla_status' => $l->sla_status ?: 'urgent',
+            'stage' => $l->stage,
+            'property_id' => $l->property_id,
+            'property_title' => $l->property_title,
+            'property_price' => $l->property_price,
+            'quote' => $l->quote ?: $l->message,
+            'assigned_to' => $l->assigned_agent ?: ($l->assigned_to ?: 'Private Client Concierge'),
+            'created_at' => $l->created_at ? $l->created_at->format('Y-m-d H:i:s') : date('Y-m-d H:i:s'),
+        ];
     }
 
-    protected static function formatShortPrice(float $p): string
+    public static function transformTransaction(Transaction $t): array
+    {
+        return [
+            'id' => $t->id,
+            'date' => $t->date,
+            'property_id' => $t->property_id,
+            'property_title' => $t->property_title,
+            'property_image' => $t->property_image,
+            'location' => $t->location,
+            'trx_type' => $t->trx_type,
+            'asking_price' => $t->asking_price,
+            'deal_price' => $t->deal_price,
+            'deal_val' => (int)$t->deal_val,
+            'diff_pct' => $t->diff_pct,
+            'parties' => $t->parties,
+            'commission_val' => $t->commission_val,
+            'notary' => $t->notary,
+            'status_doc' => $t->status_doc,
+            'days_on_market' => $t->days_on_market,
+        ];
+    }
+
+    public static function formatShortPrice(float $p): string
     {
         if ($p >= 1000000000) {
             $val = $p / 1000000000;
@@ -991,332 +1315,10 @@ class KumalaDataHub
         return 'Rp ' . number_format($p, 0, ',', '.');
     }
 
-    protected static function formatValuationRange(float $p): string
+    public static function formatValuationRange(float $p): string
     {
         $low = $p * 0.95;
         $high = $p * 1.08;
         return self::formatShortPrice($low) . ' - ' . self::formatShortPrice($high);
-    }
-
-    /**
-     * Default seed dataset matching PRD and UI mockups
-     */
-    protected static function getDefaultSeedData(): array
-    {
-        return [
-            'properties' => PropertyDataService::getAll(),
-            'submissions' => [
-                [
-                    'id' => '#TP-204',
-                    'title' => 'Modern Tropical Villa Canggu',
-                    'owner' => 'Hendra Wijaya',
-                    'phone' => '+62 812-8899-2345',
-                    'email' => 'hendra@canggurealty.id',
-                    'price' => 'Rp 2.850.000.000',
-                    'asking_val' => 2850000000,
-                    'valuation_range' => 'Rp 2.8 M - 3.1 Miliar',
-                    'trx_type' => 'Jual',
-                    'category' => 'Villa Mewah',
-                    'location' => 'Bali - Canggu, Badung',
-                    'address' => 'Jl. Pantai Batu Mejan No. 88, Canggu, Kuta Utara',
-                    'land_size' => 140,
-                    'building_size' => 180,
-                    'bedrooms' => '3+1 KT',
-                    'bathrooms' => '3 KM',
-                    'electricity' => '3500 VA',
-                    'legal' => 'SHM (Hak Milik)',
-                    'ownership' => 'Pemilik Langsung',
-                    'time_ago' => '45 menit lalu',
-                    'status' => 'pending',
-                    'priority' => 'P1 - Hot Asset',
-                    'photos_count' => 6,
-                    'photos' => [
-                        'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80',
-                        'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=400&q=80',
-                    ],
-                    'checklist' => [
-                        'identity' => true,
-                        'maps' => true,
-                        'shm_match' => true,
-                        'photos_hd' => false,
-                    ],
-                    'notes' => 'Aset lokasi sangat prime dekat Echo Beach. Foto interior dapur perlu peningkatan pencahayaan standar Kumala sebelum diterbitkan.',
-                ],
-                [
-                    'id' => '#TP-205',
-                    'title' => 'Colonial Executive Residence Kemang',
-                    'owner' => 'Ibu Farida Siregar',
-                    'phone' => '+62 811-3344-5566',
-                    'email' => 'farida.s@siregarholding.com',
-                    'price' => 'Rp 38.000.000.000',
-                    'asking_val' => 38000000000,
-                    'valuation_range' => 'Rp 36 M - 39 Miliar',
-                    'trx_type' => 'Jual',
-                    'category' => 'Rumah Mewah',
-                    'location' => 'DKI Jakarta - Kemang, Jaksel',
-                    'address' => 'Jl. Kemang Timur Raya No. 14, Bangka, Jakarta Selatan',
-                    'land_size' => 750,
-                    'building_size' => 550,
-                    'bedrooms' => '5 KT',
-                    'bathrooms' => '5 KM',
-                    'electricity' => '13200 VA',
-                    'legal' => 'SHM Clear',
-                    'ownership' => 'Pemilik Langsung',
-                    'time_ago' => '2 jam lalu',
-                    'status' => 'pending',
-                    'priority' => 'P2 - High Priority',
-                    'photos_count' => 12,
-                    'photos' => [
-                        'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80',
-                    ],
-                    'checklist' => [
-                        'identity' => true,
-                        'maps' => true,
-                        'shm_match' => true,
-                        'photos_hd' => true,
-                    ],
-                    'notes' => 'Legalitas sertifikat SHM sudah diverifikasi notaris rekanan. Menunggu persetujuan final Super Admin.',
-                ],
-                [
-                    'id' => '#TP-206',
-                    'title' => 'Beachside Cliff Pavillion Uluwatu',
-                    'owner' => 'Bpk. Kenneth Lee (Kuasa Jual)',
-                    'phone' => '+62 817-9000-1122',
-                    'email' => 'k.lee@pacificwealth.sg',
-                    'price' => 'Rp 650.000.000 / Thn',
-                    'asking_val' => 650000000,
-                    'valuation_range' => 'Rp 600 Jt - 700 Jt / Thn',
-                    'trx_type' => 'Sewa',
-                    'category' => 'Villa Mewah',
-                    'location' => 'Bali - Uluwatu, Badung',
-                    'address' => 'Jl. Pantai Suluban No. 12, Pecatu, Uluwatu',
-                    'land_size' => 600,
-                    'building_size' => 450,
-                    'bedrooms' => '4 KT',
-                    'bathrooms' => '4 KM',
-                    'electricity' => '7700 VA',
-                    'legal' => 'HGB Murni',
-                    'ownership' => 'Kuasa Jual Resmi',
-                    'time_ago' => '3 jam lalu',
-                    'status' => 'pending',
-                    'priority' => 'P2 - High Priority',
-                    'photos_count' => 8,
-                    'photos' => [
-                        'https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=400&q=80',
-                    ],
-                    'checklist' => [
-                        'identity' => true,
-                        'maps' => true,
-                        'shm_match' => false,
-                        'photos_hd' => true,
-                    ],
-                    'notes' => 'Surat kuasa notarial dari pemilik Singapura sedang diproses legalisasi Kemenkumham.',
-                ],
-            ],
-            'inquiries' => [
-                [
-                    'id' => '#IQ-2209',
-                    'client_name' => 'Bpk. Richard Tan',
-                    'phone' => '+62 811-9234-5678',
-                    'email' => 'richard.tan@capitalasia.com',
-                    'buyer_type' => 'Investor Repeat (HNWIs)',
-                    'time_ago' => '12 menit lalu',
-                    'sla_badge' => 'SLA Hijau (12 mnt)',
-                    'sla_status' => 'urgent',
-                    'stage' => 'Baru',
-                    'property_id' => '#KP-8821',
-                    'property_title' => 'Villa Cliffside Horizon Uluwatu',
-                    'property_price' => 'Rp 42 Miliar',
-                    'quote' => 'Halo tim Kumala, kami berencana survei privat Sabtu pagi ini. Mohon info apakah tersedia helipad transfer atau penjemputan bandara Ngurah Rai?',
-                    'assigned_to' => 'Gusti Ayu (Concierge Bali)',
-                ],
-                [
-                    'id' => '#IQ-2208',
-                    'client_name' => 'Ibu Stephanie Halim',
-                    'phone' => '+62 812-7788-9900',
-                    'email' => 'stephanie.h@halimholdings.id',
-                    'buyer_type' => 'Pembeli Rumah Tinggal',
-                    'time_ago' => '45 menit lalu',
-                    'sla_badge' => 'SLA Aman (45 mnt)',
-                    'sla_status' => 'normal',
-                    'stage' => 'Follow-Up',
-                    'property_id' => '#KP-8822',
-                    'property_title' => 'Menteng Heritage Colonial Mansion',
-                    'property_price' => 'Rp 85 Miliar',
-                    'quote' => 'Apakah berkas sertifikat SHM sudah diaudit BPN tanpa riwayat sengketa waris? Kami ingin menjadwalkan pertemuan di kantor Menteng.',
-                    'assigned_to' => 'Farhan Kamil (Curator Jaksel)',
-                ],
-                [
-                    'id' => '#IQ-2207',
-                    'client_name' => 'Mr. Thomas Vance',
-                    'phone' => '+62 819-2233-4455',
-                    'email' => 'tvance@singaporeventures.sg',
-                    'buyer_type' => 'Sewa Korporat Ekspatriat',
-                    'time_ago' => '2 jam lalu',
-                    'sla_badge' => 'Survei Terjadwal',
-                    'sla_status' => 'normal',
-                    'stage' => 'Survei',
-                    'property_id' => '#KP-8824',
-                    'property_title' => 'Lavish Executive Penthouse SCBD',
-                    'property_price' => 'Rp 850 Jt / Thn',
-                    'quote' => 'Survei dikonfirmasi untuk besok pukul 15.00 WIB bersama tim legal perusahaan kami.',
-                    'assigned_to' => 'Aditya Pratama (Super Admin)',
-                ],
-            ],
-            'surveys_today' => [
-                [
-                    'time' => '10:30 WIB',
-                    'property' => 'Villa Cliffside Horizon Uluwatu',
-                    'client' => 'Bpk. Richard Tan',
-                    'agent' => 'Gusti Ayu',
-                    'status' => 'Terkonfirmasi',
-                ],
-                [
-                    'time' => '14:00 WIB',
-                    'property' => 'Menteng Heritage Mansion',
-                    'client' => 'Ibu Stephanie Halim',
-                    'agent' => 'Farhan Kamil',
-                    'status' => 'Menunggu Klien',
-                ],
-                [
-                    'time' => '16:30 WIB',
-                    'property' => 'Lavish Penthouse SCBD',
-                    'client' => 'Mr. Thomas Vance',
-                    'agent' => 'Aditya Pratama',
-                    'status' => 'Terkonfirmasi',
-                ],
-            ],
-            'transactions' => [
-                [
-                    'id' => '#CLS-2025-031',
-                    'date' => '14 Mar 2025',
-                    'property_id' => '#KP-8822',
-                    'property_title' => 'Menteng Heritage Colonial Mansion',
-                    'property_image' => 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80',
-                    'location' => 'Menteng, Jakarta Pusat',
-                    'trx_type' => 'TERJUAL - JUAL BELI',
-                    'asking_price' => 'Rp 88.000.000.000',
-                    'deal_price' => 'Rp 85.000.000.000',
-                    'diff_pct' => '-3.4%',
-                    'parties' => 'Penjual: Bpk. Tanu / Pembeli: Konsorsium Artha',
-                    'commission_val' => 'Rp 2.125.000.000 (2.5%)',
-                    'notary' => 'Dra. Sri Wahyuni, S.H., M.Kn. (Jaksel)',
-                    'status_doc' => 'AJB Selesai',
-                    'days_on_market' => '38 Hari',
-                ],
-                [
-                    'id' => '#CLS-2025-030',
-                    'date' => '02 Mar 2025',
-                    'property_id' => '#KP-8821',
-                    'property_title' => 'Villa Cliffside Horizon Uluwatu',
-                    'property_image' => 'https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=400&q=80',
-                    'location' => 'Uluwatu, Badung, Bali',
-                    'trx_type' => 'TERJUAL - JUAL BELI',
-                    'asking_price' => 'Rp 45.000.000.000',
-                    'deal_price' => 'Rp 42.000.000.000',
-                    'diff_pct' => '-6.6%',
-                    'parties' => 'Penjual: PT Bali Vista / Pembeli: Keluarga Gunawan',
-                    'commission_val' => 'Rp 1.050.000.000 (2.5%)',
-                    'notary' => 'I Made Suardana, S.H. (Denpasar)',
-                    'status_doc' => 'AJB Selesai',
-                    'days_on_market' => '45 Hari',
-                ],
-            ],
-            'settings' => [
-                'hotline_wa' => '+62 812-8899-2345',
-                'hotline_wa_numeric' => '6281288992345',
-                'email_official' => 'concierge@kumalaproperty.id',
-                'email_business' => 'inquiries@kumalaproperty.id',
-                'address_hq' => 'Jl. Kemang Raya No. 42, Mampang Prapatan, Jakarta Selatan 12730',
-                'address_bali' => 'Jl. Pantai Suluban No. 8, Pecatu, Uluwatu, Badung, Bali 80361',
-                'hours_weekday' => '08.30 - 18.00 WIB',
-                'hours_saturday' => '09.00 - 15.00 WIB',
-                'hours_sunday' => 'Dengan Janji Temu',
-                'auto_watermark' => true,
-                'whatsapp_notify' => true,
-                'email_notify' => true,
-            ],
-            'regions' => [
-                ['name' => 'DKI Jakarta - Jakarta Selatan', 'active' => true, 'listings' => 48],
-                ['name' => 'Bali - Badung (Canggu, Uluwatu, Seminyak)', 'active' => true, 'listings' => 52],
-                ['name' => 'Banten - Tangerang Selatan (BSD City)', 'active' => true, 'listings' => 24],
-                ['name' => 'DKI Jakarta - Jakarta Pusat (Menteng)', 'active' => true, 'listings' => 12],
-                ['name' => 'Jawa Timur - Surabaya Barat', 'active' => true, 'listings' => 8],
-                ['name' => 'Jawa Barat - Bandung Utara', 'active' => false, 'listings' => 4],
-            ],
-            'categories' => [
-                ['name' => 'Rumah Tapak Mewah', 'subtypes' => 'Heritage, Colonial, Modern Minimalis', 'active' => true, 'count' => 64],
-                ['name' => 'Villa Mewah & Tropis', 'subtypes' => 'Cliffside, Beachfront, Ricefield View', 'active' => true, 'count' => 52],
-                ['name' => 'Ruko & Komersial', 'subtypes' => 'Shophouse, Butik, Kantor Representatif', 'active' => true, 'count' => 18],
-                ['name' => 'Apartemen & Penthouse', 'subtypes' => 'Sky Villa, Penthouse SCBD, High-rise', 'active' => true, 'count' => 14],
-            ],
-            'priority_actions' => [
-                [
-                    'id' => '#TP-204',
-                    'type' => 'listing',
-                    'title' => 'Pengajuan Konsinyasi Baru: Modern Tropical Villa Canggu',
-                    'owner' => 'Hendra Wijaya',
-                    'phone' => '+62 812-8899-2345',
-                    'time_ago' => '45 menit yang lalu',
-                    'sla_status' => 'warning',
-                    'sla_badge' => 'SLA Respon < 4 Jam',
-                    'detail' => 'Harga pengajuan Rp 2.85 M. Dokumen SHM dan KTP telah diunggah. Membutuhkan verifikasi appraisal & persetujuan tayang.',
-                    'btn_action_1' => 'Verifikasi SHM BPN',
-                    'btn_action_2' => 'Tinjau & Kurasi Unit',
-                ],
-                [
-                    'id' => '#IQ-2209',
-                    'type' => 'inquiry',
-                    'title' => 'Inquiry Beli Segera: Villa Cliffside Horizon Uluwatu (#KP-8821)',
-                    'owner' => 'Bpk. Richard Tan (Investor)',
-                    'phone' => '+62 811-9234-5678',
-                    'time_ago' => '12 menit yang lalu',
-                    'sla_status' => 'urgent',
-                    'sla_badge' => 'SLA Respon Hijau (12 mnt)',
-                    'detail' => 'Meminta jadwal survei privat Sabtu pagi dengan penjemputan bandara Ngurah Rai. Skema pembayaran Cash Keras.',
-                    'btn_action_1' => 'Hubungi via WhatsApp',
-                    'btn_action_2' => 'Jadwalkan Survei',
-                ],
-                [
-                    'id' => '#CLS-2025-031',
-                    'type' => 'closing',
-                    'title' => 'Draft Final PPJB: Menteng Heritage Colonial Mansion (#KP-8822)',
-                    'owner' => 'Notaris Rekanan: Dra. Sri Wahyuni, S.H.',
-                    'phone' => '+62 813-7722-1100',
-                    'time_ago' => '2 jam yang lalu',
-                    'sla_status' => 'normal',
-                    'sla_badge' => 'Jadwal Closing: 14:00 WIB',
-                    'detail' => 'Nilai deal disepakati Rp 85 Miliar. Salinan draft PPJB dan bukti validasi PPh/BPHTB siap ditandatangani.',
-                    'btn_action_1' => 'Cetak Draft PPJB',
-                    'btn_action_2' => 'Verifikasi Pajak',
-                ],
-            ],
-            'audit_logs' => [
-                [
-                    'timestamp' => '11:42 WIB',
-                    'action' => 'Persetujuan Listing Baru #KP-8826',
-                    'user' => 'Aditya Pratama (Super Admin)',
-                    'status' => 'Published',
-                ],
-                [
-                    'timestamp' => '10:15 WIB',
-                    'action' => 'Penyesuaian Harga Asking #KP-8821 (Rp 45M -> Rp 42M)',
-                    'user' => 'Farhan Kamil (Curator)',
-                    'status' => 'Updated',
-                ],
-                [
-                    'timestamp' => '09:30 WIB',
-                    'action' => 'Inquiry Baru #IQ-2209 Dialokasikan ke Concierge Bali',
-                    'user' => 'Sistem Otomatis (Rule Engine)',
-                    'status' => 'Assigned',
-                ],
-                [
-                    'timestamp' => '08:50 WIB',
-                    'action' => 'Unduhan Factsheet PDF #KP-8822 oleh Klien VIP',
-                    'user' => 'Portal Publik (IP 182.253.xx.xx)',
-                    'status' => 'Downloaded',
-                ],
-            ]
-        ];
     }
 }

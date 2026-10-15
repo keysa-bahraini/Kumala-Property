@@ -3,12 +3,12 @@
 @section('title', 'Manajemen Data Inquiry - Kumala Admin')
 
 @section('content')
-<div style="display: flex; flex-direction: column; gap: 20px;">
+<div style="display: flex; flex-direction: column; gap: 20px; min-width: 0; width: 100%; max-width: 100%;">
 
     <!-- Header Section -->
     <div>
         <div style="display: inline-flex; align-items: center; gap: 6px; color: #00838F; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 6px;">
-            <span>PIPELINE PROSPEK PROPERTI</span> <span style="color: #CBD5E1;">&bull;</span> <span>Real-Time Ingestion</span>
+            <span>LEAD PIPELINE &bull; PROSPEK PROPERTI</span> <span style="color: #CBD5E1;">&bull;</span> <span>Real-Time Ingestion</span>
         </div>
         <h1 style="font-size: 1.75rem; color: #0E1E2E; margin: 0 0 4px 0; font-weight: 800; letter-spacing: -0.01em;">
             Manajemen Data Inquiry (Leads Properti)
@@ -19,7 +19,7 @@
     </div>
 
     <!-- Filter Tabs -->
-    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+    <div class="inquiry-tabs-wrapper">
         <button type="button" class="inquiry-tab-btn active" onclick="filterInquiries('all', this)">
             Semua Inquiry <span class="tab-badge">{{ $stageCounts['all'] ?? count($inquiries) }}</span>
         </button>
@@ -28,11 +28,11 @@
             Inquiry Baru <span class="tab-badge" style="background: #E6FBF5; color: #059669;">{{ $stageCounts['new'] ?? 0 }}</span>
         </button>
         <button type="button" class="inquiry-tab-btn" onclick="filterInquiries('follow-up', this)">
-            Sedang Diproses / Follow-Up <span class="tab-badge">{{ $stageCounts['follow_up'] ?? 0 }}</span>
+            Sedang Diproses <span class="tab-badge">{{ $stageCounts['follow_up'] ?? 0 }}</span>
         </button>
         <button type="button" class="inquiry-tab-btn" onclick="filterInquiries('survei', this)">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px;"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-            Jadwal Survei Lokasi <span class="tab-badge" style="background: #E0F2FE; color: #0284C7;">{{ $stageCounts['survey'] ?? 0 }}</span>
+            Jadwal Survei <span class="tab-badge" style="background: #E0F2FE; color: #0284C7;">{{ $stageCounts['survey'] ?? 0 }}</span>
         </button>
         <button type="button" class="inquiry-tab-btn" onclick="filterInquiries('closing', this)">
             Closing / Selesai <span class="tab-badge">{{ $stageCounts['closing'] ?? 0 }}</span>
@@ -40,16 +40,16 @@
     </div>
 
     <!-- Subheader: Daftar Prospek Masuk & Sortir -->
-    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: #64748B; margin-top: 4px;">
+    <div class="inquiry-subheader">
         <div>
             <strong style="color: #0E1E2E; font-size: 0.88rem;">Daftar Prospek Masuk</strong>
-            <span style="margin-left: 8px;">Total {{ count($inquiries) }} data prospek aktif</span>
+            <span style="margin-left: 8px; color: #64748B;">Total {{ count($inquiries) }} data prospek aktif</span>
         </div>
-        <div style="display: flex; align-items: center; gap: 4px;">
-            <span>Prioritas:</span>
-            <strong style="color: #0E1E2E; display: inline-flex; align-items: center; gap: 4px;">
-                SLA Responsif (&lt; 15 Menit)
-            </strong>
+        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+            <span style="color: #64748B;">Prioritas:</span>
+            <span class="inquiry-sla-pill">
+                SLA Responsif &lt; 15 Menit
+            </span>
         </div>
     </div>
 
@@ -72,38 +72,38 @@
         @endphp
         <div class="lead-card" data-stage="{{ $currentStage }}" data-inq-id="{{ $inq['id'] }}">
             <!-- Header Row -->
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
-                <div style="display: flex; gap: 12px; align-items: center;">
+            <div class="lead-header-row">
+                <div class="lead-client-info">
                     <div class="lead-avatar" style="background: #E0F7FA; color: #00838F;">{{ $initials }}</div>
-                    <div>
-                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                            <strong style="font-size: 0.95rem; color: #0E1E2E;">{{ $inq['client_name'] }}</strong>
-                            <span class="lead-tag-pill" style="background: #E0F7FA; color: #00838F;">{{ $inq['buyer_type'] ?? 'Calon Pembeli' }}</span>
-                            <span style="font-size: 0.72rem; color: #059669; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                    <div class="lead-client-meta">
+                        <div class="lead-name-row">
+                            <strong class="lead-client-name">{{ $inq['client_name'] }}</strong>
+                            <span class="lead-tag-pill">{{ $inq['buyer_type'] ?? 'Calon Pembeli' }}</span>
+                            <span class="badge-wa-ready">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                                 WA Ready
                             </span>
                         </div>
-                        <div style="font-size: 0.74rem; color: #64748B; margin-top: 2px; display: flex; align-items: center; gap: 6px;">
-                            <span>{{ $inq['phone'] }}</span>
-                            <span>&bull;</span>
-                            <span>{{ $inq['email'] ?? 'klien@kumalaproperty.id' }}</span>
-                            <span>&bull;</span>
-                            <span style="display: inline-flex; align-items: center; gap: 4px;">
+                        <div class="lead-contact-row">
+                            <span class="lead-contact-phone">{{ $inq['phone'] }}</span>
+                            <span class="lead-dot">&bull;</span>
+                            <span class="lead-contact-email">{{ $inq['email'] ?? 'klien@kumalaproperty.id' }}</span>
+                            <span class="lead-dot">&bull;</span>
+                            <span class="lead-contact-source">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"/></svg>
-                                Web Detail Properti
+                                Web Detail
                             </span>
                         </div>
                     </div>
                 </div>
 
-                <div style="display: flex; align-items: center; gap: 14px;">
-                    <div style="text-align: right;">
-                        <span style="font-size: 0.74rem; color: #059669; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+                <div class="lead-status-group">
+                    <div class="lead-time-wrap">
+                        <span class="lead-time-ago">
                             <span style="width: 6px; height: 6px; border-radius: 50%; background: #059669; display: inline-block;"></span>
                             {{ $inq['time_ago'] ?? 'Baru saja' }}
                         </span>
-                        <span style="font-size: 0.7rem; color: #64748B; display: block;">{{ $inq['sla_badge'] ?? 'SLA Hijau (< 15 mnt)' }}</span>
+                        <span class="lead-sla-badge">{{ $inq['sla_badge'] ?? 'SLA Hijau (< 15 mnt)' }}</span>
                     </div>
                     <select class="lead-status-select" 
                             style="background: {{ $currentStage === 'baru' ? '#00838F' : ($currentStage === 'closing' ? '#059669' : '#0E1E2E') }}; color: #FFFFFF;"
@@ -119,26 +119,27 @@
             <!-- Middle Box: Properti Diminati & Pesan Klien -->
             <div class="lead-inner-box">
                 <!-- Properti Diminati -->
-                <div style="flex: 1; min-width: 260px; padding-right: 18px; border-right: 1px solid #E2E8F0;" class="lead-inner-col">
+                <div class="lead-inner-col prop-col">
                     <span style="font-size: 0.68rem; font-weight: 800; color: #64748B; letter-spacing: 0.6px; text-transform: uppercase; display: block; margin-bottom: 6px;">PROPERTI DIMINATI</span>
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        <div style="width: 50px; height: 40px; border-radius: 6px; background: #0E1E2E; color: #38BDF8; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 800; flex-shrink: 0;">
+                        <div style="width: 48px; height: 38px; border-radius: 6px; background: #0E1E2E; color: #38BDF8; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 800; flex-shrink: 0;">
                             UNIT
                         </div>
-                        <div>
-                            <strong style="font-size: 0.84rem; color: #0E1E2E; display: block; line-height: 1.2;">{{ $inq['property_title'] ?? 'Listing Terpilih' }}</strong>
-                            <div style="font-size: 0.72rem; color: #64748B; margin-top: 2px;">
-                                <span>{{ $inq['property_id'] ?? '#KP-8821' }}</span> <strong style="color: #00838F; margin-left: 6px;">{{ $inq['property_price'] ?? 'Rp 15 Miliar' }}</strong>
+                        <div style="min-width: 0;">
+                            <strong style="font-size: 0.85rem; color: #0E1E2E; display: block; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $inq['property_title'] ?? 'Listing Terpilih' }}</strong>
+                            <div style="font-size: 0.72rem; color: #64748B; margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                <span>{{ $inq['property_id'] ?? '#KP-8821' }}</span>
+                                <strong style="color: #00838F;">{{ $inq['property_price'] ?? 'Rp 15 Miliar' }}</strong>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Pesan Klien -->
-                <div style="flex: 1.6; min-width: 280px; padding-left: 18px;" class="lead-inner-col">
+                <div class="lead-inner-col quote-col">
                     <span style="font-size: 0.68rem; font-weight: 800; color: #64748B; letter-spacing: 0.6px; text-transform: uppercase; display: flex; align-items: center; gap: 5px; margin-bottom: 6px;">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                        CATATAN / PERMINTAAN KLIEN
+                        <span>CATATAN / PERMINTAAN KLIEN</span>
                     </span>
                     <p style="font-size: 0.78rem; color: #334155; font-style: italic; margin: 0; line-height: 1.45;">
                         "{{ $inq['quote'] ?? 'Menanyakan ketersediaan jadwal survei lokasi dan legalitas unit.' }}"
@@ -147,18 +148,18 @@
             </div>
 
             <!-- Footer Action Row -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 0.76rem; flex-wrap: wrap; gap: 10px;">
-                <div style="display: flex; align-items: center; gap: 6px; color: #64748B;">
+            <div class="lead-card-footer">
+                <div style="display: flex; align-items: center; gap: 6px; color: #64748B; font-size: 0.74rem;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00838F" stroke-width="2"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
-                    <span><strong>Penanganan:</strong> Ditugaskan ke {{ $inq['assigned_to'] ?? 'Private Client Concierge' }} (ID Lead: {{ $inq['id'] }})</span>
+                    <span><strong>Penanganan:</strong> {{ $inq['assigned_to'] ?? 'Private Client Concierge' }} <span style="color: #94A3B8;">({{ $inq['id'] }})</span></span>
                 </div>
 
-                <div style="display: flex; gap: 6px; align-items: center;">
-                    <a href="https://wa.me/{{ $cleanPhone }}?text=Halo%20{{ urlencode($inq['client_name']) }},%20kami%20dari%20Private%20Client%20Concierge%20Kumala%20Property%20ingin%20menindaklanjuti%20permohonan%20Anda%20untuk%20unit%20{{ urlencode($inq['property_title'] ?? 'properti') }}." target="_blank" class="btn-lead-action">
+                <div class="lead-footer-buttons">
+                    <a href="https://wa.me/{{ $cleanPhone }}?text=Halo%20{{ urlencode($inq['client_name']) }},%20kami%20dari%20Private%20Client%20Concierge%20Kumala%20Property%20ingin%20menindaklanjuti%20permohonan%20Anda%20untuk%20unit%20{{ urlencode($inq['property_title'] ?? 'properti') }}." target="_blank" class="btn-lead-action btn-wa">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                         <span>WhatsApp Klien</span>
                     </a>
-                    <button type="button" class="btn-lead-action" onclick="openScheduleModal('{{ $inq['client_name'] }}', '{{ $inq['property_title'] ?? 'Unit Properti' }}')">
+                    <button type="button" class="btn-lead-action btn-schedule" onclick="openScheduleModal('{{ $inq['client_name'] }}', '{{ $inq['property_title'] ?? 'Unit Properti' }}')">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
                         <span>Atur Jadwal Survei</span>
                     </button>
@@ -310,6 +311,19 @@
 
 @section('styles')
 <style>
+.inquiry-tabs-wrapper {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+    width: 100%;
+}
+.inquiry-tabs-wrapper::-webkit-scrollbar {
+    display: none;
+}
+
 .inquiry-tab-btn {
     padding: 7px 14px;
     background: #FFFFFF;
@@ -321,6 +335,8 @@
     cursor: pointer;
     display: inline-flex;
     align-items: center;
+    white-space: nowrap;
+    flex-shrink: 0;
     transition: all 0.15s;
 }
 .inquiry-tab-btn:hover {
@@ -345,29 +361,150 @@
     color: #FFFFFF;
 }
 
+.inquiry-subheader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.78rem;
+    color: #64748B;
+    margin-top: 4px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.inquiry-sla-pill {
+    color: #00838F;
+    background: #E0F7FA;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+/* Lead Card */
 .lead-card {
     background: #FFFFFF;
     border: 1px solid #E2E8F0;
     border-radius: 12px;
     padding: 18px 20px;
     box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.lead-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 14px;
+    width: 100%;
+}
+.lead-client-info {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    flex: 1;
+    min-width: 0;
 }
 .lead-avatar {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    font-size: 0.8rem;
+    font-size: 0.84rem;
     font-weight: 800;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    margin-top: 2px;
+}
+.lead-client-meta {
+    flex: 1;
+    min-width: 0;
+}
+.lead-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+}
+.lead-client-name {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #0E1E2E;
+    white-space: nowrap;
 }
 .lead-tag-pill {
     font-size: 0.68rem;
     font-weight: 700;
     padding: 2px 7px;
     border-radius: 4px;
+    background: #E0F7FA;
+    color: #00838F;
+    white-space: nowrap;
+}
+.badge-wa-ready {
+    font-size: 0.72rem;
+    color: #059669;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+.lead-contact-row {
+    font-size: 0.76rem;
+    color: #64748B;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    line-height: 1.4;
+}
+.lead-contact-phone {
+    color: #0E1E2E;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.lead-contact-email {
+    white-space: nowrap;
+}
+.lead-contact-source {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+.lead-dot {
+    color: #CBD5E1;
+}
+
+.lead-status-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+.lead-time-wrap {
+    text-align: right;
+}
+.lead-time-ago {
+    font-size: 0.74rem;
+    color: #059669;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+.lead-sla-badge {
+    font-size: 0.7rem;
+    color: #64748B;
+    display: block;
+    white-space: nowrap;
 }
 .lead-status-select {
     padding: 6px 12px;
@@ -377,60 +514,144 @@
     border: none;
     outline: none;
     cursor: pointer;
+    box-sizing: border-box;
+    white-space: nowrap;
 }
 
+/* Inner Box */
 .lead-inner-box {
     background: #F8FAFC;
     border: 1px solid #E2E8F0;
     border-radius: 8px;
     padding: 12px 16px;
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: 16px;
-    flex-wrap: wrap;
+}
+.lead-inner-col.prop-col {
+    flex: 1;
+    min-width: 220px;
+    padding-right: 16px;
+    border-right: 1px solid #E2E8F0;
+}
+.lead-inner-col.quote-col {
+    flex: 1.5;
+    min-width: 240px;
 }
 
+/* Footer Action */
+.lead-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 14px;
+    font-size: 0.76rem;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.lead-footer-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
 .btn-lead-action {
     background: #FFFFFF;
     border: 1px solid #CBD5E1;
     color: #0E1E2E;
-    padding: 5px 12px;
+    padding: 6px 14px;
     border-radius: 6px;
-    font-size: 0.76rem;
+    font-size: 0.78rem;
     font-weight: 600;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     text-decoration: none;
     cursor: pointer;
     transition: all 0.15s;
+    box-sizing: border-box;
+    white-space: nowrap;
 }
 .btn-lead-action:hover {
     background: #F8FAFC;
     border-color: #94A3B8;
 }
+.btn-lead-action.btn-wa {
+    border-color: #00838F;
+    color: #00838F;
+    background: #F0FDFA;
+}
+.btn-lead-action.btn-wa:hover {
+    background: #CCFBF1;
+}
 
+/* Responsive Media Queries */
 @media (max-width: 900px) {
     #inquiry-bottom-grid {
         grid-template-columns: 1fr !important;
     }
 }
+
 @media (max-width: 768px) {
-    .lead-card > div:first-child {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-    }
     .lead-inner-box {
         flex-direction: column !important;
         gap: 12px !important;
+        padding: 12px 14px !important;
     }
-    .lead-inner-col {
+    .lead-inner-col.prop-col {
         border-right: none !important;
         border-bottom: 1px solid #E2E8F0 !important;
         padding-right: 0 !important;
         padding-bottom: 12px !important;
         min-width: 0 !important;
         width: 100% !important;
+    }
+    .lead-inner-col.quote-col {
+        min-width: 0 !important;
+        width: 100% !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .lead-card {
+        padding: 14px 14px !important;
+    }
+    .lead-header-row {
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+    .lead-status-group {
+        width: 100% !important;
+        justify-content: space-between !important;
+        padding-top: 10px !important;
+        border-top: 1px dashed #E2E8F0 !important;
+    }
+    .lead-time-wrap {
+        text-align: left !important;
+    }
+    .lead-card-footer {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+    }
+    .lead-footer-buttons {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+    .btn-lead-action {
+        width: 100% !important;
+        height: 40px !important;
+    }
+}
+
+@media (max-width: 420px) {
+    .lead-footer-buttons {
+        grid-template-columns: 1fr !important;
+    }
+    .lead-contact-row .lead-dot {
+        display: none !important;
     }
 }
 </style>

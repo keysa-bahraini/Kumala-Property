@@ -16,6 +16,8 @@ class Submission extends Model
 
     protected $fillable = [
         'id',
+        'property_id',
+        'property_slug',
         'title',
         'owner_name',
         'owner_phone',
@@ -25,6 +27,8 @@ class Submission extends Model
         'category_id',
         'region_id',
         'category',
+        'city_region',
+        'specific_area',
         'location',
         'address',
         'asking_price',
@@ -36,10 +40,14 @@ class Submission extends Model
         'bathrooms',
         'electricity',
         'legal',
-        'priority',
+        'facilities',
+        'photos',
         'photos_count',
+        'priority',
         'status',
+        'checklist',
         'notes',
+        'time_ago',
         'submitted_at',
     ];
 
@@ -48,8 +56,26 @@ class Submission extends Model
         'land_size' => 'integer',
         'building_size' => 'integer',
         'photos_count' => 'integer',
+        'facilities' => 'array',
+        'photos' => 'array',
+        'checklist' => 'array',
         'submitted_at' => 'datetime',
     ];
+
+    public function getOwnerAttribute(): ?string
+    {
+        return $this->owner_name;
+    }
+
+    public function getPhoneAttribute(): ?string
+    {
+        return $this->owner_phone;
+    }
+
+    public function getEmailAttribute(): ?string
+    {
+        return $this->owner_email;
+    }
 
     public function categoryRelation(): BelongsTo
     {

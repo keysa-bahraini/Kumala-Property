@@ -7,30 +7,61 @@
 <!-- ======================================================================
      1. HERO SECTION (Light Coastal Aesthetic - Clean & Architectural)
      ====================================================================== -->
-<section style="padding: 48px 0 36px; background-color: var(--bg-coastal);">
-    <div class="container">
+@php
+    $heroBgImg = $globalSettings['home_hero_bg_image'] ?? '';
+    $heroOverlay = floatval($globalSettings['home_hero_bg_overlay'] ?? '0.45');
+    $hasHeroBg = !empty($heroBgImg);
+    $heroPos = $globalSettings['home_hero_bg_position'] ?? 'center';
+@endphp
+
+<section class="hero-section-wrap" style="
+    padding: {{ $hasHeroBg ? '64px 0 48px' : '48px 0 36px' }};
+    position: relative;
+    overflow: hidden;
+    @if($hasHeroBg)
+        background-image: url('{{ $heroBgImg }}');
+        background-size: cover;
+        background-position: {{ $heroPos }};
+        background-repeat: no-repeat;
+    @else
+        background-color: var(--bg-coastal);
+    @endif
+">
+    @if($hasHeroBg)
+        <!-- Multi-stop Architectural Dark Overlay for High-Contrast Text Legibility -->
+        <div style="
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                180deg,
+                rgba(14, 30, 46, {{ min(0.95, $heroOverlay * 0.95) }}) 0%,
+                rgba(14, 30, 46, {{ min(0.95, $heroOverlay * 1.1) }}) 50%,
+                rgba(14, 30, 46, {{ min(0.98, $heroOverlay * 1.3) }}) 100%
+            );
+            backdrop-filter: blur(1px);
+            z-index: 1;
+            pointer-events: none;
+        "></div>
+    @endif
+
+    <div class="container" style="position: relative; z-index: 2;">
         <!-- Hero Header -->
         <div style="max-width: 860px; margin: 0 auto 36px; text-align: center;">
-            <div style="display: inline-flex; align-items: center; gap: 8px; background: #E6FBF5; border: 1px solid #99EEDB; padding: 5px 16px; border-radius: var(--radius-pill); margin-bottom: 20px;">
-                <span style="width: 7px; height: 7px; border-radius: 50%; background: #00B488;"></span>
-                <span style="font-size: 0.74rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #00838F;">{{ $globalSettings['home_hero_badge'] ?? 'ATELIER PROPERTI MEWAH & INVESTASI TERKURASI' }}</span>
-            </div>
-
-            <h1 style="font-size: clamp(2.3rem, 4.8vw, 3.6rem); font-weight: 800; line-height: 1.15; color: #0E1E2E; margin-bottom: 18px; letter-spacing: -0.02em;">
+            <h1 style="font-size: clamp(2.3rem, 4.8vw, 3.6rem); font-weight: 800; line-height: 1.15; color: {{ $hasHeroBg ? '#FFFFFF' : '#0E1E2E' }}; {{ $hasHeroBg ? 'text-shadow: 0 2px 18px rgba(0,0,0,0.45);' : '' }} margin-bottom: 18px; letter-spacing: -0.02em;">
                 {{ $globalSettings['home_hero_title'] ?? 'Temukan Hunian Eksklusif & Aset Bernilai Abadi di Indonesia' }}
             </h1>
 
-            <p style="font-size: 1.05rem; color: #526071; line-height: 1.65; max-width: 700px; margin: 0 auto;">
+            <p style="font-size: 1.05rem; color: {{ $hasHeroBg ? 'rgba(255, 255, 255, 0.92)' : '#526071' }}; {{ $hasHeroBg ? 'text-shadow: 0 1px 8px rgba(0,0,0,0.35);' : '' }} line-height: 1.65; max-width: 700px; margin: 0 auto;">
                 {{ $globalSettings['home_hero_desc'] ?? 'Menghubungkan pemilik properti bernilai tinggi dengan investor & pembeli eksklusif. Setiap unit diaudit dengan verifikasi dokumen legalitas notarial dan kurasi arsitektural menyeluruh.' }}
             </p>
         </div>
 
         <!-- 4-Parameter Search Card (Matching Explore Mockup Exactly) -->
-        <div style="background-color: #FFFFFF; border-radius: 14px; padding: 22px 24px; box-shadow: 0 4px 20px rgba(14, 34, 56, 0.05); max-width: 1100px; margin: 0 auto; border: 1px solid #DDE3EA;">
+        <div style="background-color: #FFFFFF; border-radius: 14px; padding: 22px 24px; {{ $hasHeroBg ? 'box-shadow: 0 16px 45px rgba(14, 30, 46, 0.28); border: 1px solid rgba(255, 255, 255, 0.95);' : 'box-shadow: 0 4px 20px rgba(14, 34, 56, 0.05); border: 1px solid #DDE3EA;' }} max-width: 1100px; margin: 0 auto;">
             <form action="{{ route('explore') }}" method="GET" id="hero-search-form">
                 <input type="hidden" name="type" id="hero-type-input" value="Semua">
 
-                <div style="display: grid; grid-template-columns: 1.15fr 1fr 1fr 1fr; gap: 14px;" class="explore-filter-grid">
+                <div class="explore-filter-grid">
                     
                     <!-- Parameter 1: Transaksi Segmented Switcher -->
                     <div>
@@ -128,7 +159,7 @@
         </div>
 
         <!-- 3 Performance Credibility Badges (Matching PRD Section 5.6 & About Us Mockup) -->
-        <div style="max-width: 920px; margin: 36px auto 0; background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 18px 24px; box-shadow: 0 1px 3px rgba(14, 34, 56, 0.04);">
+        <div style="max-width: 920px; margin: 36px auto 0; background: #FFFFFF; {{ $hasHeroBg ? 'box-shadow: 0 12px 36px rgba(14, 30, 46, 0.22); border: 1px solid rgba(255, 255, 255, 0.95);' : 'border: 1px solid #DDE3EA; box-shadow: 0 1px 3px rgba(14, 34, 56, 0.04);' }} border-radius: 12px; padding: 18px 24px;">
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: center;" id="trust-metrics-grid">
                 <div style="border-right: 1px solid #EBEFF4; padding: 0 10px;">
                     <div style="font-size: 1.85rem; font-weight: 800; color: #0E1E2E; font-family: var(--font-heading); line-height: 1;">15%</div>
@@ -182,7 +213,7 @@
         </div>
 
         <!-- 6 Properties Grid (Sesuai Data PRD) -->
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;" id="featured-props-grid">
+        <div class="property-grid-cards" id="featured-props-grid">
             @foreach($featuredProperties as $prop)
             <div class="property-card" id="card-prop-{{ $loop->iteration }}">
                 <div class="card-media-wrapper">
@@ -442,7 +473,7 @@
      ====================================================================== -->
 <section style="padding: 40px 0 60px; background-color: var(--bg-coastal);">
     <div class="container">
-        <div style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 14px; padding: 36px 40px; box-shadow: 0 4px 16px rgba(14, 34, 56, 0.04); display: flex; align-items: center; justify-content: space-between; gap: 32px; flex-wrap: wrap;">
+        <div class="consignment-promo-card" style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 14px; padding: 36px 40px; box-shadow: 0 4px 16px rgba(14, 34, 56, 0.04); display: flex; align-items: center; justify-content: space-between; gap: 32px; flex-wrap: wrap;">
             
             <div style="max-width: 640px;">
                 <div style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.74rem; font-weight: 800; color: #00838F; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;">
@@ -496,7 +527,7 @@
      ====================================================================== -->
 <section style="padding: 0 0 60px; background-color: var(--bg-coastal);">
     <div class="container">
-        <div style="background-color: #EBEFF4; border: 1px solid #DDE3EA; border-radius: 14px; padding: 28px 36px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
+        <div class="consultation-promo-card" style="background-color: #EBEFF4; border: 1px solid #DDE3EA; border-radius: 14px; padding: 28px 36px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
             
             <div style="display: flex; align-items: center; gap: 18px;">
                 <div style="width: 48px; height: 48px; border-radius: 12px; background: #FFFFFF; border: 1px solid #DDE3EA; display: flex; align-items: center; justify-content: center; color: #00838F; flex-shrink: 0;">

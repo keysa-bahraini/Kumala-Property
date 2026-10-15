@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('submissions', function (Blueprint $table) {
             $table->string('id')->primary(); // #TP-204
+            $table->string('property_id')->nullable();
+            $table->string('property_slug')->nullable();
             $table->string('title');
             $table->string('owner_name');
             $table->string('owner_phone');
@@ -22,6 +24,8 @@ return new class extends Migration
             $table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete();
             $table->foreignId('region_id')->nullable()->constrained('regions')->nullOnDelete();
             $table->string('category')->nullable();
+            $table->string('city_region')->nullable();
+            $table->string('specific_area')->nullable();
             $table->string('location')->nullable();
             $table->text('address')->nullable();
             $table->string('asking_price')->nullable();
@@ -33,10 +37,14 @@ return new class extends Migration
             $table->string('bathrooms')->nullable();
             $table->string('electricity')->nullable();
             $table->string('legal')->nullable();
-            $table->string('priority')->default('Normal');
+            $table->json('facilities')->nullable();
+            $table->json('photos')->nullable();
             $table->integer('photos_count')->default(0);
+            $table->string('priority')->default('Normal');
             $table->enum('status', ['pending', 'revision', 'approved', 'rejected'])->default('pending');
+            $table->json('checklist')->nullable();
             $table->text('notes')->nullable();
+            $table->string('time_ago')->nullable();
             $table->timestamp('submitted_at')->nullable();
             $table->timestamps();
         });

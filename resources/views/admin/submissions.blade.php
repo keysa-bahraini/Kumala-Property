@@ -3,39 +3,39 @@
 @section('title', 'Manajemen Listing Masuk (Titip Properti) - Kumala Admin')
 
 @section('content')
-<div style="display: flex; flex-direction: column; gap: 20px;">
+<div style="display: flex; flex-direction: column; gap: 20px; min-width: 0; width: 100%; max-width: 100%;">
 
     <!-- Top Header -->
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;" class="submissions-header">
         <div>
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                <span style="background: #E0F7FA; color: #00838F; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
-                    GATEKEEPER LISTING
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
+                <span style="background: #E0F7FA; color: #00838F; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap;">
+                    SLA GATEKEEPER VERIFICATION
                 </span>
-                <span style="font-size: 0.76rem; color: #64748B;">SLA Tinjau: &lt; 4 Jam</span>
+                <span style="font-size: 0.76rem; color: #64748B; white-space: nowrap;">SLA Tinjau: &lt; 4 Jam</span>
             </div>
             <h1 style="font-size: 1.75rem; color: #0E1E2E; margin: 0 0 4px 0; font-weight: 800; letter-spacing: -0.01em;">
                 Manajemen Listing Masuk (Titip Properti)
             </h1>
-            <p style="font-size: 0.85rem; color: #64748B; margin: 0;">
+            <p style="font-size: 0.85rem; color: #64748B; margin: 0; max-width: 720px; line-height: 1.45;">
                 Verifikasi kelengkapan berkas, data fisik, dan legalitas pengajuan pemilik unit sebelum diterbitkan ke katalog publik.
             </p>
         </div>
 
         <!-- Priority Queue Badge Card -->
-        <div style="background: #EAF4F9; border: 1px solid #D6E8F2; border-radius: 10px; padding: 10px 18px; display: flex; align-items: center; gap: 14px;">
+        <div style="background: #EAF4F9; border: 1px solid #D6E8F2; border-radius: 10px; padding: 10px 18px; display: flex; align-items: center; gap: 14px;" class="sub-priority-card">
             <div>
-                <span style="display: block; font-size: 0.68rem; font-weight: 800; color: #64748B; letter-spacing: 0.6px; text-transform: uppercase;">ANTRIAN PRIORITAS</span>
-                <strong style="font-size: 1.15rem; color: #0E1E2E;" id="pending-count-text">{{ $queueCounts['pending'] ?? 0 }} Menunggu</strong>
+                <span style="display: block; font-size: 0.68rem; font-weight: 800; color: #64748B; letter-spacing: 0.6px; text-transform: uppercase; white-space: nowrap;">ANTRIAN PRIORITAS</span>
+                <strong style="font-size: 1.15rem; color: #0E1E2E; white-space: nowrap;" id="pending-count-text">{{ $queueCounts['pending'] ?? 0 }} Menunggu</strong>
             </div>
-            <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(0, 131, 143, 0.12); color: #00838F; display: flex; align-items: center; justify-content: center;">
+            <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(0, 131, 143, 0.12); color: #00838F; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="m9 14 2 2 4-4"/></svg>
             </div>
         </div>
     </div>
 
     <!-- Status Tabs -->
-    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+    <div class="sub-tabs-wrapper">
         <button type="button" class="sub-tab-btn active" onclick="filterSubmissions('all', this)">
             Semua Pengajuan <span style="background: rgba(255,255,255,0.2); padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['all'] ?? count($submissions) }}</span>
         </button>
@@ -56,14 +56,14 @@
 
     <!-- Antrian Horizontal Cards Row -->
     <div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.74rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.74rem; flex-wrap: wrap; gap: 6px;">
             <div style="font-weight: 800; color: #64748B; letter-spacing: 0.6px; text-transform: uppercase;">
                 ANTRIAN VERIFIKASI MASUK <span style="font-weight: 500; color: #94A3B8; text-transform: none; margin-left: 6px;">{{ count($submissions) }} Berkas Tersimpan</span>
             </div>
             <span style="color: #64748B; font-size: 0.72rem;">Klik kartu untuk meninjau detail berkas di bawah</span>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px;" id="queue-grid">
+        <div class="submissions-queue-grid" id="queue-grid">
             @forelse($submissions as $index => $sub)
             @php
                 $statusPillClass = 'queue-pill-yellow';
@@ -114,29 +114,29 @@
     <div id="deck-wrapper" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 24px 28px; box-shadow: 0 1px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 20px;">
         
         <!-- Deck Header -->
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; padding-bottom: 16px; border-bottom: 1px solid #F1F5F9;">
-            <div>
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                    <span id="deck-id" style="background: #0E1E2E; color: #FFFFFF; font-size: 0.72rem; font-weight: 800; padding: 2px 7px; border-radius: 4px;">{{ $initSub['id'] }}</span>
-                    <span id="deck-trx-type" style="background: #E0F2FE; color: #0284C7; font-size: 0.72rem; font-weight: 800; padding: 2px 7px; border-radius: 4px; text-transform: uppercase;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; padding-bottom: 16px; border-bottom: 1px solid #F1F5F9;" class="deck-header-row">
+            <div style="flex: 1; min-width: 260px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+                    <span id="deck-id" style="background: #0E1E2E; color: #FFFFFF; font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 4px; white-space: nowrap; display: inline-block;">{{ $initSub['id'] }}</span>
+                    <span id="deck-trx-type" style="background: #E0F2FE; color: #0284C7; font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; white-space: nowrap; display: inline-block;">
                         {{ $initSub['category'] ?? 'RUMAH TINGGAL' }} ({{ strtoupper($initSub['trx_type'] ?? 'JUAL') }})
                     </span>
-                    <span id="deck-time" style="font-size: 0.76rem; color: #64748B;">&bull; Terdaftar: {{ $initSub['time_ago'] ?? 'Baru saja' }}</span>
+                    <span id="deck-time" style="font-size: 0.76rem; color: #64748B; white-space: nowrap;">&bull; Terdaftar: {{ $initSub['time_ago'] ?? 'Baru saja' }}</span>
                 </div>
-                <h2 id="deck-title" style="font-size: 1.45rem; font-weight: 800; color: #0E1E2E; margin: 0 0 4px 0;">
+                <h2 id="deck-title" style="font-size: 1.45rem; font-weight: 800; color: #0E1E2E; margin: 0 0 6px 0; line-height: 1.25;">
                     {{ $initSub['title'] }}
                 </h2>
-                <div id="deck-location" style="font-size: 0.8rem; color: #64748B;">
+                <div id="deck-location" style="font-size: 0.8rem; color: #64748B; line-height: 1.4;">
                     {{ $initSub['address'] ?? $initSub['location'] }}
                 </div>
             </div>
 
-            <div style="display: flex; gap: 8px; align-items: center;">
-                <span id="deck-priority-pill" style="background: #E0F7FA; color: #00838F; font-size: 0.74rem; font-weight: 800; padding: 4px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;">
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <span id="deck-priority-pill" style="background: #E0F7FA; color: #00838F; font-size: 0.74rem; font-weight: 800; padding: 4px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
                     <span>{{ $initSub['priority'] ?? 'P1 - Hot Asset' }}</span>
                 </span>
-                <span id="deck-status-pill" style="background: #FEF3C7; color: #D97706; font-size: 0.74rem; font-weight: 800; padding: 4px 10px; border-radius: 6px;">
+                <span id="deck-status-pill" style="background: #FEF3C7; color: #D97706; font-size: 0.74rem; font-weight: 800; padding: 4px 10px; border-radius: 6px; white-space: nowrap;">
                     &bull; {{ ucfirst($initSub['status'] ?? 'pending') }}
                 </span>
             </div>
@@ -147,15 +147,15 @@
             
             <!-- Left Card: Data Pemilik -->
             <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 16px 18px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 6px;">
                     <div style="font-size: 0.76rem; font-weight: 800; color: #0E1E2E; display: flex; align-items: center; gap: 6px;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                         <span>Data Pemilik</span>
                     </div>
-                    <span id="deck-ownership" style="background: #E0F2FE; color: #0284C7; font-size: 0.68rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;">{{ $initSub['ownership'] ?? 'Pemilik Langsung' }}</span>
+                    <span id="deck-ownership" style="background: #E0F2FE; color: #0284C7; font-size: 0.68rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; white-space: nowrap;">{{ $initSub['ownership'] ?? 'Pemilik Langsung' }}</span>
                 </div>
 
-                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.8rem;">
+                <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.8rem;">
                     <div>
                         <span style="font-size: 0.7rem; color: #64748B; display: block;">Nama Lengkap</span>
                         <strong id="deck-owner-name" style="color: #0E1E2E; font-size: 0.88rem;">{{ $initSub['owner'] }}</strong>
@@ -163,9 +163,9 @@
 
                     <div>
                         <span style="font-size: 0.7rem; color: #64748B; display: block;">Kontak WhatsApp</span>
-                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
-                            <strong id="deck-owner-phone" style="color: #0E1E2E; font-size: 0.86rem;">{{ $initSub['phone'] }}</strong>
-                            <a id="deck-owner-wa-link" href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $initSub['phone']) }}" target="_blank" style="background: #00838F; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 3px; flex-wrap: wrap;">
+                            <strong id="deck-owner-phone" style="color: #0E1E2E; font-size: 0.86rem; white-space: nowrap;">{{ $initSub['phone'] }}</strong>
+                            <a id="deck-owner-wa-link" href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $initSub['phone']) }}" target="_blank" style="background: #00838F; color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;">
                                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                                 <span>Chat WA</span>
                             </a>
@@ -174,41 +174,41 @@
 
                     <div>
                         <span style="font-size: 0.7rem; color: #64748B; display: block;">Email</span>
-                        <span id="deck-owner-email" style="color: #0E1E2E; font-size: 0.82rem;">{{ $initSub['email'] }}</span>
+                        <span id="deck-owner-email" style="color: #0E1E2E; font-size: 0.82rem; word-break: break-all;">{{ $initSub['email'] }}</span>
                     </div>
                 </div>
             </div>
 
             <!-- Right Card: Spesifikasi & Nilai Pasar -->
             <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 16px 18px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 6px;">
                     <div style="font-size: 0.76rem; font-weight: 800; color: #0E1E2E; display: flex; align-items: center; gap: 6px;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
                         <span>Spesifikasi &amp; Nilai Pasar</span>
                     </div>
-                    <span style="color: #64748B; font-size: 0.72rem;">Estimasi Valuasi: <strong id="deck-valuation" style="color: #0E1E2E;">{{ $initSub['valuation_range'] ?? 'Rp 3M - 3,5M' }}</strong></span>
+                    <span style="color: #64748B; font-size: 0.72rem; white-space: nowrap;">Estimasi Valuasi: <strong id="deck-valuation" style="color: #0E1E2E;">{{ $initSub['valuation_range'] ?? 'Rp 3M - 3,5M' }}</strong></span>
                 </div>
 
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; font-size: 0.78rem;">
-                    <div>
+                <div class="deck-spec-grid">
+                    <div class="deck-spec-col">
                         <span style="font-size: 0.7rem; color: #64748B; display: block;">Harga Pengajuan</span>
                         <strong id="deck-price" style="color: #0E1E2E; font-size: 0.95rem; display: block; margin-top: 2px;">{{ $initSub['price'] }}</strong>
                         <span id="deck-legal" style="color: #00838F; font-size: 0.72rem; font-weight: 600;">{{ $initSub['legal'] ?? 'SHM' }}</span>
                     </div>
 
-                    <div>
+                    <div class="deck-spec-col">
                         <span style="font-size: 0.7rem; color: #64748B; display: block;">Luas Tanah / Bangunan</span>
                         <strong id="deck-land" style="color: #0E1E2E; font-size: 0.95rem; display: block; margin-top: 2px;">LT {{ $initSub['land_size'] ?? 0 }} m²</strong>
                         <span id="deck-building" style="color: #64748B; font-size: 0.72rem;">LB {{ $initSub['building_size'] ?? 0 }} m²</span>
                     </div>
 
-                    <div>
+                    <div class="deck-spec-col">
                         <span style="font-size: 0.7rem; color: #64748B; display: block;">Kamar Tidur / Mandi</span>
                         <strong id="deck-rooms" style="color: #0E1E2E; font-size: 0.95rem; display: block; margin-top: 2px;">{{ $initSub['bedrooms'] ?? '3 KT' }} / {{ $initSub['bathrooms'] ?? '2 KM' }}</strong>
                         <span id="deck-electricity" style="color: #64748B; font-size: 0.72rem;">Listrik {{ $initSub['electricity'] ?? '3500 VA' }}</span>
                     </div>
 
-                    <div>
+                    <div class="deck-spec-col">
                         <span style="font-size: 0.7rem; color: #64748B; display: block;">Tipe Transaksi</span>
                         <strong id="deck-trx" style="color: #0E1E2E; font-size: 0.95rem; display: block; margin-top: 2px;">{{ $initSub['trx_type'] ?? 'Jual' }}</strong>
                         <span id="deck-category" style="color: #64748B; font-size: 0.72rem;">{{ $initSub['category'] ?? 'Properti' }}</span>
@@ -220,7 +220,7 @@
 
         <!-- Foto & Dokumen Legalitas -->
         <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px;">
                 <div style="font-size: 0.76rem; font-weight: 800; color: #0E1E2E; display: flex; align-items: center; gap: 6px;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                     <span>Foto &amp; Dokumen Lampiran Pengajuan</span>
@@ -249,12 +249,12 @@
             
             <!-- Checklist Card -->
             <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px 18px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 6px;">
                     <strong style="color: #0E1E2E; font-size: 0.78rem;">Checklist Verifikasi Kurator</strong>
                     <span style="background: #E0F2FE; color: #0284C7; font-size: 0.7rem; font-weight: 700; padding: 2px 7px; border-radius: 4px;">Standar Kumala</span>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.78rem;">
+                <div class="deck-checklist-grid">
                     <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
                         <input type="checkbox" checked style="accent-color: #00838F;">
                         <span style="color: #0E1E2E; font-weight: 600;">Identitas &amp; kontak valid</span>
@@ -276,7 +276,7 @@
 
             <!-- Catatan Tim Kurator -->
             <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px 18px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
                     <strong style="color: #0E1E2E; font-size: 0.78rem;">Catatan Kurator / Pemohon</strong>
                     <span style="font-size: 0.7rem; color: #94A3B8;">Tinjauan Internal</span>
                 </div>
@@ -288,8 +288,8 @@
         </div>
 
         <!-- Action Footer Buttons -->
-        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid #F1F5F9; flex-wrap: wrap; gap: 10px;">
-            <div style="display: flex; gap: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid #F1F5F9; flex-wrap: wrap; gap: 10px;" class="deck-footer-actions">
+            <div style="display: flex; gap: 8px;" class="deck-footer-secondary">
                 <button type="button" class="btn-deck-reject" onclick="handleRejectSubmission()">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
                     <span>Tolak Pengajuan</span>
@@ -300,7 +300,7 @@
                 </button>
             </div>
 
-            <div style="display: flex; gap: 8px;">
+            <div style="display: flex; gap: 8px;" class="deck-footer-primary">
                 <button type="button" class="btn-deck-approve" id="btn-action-approve" onclick="handleApproveSubmission()">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                     <span>Setujui &amp; Publikasikan ke Web</span>
@@ -316,6 +316,19 @@
 
 @section('styles')
 <style>
+.sub-tabs-wrapper {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+    width: 100%;
+}
+.sub-tabs-wrapper::-webkit-scrollbar {
+    display: none;
+}
+
 .sub-tab-btn {
     padding: 7px 14px;
     background: #FFFFFF;
@@ -327,6 +340,8 @@
     cursor: pointer;
     display: inline-flex;
     align-items: center;
+    white-space: nowrap;
+    flex-shrink: 0;
     transition: all 0.15s;
 }
 .sub-tab-btn:hover {
@@ -340,6 +355,13 @@
     font-weight: 700;
 }
 
+.submissions-queue-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+    width: 100%;
+}
+
 .queue-card {
     background: #FFFFFF;
     border: 1px solid #E2E8F0;
@@ -347,6 +369,7 @@
     padding: 12px 14px;
     cursor: pointer;
     transition: all 0.15s;
+    box-sizing: border-box;
 }
 .queue-card:hover {
     border-color: #CBD5E1;
@@ -363,6 +386,7 @@
     font-weight: 700;
     padding: 2px 6px;
     border-radius: 4px;
+    white-space: nowrap;
 }
 .queue-pill-green {
     background: #E6FBF5;
@@ -371,6 +395,7 @@
     font-weight: 700;
     padding: 2px 6px;
     border-radius: 4px;
+    white-space: nowrap;
 }
 .queue-pill-red {
     background: #FEE2E2;
@@ -379,6 +404,7 @@
     font-weight: 700;
     padding: 2px 6px;
     border-radius: 4px;
+    white-space: nowrap;
 }
 .queue-pill-gray {
     background: #F1F5F9;
@@ -387,6 +413,31 @@
     font-weight: 700;
     padding: 2px 6px;
     border-radius: 4px;
+    white-space: nowrap;
+}
+
+.deck-spec-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    font-size: 0.78rem;
+    width: 100%;
+}
+.deck-spec-col {
+    min-width: 0;
+}
+.deck-spec-col strong {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+
+.deck-checklist-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    font-size: 0.78rem;
 }
 
 .berkas-photo-thumb {
@@ -419,7 +470,7 @@
     background: #FFFFFF;
     border: 1px solid #FCA5A5;
     color: #DC2626;
-    height: 36px;
+    height: 38px;
     padding: 0 14px;
     border-radius: 6px;
     font-size: 0.78rem;
@@ -442,7 +493,7 @@
     background: #FFFFFF;
     border: 1px solid #CBD5E1;
     color: #0E1E2E;
-    height: 36px;
+    height: 38px;
     padding: 0 14px;
     border-radius: 6px;
     font-size: 0.78rem;
@@ -465,7 +516,7 @@
     background: #00838F;
     border: 1px solid #00838F;
     color: #FFFFFF;
-    height: 36px;
+    height: 38px;
     padding: 0 16px;
     border-radius: 6px;
     font-size: 0.78rem;
@@ -484,6 +535,7 @@
     border-color: #0097A7;
 }
 
+/* Tablet & Intermediate Screens (<= 1024px) */
 @media (max-width: 1024px) {
     #deck-data-grid {
         grid-template-columns: 1fr !important;
@@ -495,9 +547,65 @@
         grid-template-columns: 1fr !important;
     }
 }
+
+/* Phablet & Tablet (<= 768px) */
+@media (max-width: 768px) {
+    .deck-spec-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px 14px;
+    }
+}
+
+/* Mobile Screens (<= 640px) */
 @media (max-width: 640px) {
+    #deck-wrapper {
+        padding: 16px 14px !important;
+        border-radius: 10px;
+    }
+    .submissions-queue-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .sub-priority-card {
+        width: 100%;
+        justify-content: space-between;
+    }
     #photos-row {
         grid-template-columns: repeat(2, 1fr) !important;
+    }
+    .deck-footer-actions {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 10px;
+    }
+    .deck-footer-secondary {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        width: 100%;
+    }
+    .deck-footer-primary {
+        width: 100%;
+    }
+    .btn-deck-reject,
+    .btn-deck-outline,
+    .btn-deck-approve {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
+        height: 42px;
+    }
+}
+
+/* Very Small Mobile (<= 420px) */
+@media (max-width: 420px) {
+    .deck-spec-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .deck-checklist-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .deck-footer-secondary {
+        grid-template-columns: 1fr !important;
     }
 }
 </style>

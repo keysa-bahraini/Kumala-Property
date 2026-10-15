@@ -62,7 +62,7 @@
             </p>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 24px;">
             <div class="pilar-card">
                 <div class="pilar-icon">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -166,7 +166,7 @@
     </div>
 
     <!-- Kantor Operasional & Form Kontak (2 Kolom) -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: flex-start;">
+    <div class="form-grid-2col about-contact-grid" style="gap: 40px; align-items: flex-start;">
         
         <!-- Kolom Kiri: Kantor & Kontak Info -->
         <div>

@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('name')->unique();
             $table->string('slug')->unique();
+            $table->string('icon')->nullable();
+            $table->integer('count')->default(0);
             $table->text('subtypes')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
@@ -23,8 +25,10 @@ return new class extends Migration
         Schema::create('regions', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
+            $table->string('slug')->nullable();
             $table->string('city');
             $table->string('area');
+            $table->string('image')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

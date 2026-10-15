@@ -130,14 +130,14 @@
     </div>
 
     <!-- 3. Priority Actions Section ("Perlu Ditindaklanjuti Segera") -->
-    <div style="background: #FFFFFF; border: 1px solid var(--admin-border-subtle); border-radius: 14px; padding: 24px 28px; box-shadow: 0 1px 4px rgba(0,0,0,0.02);">
+    <div class="priority-actions-card">
         @php
             $countAll = count($priorityActions);
             $countListing = count(array_filter($priorityActions, fn($a) => ($a['category'] ?? '') === 'listing'));
             $countInquiry = count(array_filter($priorityActions, fn($a) => ($a['category'] ?? '') === 'inquiry'));
             $countClosing = count(array_filter($priorityActions, fn($a) => ($a['category'] ?? '') === 'closing'));
         @endphp
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 20px;">
+        <div class="priority-actions-header">
             <div>
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="width: 8px; height: 8px; border-radius: 50%; background: #EF4444; display: inline-block;"></span>
@@ -149,7 +149,7 @@
             </div>
 
             <!-- Tabs Filter -->
-            <div style="display: flex; background: #F1F5F9; border-radius: 8px; padding: 3px; gap: 3px;">
+            <div class="inbox-tabs-wrapper">
                 <button type="button" class="inbox-tab-btn active" onclick="filterActionTabs('all', this)">Semua ({{ $countAll }})</button>
                 <button type="button" class="inbox-tab-btn" onclick="filterActionTabs('listing', this)">Listing ({{ $countListing }})</button>
                 <button type="button" class="inbox-tab-btn" onclick="filterActionTabs('inquiry', this)">Inquiry ({{ $countInquiry }})</button>
@@ -163,6 +163,8 @@
             @php
                 $cat = $item['category'] ?? 'listing';
                 $tagClass = $item['tag_class'] ?? ($cat === 'inquiry' ? 'badge-peach' : ($cat === 'closing' ? 'badge-teal' : 'badge-cyan'));
+                $detailRaw = $item['detail'] ?? $item['price_label'] ?? '';
+                $detailParts = explode('|', $detailRaw);
             @endphp
             <div class="action-item-card" data-category="{{ $cat }}">
                 <div class="action-item-main">
@@ -174,11 +176,24 @@
                         </div>
                         <h3 class="action-item-title">{{ $item['title'] }}</h3>
                         <div class="action-item-meta-row">
-                            <span class="action-meta-user">
+                            <div class="action-meta-user">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                {{ $item['owner'] ?? $item['owner_label'] ?? 'Klien Terverifikasi' }}
-                            </span>
-                            <span class="action-meta-price">{{ $item['detail'] ?? $item['price_label'] ?? '' }}</span>
+                                <span>{{ $item['owner'] ?? $item['owner_label'] ?? 'Klien Terverifikasi' }}</span>
+                            </div>
+                            @if(count($detailParts) > 1)
+                                <div class="action-meta-tags-wrap">
+                                    <span class="action-meta-price">{{ trim($detailParts[0]) }}</span>
+                                    <span class="action-meta-bullet">•</span>
+                                    <span class="action-meta-loc">
+                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                                        <span>{{ trim(str_ireplace('Lokasi:', '', $detailParts[1])) }}</span>
+                                    </span>
+                                </div>
+                            @else
+                                <div class="action-meta-tags-wrap">
+                                    <span class="action-meta-price">{{ $detailRaw }}</span>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -442,9 +457,33 @@
     color: #64748B;
 }
 
+/* Priority Actions Card & Header */
+.priority-actions-card {
+    background: #FFFFFF;
+    border: 1px solid var(--admin-border-subtle);
+    border-radius: 14px;
+    padding: 24px 28px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+}
+.priority-actions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
 /* Inbox Tabs */
+.inbox-tabs-wrapper {
+    display: flex;
+    background: #F1F5F9;
+    border-radius: 8px;
+    padding: 3px;
+    gap: 3px;
+}
 .inbox-tab-btn {
-    padding: 5px 12px;
+    padding: 6px 14px;
     border-radius: 6px;
     font-size: 0.78rem;
     font-weight: 600;
@@ -453,6 +492,7 @@
     border: none;
     cursor: pointer;
     transition: all 0.15s;
+    white-space: nowrap;
 }
 .inbox-tab-btn:hover {
     color: #0E1E2E;
@@ -487,22 +527,23 @@
 }
 .action-item-main {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 14px;
     flex: 1;
     min-width: 0;
 }
 .action-item-thumb {
-    width: 68px;
-    height: 68px;
+    width: 64px;
+    height: 64px;
     border-radius: 8px;
     object-fit: cover;
     flex-shrink: 0;
-    border: 1px solid #F1F5F9;
+    border: 1px solid #E2E8F0;
+    align-self: flex-start;
 }
 .action-item-thumb-placeholder {
-    width: 68px;
-    height: 68px;
+    width: 64px;
+    height: 64px;
     border-radius: 8px;
     background: #F1F5F9;
     display: flex;
@@ -510,6 +551,7 @@
     justify-content: center;
     flex-shrink: 0;
     border: 1px solid #E2E8F0;
+    align-self: flex-start;
 }
 .action-item-info {
     flex: 1;
@@ -519,7 +561,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 4px;
+    margin-bottom: 5px;
     flex-wrap: wrap;
 }
 .action-item-time {
@@ -528,33 +570,57 @@
     white-space: nowrap;
 }
 .action-item-title {
-    font-size: 0.90rem;
+    font-size: 0.92rem;
     font-weight: 700;
     color: #0E1E2E;
-    margin: 0 0 5px 0;
+    margin: 0 0 6px 0;
     line-height: 1.35;
     word-break: break-word;
 }
 .action-item-meta-row {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
+    gap: 5px;
     font-size: 0.78rem;
-    flex-wrap: wrap;
 }
 .action-meta-user {
     display: inline-flex;
     align-items: center;
     gap: 5px;
     color: #64748B;
+    font-size: 0.76rem;
+    font-weight: 500;
+    word-break: break-word;
+}
+.action-meta-tags-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
     font-size: 0.78rem;
-    white-space: nowrap;
 }
 .action-meta-price {
     color: #0E1E2E;
     font-size: 0.82rem;
     font-weight: 700;
-    white-space: nowrap;
+    word-break: break-word;
+}
+.action-meta-bullet {
+    color: #CBD5E1;
+    font-size: 0.72rem;
+}
+.action-meta-loc {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #00838F;
+    font-weight: 600;
+    font-size: 0.74rem;
+    background: #E0F7FA;
+    padding: 1px 7px;
+    border-radius: 4px;
+    border: 1px solid #B2EBF2;
+    word-break: break-word;
 }
 .action-meta-budget {
     color: #00838F;
@@ -714,14 +780,42 @@
     }
 }
 @media (max-width: 860px) {
+    .priority-actions-card {
+        padding: 18px 16px !important;
+        border-radius: 12px !important;
+    }
+    .priority-actions-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+    }
+    .inbox-tabs-wrapper {
+        width: 100% !important;
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+        padding: 4px !important;
+    }
+    .inbox-tabs-wrapper::-webkit-scrollbar {
+        display: none !important;
+    }
+    .inbox-tab-btn {
+        flex: 1 0 auto !important;
+        text-align: center !important;
+        padding: 7px 12px !important;
+        font-size: 0.76rem !important;
+        white-space: nowrap !important;
+    }
     .action-item-card {
         flex-direction: column !important;
         align-items: stretch !important;
         gap: 12px !important;
-        padding: 14px !important;
+        padding: 14px 14px !important;
     }
     .action-item-main {
         width: 100% !important;
+        align-items: flex-start !important;
         gap: 12px !important;
     }
     .action-item-actions {
@@ -729,14 +823,20 @@
         display: grid !important;
         grid-template-columns: 1fr 1fr !important;
         gap: 8px !important;
+        padding-top: 10px !important;
+        border-top: 1px solid #F1F5F9 !important;
     }
     .action-item-actions .btn-action-outline,
     .action-item-actions .btn-action-dark,
     .action-item-actions .btn-action-teal {
         width: 100% !important;
+        height: 38px !important;
+        min-height: 38px !important;
         padding: 0 8px !important;
-        font-size: 0.76rem !important;
+        font-size: 0.78rem !important;
+        font-weight: 700 !important;
         text-align: center !important;
+        justify-content: center !important;
     }
 }
 @media (max-width: 640px) {
@@ -747,24 +847,27 @@
         grid-template-columns: 1fr !important;
         min-width: 0 !important;
     }
-    .action-item-thumb,
-    .action-item-thumb-placeholder {
-        width: 60px !important;
-        height: 60px !important;
-    }
-    .action-item-title {
-        font-size: 0.86rem !important;
-    }
 }
 @media (max-width: 480px) {
-    .action-item-meta-row {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 4px !important;
+    .priority-actions-card {
+        padding: 14px 12px !important;
     }
-    .action-meta-price,
-    .action-meta-budget {
-        font-size: 0.84rem !important;
+    .action-item-thumb,
+    .action-item-thumb-placeholder {
+        width: 56px !important;
+        height: 56px !important;
+    }
+    .action-item-title {
+        font-size: 0.88rem !important;
+    }
+    .action-meta-price {
+        font-size: 0.80rem !important;
+    }
+    .action-item-actions .btn-action-outline,
+    .action-item-actions .btn-action-dark,
+    .action-item-actions .btn-action-teal {
+        font-size: 0.74rem !important;
+        padding: 0 4px !important;
     }
 }
 </style>

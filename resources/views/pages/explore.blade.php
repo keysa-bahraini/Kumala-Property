@@ -46,9 +46,15 @@
                     <label class="form-label-field">2. KATEGORI PROPERTI</label>
                     <select name="category" class="filter-select" onchange="document.getElementById('filter-form').submit()">
                         <option value="Semua Tipe Properti" {{ $category === 'Semua Tipe Properti' ? 'selected' : '' }}>Semua Tipe Properti</option>
-                        @if(!empty($activeCategories) && count($activeCategories) > 0)
-                            @foreach($activeCategories as $cat)
-                                <option value="{{ $cat->name }}" {{ $category === $cat->name ? 'selected' : '' }}>{{ $cat->name }}</option>
+                        @php
+                            $catItems = !empty($activeCategories) ? $activeCategories : (!empty($categories) ? $categories : []);
+                        @endphp
+                        @if(count($catItems) > 0)
+                            @foreach($catItems as $cat)
+                                @php $cName = is_array($cat) ? ($cat['name'] ?? '') : ($cat->name ?? ''); @endphp
+                                @if(!empty($cName))
+                                    <option value="{{ $cName }}" {{ $category === $cName ? 'selected' : '' }}>{{ $cName }}</option>
+                                @endif
                             @endforeach
                         @else
                             <option value="Rumah Mewah" {{ $category === 'Rumah Mewah' ? 'selected' : '' }}>Rumah Mewah</option>
@@ -65,9 +71,18 @@
                     <label class="form-label-field">3. LOKASI PROPERTI</label>
                     <select name="location" class="filter-select" onchange="document.getElementById('filter-form').submit()">
                         <option value="Semua Wilayah" {{ $location === 'Semua Wilayah' ? 'selected' : '' }}>Semua Wilayah</option>
-                        @if(!empty($activeRegions) && count($activeRegions) > 0)
-                            @foreach($activeRegions as $reg)
-                                <option value="{{ $reg->city ?: $reg->name }}" {{ $location === ($reg->city ?: $reg->name) ? 'selected' : '' }}>{{ $reg->name }}</option>
+                        @php
+                            $regItems = !empty($activeRegions) ? $activeRegions : (!empty($regions) ? $regions : []);
+                        @endphp
+                        @if(count($regItems) > 0)
+                            @foreach($regItems as $reg)
+                                @php
+                                    $rName = is_array($reg) ? ($reg['name'] ?? '') : ($reg->name ?? '');
+                                    $rCity = is_array($reg) ? ($reg['city'] ?? $rName) : ($reg->city ?? $rName);
+                                @endphp
+                                @if(!empty($rName))
+                                    <option value="{{ $rCity }}" {{ $location === $rCity ? 'selected' : '' }}>{{ $rName }}</option>
+                                @endif
                             @endforeach
                         @else
                             <option value="Bali" {{ $location === 'Bali' ? 'selected' : '' }}>Bali - Badung / Canggu / Uluwatu</option>
@@ -162,7 +177,7 @@
     </div>
 
     <!-- Properties Grid -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; margin-bottom: 48px;">
+    <div class="property-grid-cards" style="margin-bottom: 48px;">
         @forelse($properties as $prop)
         <div class="property-card" id="explore-card-{{ $loop->iteration }}">
             <div class="card-media-wrapper">

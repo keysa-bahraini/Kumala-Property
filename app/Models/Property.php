@@ -48,6 +48,8 @@ class Property extends Model
         'furnishing',
         'specs_tags',
         'image_main',
+        'images',
+        'features',
         'video_tour_url',
         'pdf_factsheet_url',
         'description',
@@ -66,6 +68,8 @@ class Property extends Model
         'bedrooms' => 'integer',
         'bathrooms' => 'integer',
         'specs_tags' => 'array',
+        'images' => 'array',
+        'features' => 'array',
         'distance_points' => 'array',
     ];
 

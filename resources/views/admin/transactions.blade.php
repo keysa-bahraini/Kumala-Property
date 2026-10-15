@@ -10,7 +10,7 @@
         <div>
             <div style="display: inline-flex; align-items: center; gap: 6px; color: #00838F; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 6px;">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                <span>ARSIP TRANSAKSI FINAL &amp; AUDIT PEMASARAN</span>
+                <span>CLOSING ARCHIVE &bull; ARSIP TRANSAKSI FINAL</span>
             </div>
             <h1 style="font-size: 1.75rem; color: #0E1E2E; margin: 0 0 4px 0; font-weight: 800; letter-spacing: -0.01em;">
                 Riwayat Terjual &amp; Tersewa (Closing Archive)

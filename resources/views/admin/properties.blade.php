@@ -3,14 +3,14 @@
 @section('title', 'Manajemen Properti - Kumala Admin')
 
 @section('content')
-<div style="display: flex; flex-direction: column; gap: 20px;">
+<div style="display: flex; flex-direction: column; gap: 20px; min-width: 0; width: 100%; max-width: 100%;">
 
     <!-- Breadcrumbs & Status Bar -->
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div style="font-size: 0.76rem; font-weight: 700; color: #64748B; letter-spacing: 0.5px; text-transform: uppercase;">
             <span>KATALOG MASTER</span> &gt; <span style="color: #00838F;">INVENTORY PROPERTI</span> <span style="color: #CBD5E1; margin: 0 4px;">&bull;</span> <span style="color: #94A3B8; font-weight: 500;">LIVE SYNCED</span>
         </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
             <div style="display: inline-flex; align-items: center; gap: 6px; background: #FFFFFF; border: 1px solid #E2E8F0; padding: 4px 10px; border-radius: 20px; font-size: 0.74rem; font-weight: 600; color: #0E1E2E;">
                 <span style="width: 7px; height: 7px; border-radius: 50%; background: #059669; display: inline-block;"></span>
                 <span>Total Portofolio: {{ count($allProperties) }} Unit</span>
@@ -37,7 +37,7 @@
             </p>
         </div>
 
-        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;" class="prop-header-actions">
             <button type="button" class="btn-top-teal" onclick="openAddPropertyModal()">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="16"/><line x1="8" x2="16" y1="12" y2="12"/></svg>
                 <span>+ Tambah Properti Baru</span>
@@ -52,8 +52,9 @@
     <!-- 4 Inventory Stat Cards -->
     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;" id="prop-stats-grid">
         @php
-            $activeCount = count(array_filter($allProperties, fn($p) => ($p['status'] ?? 'ACTIVE') === 'ACTIVE'));
-            $soldCount = count(array_filter($allProperties, fn($p) => in_array($p['status'] ?? '', ['SOLD', 'RENTED'])));
+            $propsArray = is_array($allProperties) ? $allProperties : $allProperties->items();
+            $activeCount = count(array_filter($propsArray, fn($p) => ($p['status'] ?? 'ACTIVE') === 'ACTIVE'));
+            $soldCount = count(array_filter($propsArray, fn($p) => in_array($p['status'] ?? '', ['SOLD', 'RENTED'])));
         @endphp
         <!-- Card 1: Aktif Tayang -->
         <div class="prop-stat-card">
@@ -106,35 +107,38 @@
     </div>
 
     <!-- Filter & Search Toolbar -->
-    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-        <form action="{{ route('admin.properties') }}" method="GET" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1; margin: 0;">
-            <div style="position: relative; flex: 1; min-width: 220px;">
-                <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Cari nama properti, ID unit, atau lokasi..." 
-                       style="width: 100%; padding: 8px 12px 8px 34px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 0.82rem; outline: none;">
-                <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #94A3B8; display: flex;">
+    <div class="prop-filter-toolbar">
+        <form action="{{ route('admin.properties') }}" method="GET" class="prop-filter-form">
+            <div class="prop-search-box">
+                <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Cari nama properti, ID unit, atau lokasi...">
+                <span class="prop-search-icon">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                 </span>
             </div>
 
-            <div style="display: flex; gap: 8px; align-items: center;">
-                <select name="status" onchange="this.form.submit()" style="padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 0.82rem; background: #fff; cursor: pointer;">
-                    <option value="Semua" {{ ($status ?? 'Semua') === 'Semua' ? 'selected' : '' }}>Semua Status</option>
-                    <option value="ACTIVE" {{ ($status ?? '') === 'ACTIVE' ? 'selected' : '' }}>Aktif Tayang</option>
-                    <option value="SOLD" {{ ($status ?? '') === 'SOLD' ? 'selected' : '' }}>Terjual (Sold)</option>
-                    <option value="RENTED" {{ ($status ?? '') === 'RENTED' ? 'selected' : '' }}>Tersewa (Rented)</option>
-                    <option value="INACTIVE" {{ ($status ?? '') === 'INACTIVE' ? 'selected' : '' }}>Ditangguhkan</option>
-                </select>
+            <div class="prop-filter-controls">
+                <div class="prop-select-group">
+                    <select name="status" onchange="this.form.submit()" class="prop-filter-select">
+                        <option value="Semua" {{ ($status ?? 'Semua') === 'Semua' ? 'selected' : '' }}>Semua Status</option>
+                        <option value="ACTIVE" {{ ($status ?? '') === 'ACTIVE' ? 'selected' : '' }}>Aktif Tayang</option>
+                        <option value="SOLD" {{ ($status ?? '') === 'SOLD' ? 'selected' : '' }}>Terjual (Sold)</option>
+                        <option value="RENTED" {{ ($status ?? '') === 'RENTED' ? 'selected' : '' }}>Tersewa (Rented)</option>
+                        <option value="INACTIVE" {{ ($status ?? '') === 'INACTIVE' ? 'selected' : '' }}>Ditangguhkan</option>
+                    </select>
 
-                <select name="type" onchange="this.form.submit()" style="padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 0.82rem; background: #fff; cursor: pointer;">
-                    <option value="Semua" {{ ($type ?? 'Semua') === 'Semua' ? 'selected' : '' }}>Semua Tipe Transaksi</option>
-                    <option value="Jual" {{ strtolower($type ?? '') === 'jual' ? 'selected' : '' }}>Hanya Jual</option>
-                    <option value="Sewa" {{ strtolower($type ?? '') === 'sewa' ? 'selected' : '' }}>Hanya Sewa</option>
-                </select>
+                    <select name="type" onchange="this.form.submit()" class="prop-filter-select">
+                        <option value="Semua" {{ ($type ?? 'Semua') === 'Semua' ? 'selected' : '' }}>Semua Tipe Transaksi</option>
+                        <option value="Jual" {{ strtolower($type ?? '') === 'jual' ? 'selected' : '' }}>Hanya Jual</option>
+                        <option value="Sewa" {{ strtolower($type ?? '') === 'sewa' ? 'selected' : '' }}>Hanya Sewa</option>
+                    </select>
+                </div>
 
-                <button type="submit" class="btn-top-teal" style="padding: 8px 14px; font-size: 0.8rem;">Filter</button>
-                @if(!empty($search) || ($status ?? 'Semua') !== 'Semua' || ($type ?? 'Semua') !== 'Semua')
-                    <a href="{{ route('admin.properties') }}" class="btn-top-outline" style="padding: 8px 12px; font-size: 0.8rem; color: #DC2626; border-color: #FCA5A5;">Reset</a>
-                @endif
+                <div class="prop-action-buttons">
+                    <button type="submit" class="btn-top-teal">Filter</button>
+                    @if(!empty($search) || ($status ?? 'Semua') !== 'Semua' || ($type ?? 'Semua') !== 'Semua')
+                        <a href="{{ route('admin.properties') }}" class="btn-top-outline btn-reset-filter">Reset</a>
+                    @endif
+                </div>
             </div>
         </form>
     </div>
@@ -234,6 +238,35 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Table Pagination Footer -->
+        @if(is_a($allProperties, 'Illuminate\Pagination\LengthAwarePaginator') && $allProperties->total() > 0)
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: #F8FAFC; border-top: 1px solid #E2E8F0; font-size: 0.8rem; color: #64748B; flex-wrap: wrap; gap: 12px;">
+            <span>Menampilkan <strong>{{ $allProperties->firstItem() ?? 0 }} - {{ $allProperties->lastItem() ?? 0 }}</strong> dari <strong>{{ $allProperties->total() }}</strong> unit listing</span>
+            
+            <div style="display: flex; gap: 6px;">
+                @if($allProperties->onFirstPage())
+                    <button type="button" class="btn-top-outline" style="padding: 4px 10px; font-size: 0.75rem;" disabled>&lt; Sebelumnya</button>
+                @else
+                    <a href="{{ $allProperties->previousPageUrl() }}" class="btn-top-outline" style="padding: 4px 10px; font-size: 0.75rem; text-decoration: none;">&lt; Sebelumnya</a>
+                @endif
+
+                @for($page = 1; $page <= $allProperties->lastPage(); $page++)
+                    @if($page == $allProperties->currentPage())
+                        <span class="btn-top-teal" style="padding: 4px 10px; font-size: 0.75rem;">{{ $page }}</span>
+                    @else
+                        <a href="{{ $allProperties->url($page) }}" class="btn-top-outline" style="padding: 4px 10px; font-size: 0.75rem; text-decoration: none;">{{ $page }}</a>
+                    @endif
+                @endfor
+
+                @if($allProperties->hasMorePages())
+                    <a href="{{ $allProperties->nextPageUrl() }}" class="btn-top-outline" style="padding: 4px 10px; font-size: 0.75rem; text-decoration: none;">Selanjutnya &gt;</a>
+                @else
+                    <button type="button" class="btn-top-outline" style="padding: 4px 10px; font-size: 0.75rem;" disabled>Selanjutnya &gt;</button>
+                @endif
+            </div>
+        </div>
+        @endif
     </div>
 
     <!-- Modal Formulir Properti (Tambah & Edit) -->
@@ -500,7 +533,7 @@
                 <input type="text" name="title" placeholder="Contoh: Villa Tropical Modern Sunset Uluwatu" required style="width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px;">
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+            <div class="prop-modal-grid-2">
                 <div>
                     <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Kategori *</label>
                     <select name="category" style="width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px;">
@@ -520,7 +553,7 @@
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+            <div class="prop-modal-grid-2">
                 <div>
                     <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Harga (Angka Penuh) *</label>
                     <input type="number" name="price" placeholder="Contoh: 8500000000" required style="width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px;">
@@ -531,7 +564,7 @@
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+            <div class="prop-modal-grid-2">
                 <div>
                     <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Kota / Wilayah *</label>
                     <input type="text" name="location_city" placeholder="Contoh: Jakarta Selatan atau Bali" required style="width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px;">
@@ -542,7 +575,7 @@
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px;">
+            <div class="prop-modal-grid-4">
                 <div>
                     <label style="display: block; font-size: 0.72rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Luas Tanah (m²)</label>
                     <input type="number" name="land_size" value="300" style="width: 100%; padding: 6px 10px; border: 1px solid #CBD5E1; border-radius: 6px;">
@@ -678,14 +711,237 @@
     color: #00838F;
 }
 
-@media (max-width: 900px) {
+/* Filter & Search Toolbar */
+.prop-filter-toolbar {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.prop-filter-form {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.prop-search-box {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 220px;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.prop-search-box input {
+    width: 100%;
+    box-sizing: border-box;
+    height: 42px;
+    padding: 0 14px 0 38px;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    color: #0E1E2E;
+    outline: none;
+    transition: all 0.2s ease;
+    background: #FFFFFF;
+    display: block;
+}
+
+.prop-search-box input:focus {
+    border-color: #00838F;
+    box-shadow: 0 0 0 3px rgba(0, 131, 143, 0.12);
+}
+
+.prop-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94A3B8;
+    display: flex;
+    pointer-events: none;
+}
+
+.prop-filter-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.prop-select-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.prop-filter-select {
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    color: #1E293B;
+    background: #FFFFFF;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    min-width: 140px;
+}
+
+.prop-filter-select:focus {
+    border-color: #00838F;
+    box-shadow: 0 0 0 3px rgba(0, 131, 143, 0.12);
+}
+
+.prop-action-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.prop-action-buttons .btn-top-teal,
+.prop-action-buttons .btn-top-outline {
+    height: 42px;
+    box-sizing: border-box;
+    white-space: nowrap;
+}
+
+/* Modal Responsive Grids */
+.prop-modal-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.prop-modal-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+/* Tablet & Intermediate Screens (<= 1024px) */
+@media (max-width: 1024px) {
     #prop-stats-grid {
         grid-template-columns: repeat(2, 1fr) !important;
     }
+    .prop-filter-form {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .prop-search-box {
+        width: 100%;
+        min-width: 0;
+    }
+    .prop-filter-controls {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 8px;
+    }
+    .prop-select-group {
+        display: contents;
+    }
+    .prop-filter-select {
+        width: 100%;
+        min-width: 0;
+    }
+    .prop-action-buttons {
+        display: flex;
+        gap: 8px;
+    }
 }
+
+/* Mobile Screens (<= 640px) */
 @media (max-width: 640px) {
+    .prop-header-actions {
+        width: 100%;
+    }
+    .prop-header-actions button,
+    .prop-header-actions a {
+        flex: 1;
+        justify-content: center;
+        text-align: center;
+    }
+    #prop-stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px;
+    }
+    .prop-stat-card,
+    .prop-stat-card-dark {
+        padding: 12px 14px;
+    }
+    .prop-stat-val {
+        font-size: 1.3rem;
+    }
+    .prop-filter-toolbar {
+        padding: 12px 14px;
+        border-radius: 10px;
+    }
+    .prop-filter-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    }
+    .prop-select-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        width: 100%;
+    }
+    .prop-filter-select {
+        width: 100%;
+        min-width: 0;
+        font-size: 0.78rem;
+        padding: 0 8px;
+    }
+    .prop-action-buttons {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    .prop-action-buttons .btn-top-teal,
+    .prop-action-buttons .btn-top-outline {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
+    }
+    .prop-modal-grid-2 {
+        grid-template-columns: 1fr;
+    }
+    .prop-modal-grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Very Small Mobile (<= 420px) */
+@media (max-width: 420px) {
     #prop-stats-grid {
         grid-template-columns: 1fr !important;
+    }
+    .prop-select-group {
+        grid-template-columns: 1fr;
+    }
+    .prop-modal-grid-4 {
+        grid-template-columns: 1fr;
     }
 }
 </style>

@@ -258,32 +258,7 @@
         <span id="toast-message" style="font-size: 0.92rem; font-weight: 500;"></span>
     </div>
 
-    <!-- Mobile Sticky Bottom Navigation -->
-    <nav class="mobile-bottom-nav">
-        <a href="{{ route('home') }}" class="mobile-bottom-item {{ request()->routeIs('home') ? 'active' : '' }}">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-            <span>Beranda</span>
-        </a>
-        <a href="{{ route('explore') }}" class="mobile-bottom-item {{ request()->routeIs('explore') ? 'active' : '' }}">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <span>Eksplor</span>
-        </a>
-        <a href="{{ route('titip-properti') }}" class="mobile-bottom-item {{ request()->routeIs('titip-properti*') ? 'active' : '' }}">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-            <span>Titip</span>
-        </a>
-        <a href="{{ route('favorites') }}" class="mobile-bottom-item {{ request()->routeIs('favorites') ? 'active' : '' }}">
-            <div style="position: relative; display: inline-flex;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-                <span class="mobile-bottom-badge" id="mobile-fav-count-badge">3</span>
-            </div>
-            <span>Favorit</span>
-        </a>
-        <button type="button" class="mobile-bottom-item" onclick="openMobileNav()">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-            <span>Menu</span>
-        </button>
-    </nav>
+
 
     <!-- Client Script for Favorites and Global Interactions -->
     <script>

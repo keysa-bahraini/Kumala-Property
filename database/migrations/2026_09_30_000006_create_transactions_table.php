@@ -14,8 +14,7 @@ return new class extends Migration
         Schema::create('transactions', function (Blueprint $table) {
             $table->string('id')->primary(); // #CLS-2025-031
             $table->string('date');
-            $table->string('property_id')->nullable();
-            $table->foreign('property_id')->references('id')->on('properties')->nullOnDelete();
+            $table->string('property_id')->nullable()->index();
             $table->string('property_title');
             $table->text('property_image')->nullable();
             $table->string('location');

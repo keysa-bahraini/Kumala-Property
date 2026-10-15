@@ -34,10 +34,10 @@
         <div>
             <div style="display: inline-flex; align-items: center; gap: 6px; background: #E0F7FA; color: #00838F; padding: 3px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase;">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                <span>CMS &amp; KENDALI KONTEN PORTAL</span>
+                <span>SYSTEM CONFIGURATION &bull; CMS KENDALI KONTEN</span>
             </div>
             <h1 style="font-size: 1.75rem; color: #0E1E2E; margin: 0 0 6px 0; font-weight: 800; letter-spacing: -0.01em;">
-                Pengaturan Sistem &amp; Konten Portal
+                Pengaturan Sistem &amp; Master Data
             </h1>
             <p style="font-size: 0.86rem; color: #64748B; margin: 0; max-width: 740px; line-height: 1.5;">
                 Kelola logo, identitas brand, narasi, dan seluruh teks tampilan pada setiap halaman publik sesuai tata letak aslinya di portal web.
@@ -186,25 +186,161 @@
             
             <!-- 1. Hero Section Box (Sesuai Layout Beranda Aslinya) -->
             <div class="cms-panel-card">
-                <div class="cms-panel-header">
+                <div class="cms-panel-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
                     <div>
-                        <h3 class="cms-panel-title">1. Banner Hero Beranda (Tampilan Utama)</h3>
-                        <p class="cms-panel-desc">Seksi paling atas yang pertama kali dilihat saat membuka situs.</p>
+                        <h3 class="cms-panel-title">1. Banner Hero Beranda (Tampilan Utama &amp; Foto Background)</h3>
+                        <p class="cms-panel-desc">Seksi paling atas yang pertama kali dilihat saat membuka situs. Anda dapat mengunggah foto arsitektur mewah sebagai latar belakang atau menggunakan warna default.</p>
                     </div>
+                    @if(!empty($settings['home_hero_bg_image']))
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="tag-badge badge-teal" style="font-size: 0.72rem; padding: 4px 10px;">
+                                <span style="width: 6px; height: 6px; border-radius: 50%; background: #00B488;"></span>
+                                <span>FOTO BACKGROUND AKTIF</span>
+                            </span>
+                        </div>
+                    @else
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="tag-badge" style="background: #E2E8F0; color: #475569; font-size: 0.72rem; padding: 4px 10px;">
+                                <span>BACKGROUND POLOS (DEFAULT)</span>
+                            </span>
+                        </div>
+                    @endif
                 </div>
 
-                <!-- Visual Mockup Hero -->
-                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 26px 24px; margin-bottom: 24px; text-align: center;">
-                    
-                    <!-- Pill Tag Hero -->
-                    <div style="max-width: 440px; margin: 0 auto 16px;">
-                        <label class="cms-label" style="text-align: center; margin-bottom: 4px; display: block;">Label Badge Pill Atas</label>
-                        <div style="display: inline-flex; align-items: center; gap: 8px; background: #E6FBF5; border: 1px solid #99EEDB; padding: 4px 14px; border-radius: 20px; width: 100%; box-sizing: border-box;">
-                            <span style="width: 7px; height: 7px; border-radius: 50%; background: #00B488; flex-shrink: 0;"></span>
-                            <input type="text" name="home_hero_badge" value="{{ $settings['home_hero_badge'] ?? 'ATELIER PROPERTI MEWAH & INVESTASI TERKURASI' }}" class="cms-input-subtle" style="color: #00838F; font-weight: 800; font-size: 0.74rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                <!-- Control Card: Foto Background Hero -->
+                <div style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 20px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(14, 34, 56, 0.04);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(0, 131, 143, 0.1); color: #00838F; display: flex; align-items: center; justify-content: center;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                            </div>
+                            <div>
+                                <h4 style="font-size: 0.95rem; font-weight: 800; color: #0E1E2E; margin: 0;">Pengaturan Foto Latar Belakang (Hero Background)</h4>
+                                <span style="font-size: 0.76rem; color: #64748B;">Upload foto berkualitas tinggi (JPG/PNG/WebP) atau gunakan URL gambar estate mewah.</span>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" class="btn-clean" style="font-size: 0.74rem; padding: 6px 12px; color: #DC2626; border-color: #FECACA;" onclick="removeHeroBackground()">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                <span>Hapus Foto (Gunakan Warna Polos)</span>
+                            </button>
+                            <input type="hidden" name="remove_hero_bg" id="remove_hero_bg_input" value="0">
                         </div>
                     </div>
 
+                    <!-- Live Mini Simulation Box -->
+                    <div id="heroBgSimBox" style="
+                        position: relative;
+                        height: 180px;
+                        border-radius: 10px;
+                        overflow: hidden;
+                        border: 1px solid #CBD5E1;
+                        margin-bottom: 20px;
+                        background-size: cover;
+                        background-position: center;
+                        @if(!empty($settings['home_hero_bg_image']))
+                            background-image: url('{{ $settings['home_hero_bg_image'] }}');
+                        @else
+                            background-color: #F1F5F9;
+                        @endif
+                    ">
+                        <!-- Dark Overlay Preview -->
+                        <div id="heroBgSimOverlay" style="
+                            position: absolute;
+                            inset: 0;
+                            background: linear-gradient(180deg, rgba(14, 30, 46, {{ floatval($settings['home_hero_bg_overlay'] ?? '0.45') * 0.9 }}) 0%, rgba(14, 30, 46, {{ floatval($settings['home_hero_bg_overlay'] ?? '0.45') * 1.2 }}) 100%);
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            justify-content: center;
+                            padding: 16px;
+                            text-align: center;
+                        ">
+                            <span id="heroSimBadge" style="display: inline-block; background: rgba(255,255,255,0.2); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; padding: 3px 12px; font-size: 0.65rem; font-weight: 800; color: #FFFFFF; text-transform: uppercase; margin-bottom: 6px;">
+                                PREVIEW LIVE BACKGROUND HERO
+                            </span>
+                            <div id="heroSimTitle" style="color: #FFFFFF; font-size: 1.1rem; font-weight: 800; text-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+                                {{ $settings['home_hero_title'] ?? 'Temukan Hunian Eksklusif & Aset Bernilai Abadi di Indonesia' }}
+                            </div>
+                            <div style="font-size: 0.74rem; color: rgba(255,255,255,0.85); margin-top: 4px;">
+                                Teks headline dan card filter pencarian akan tampil tajam &amp; kontras di atas foto ini.
+                            </div>
+                        </div>
+
+                        <div id="heroEmptyPlaceholder" style="position: absolute; inset: 0; display: {{ empty($settings['home_hero_bg_image']) ? 'flex' : 'none' }}; align-items: center; justify-content: center; flex-direction: column; color: #64748B; background: #F8FAFC;">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.8" style="margin-bottom: 6px;"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                            <span style="font-size: 0.8rem; font-weight: 700; color: #475569;">Belum Ada Foto Background (Menggunakan Warna Polos)</span>
+                            <span style="font-size: 0.72rem; color: #94A3B8;">Unggah file atau pilih salah satu preset foto mewah di bawah untuk mengaktifkan</span>
+                        </div>
+                    </div>
+
+                    <!-- Input Grid: Upload vs URL -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px;">
+                        
+                        <!-- Upload File Input -->
+                        <div class="cms-form-group">
+                            <label class="cms-label">Unggah File Foto Langsung dari Komputer</label>
+                            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                                <label for="home_hero_bg_file" class="btn-clean-teal" style="cursor: pointer; padding: 9px 16px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 8px; border-radius: 8px;">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                    <span>Pilih File Foto...</span>
+                                </label>
+                                <input type="file" id="home_hero_bg_file" name="home_hero_bg_file" accept="image/*" style="display: none;" onchange="previewHeroBgFile(event)">
+                                <span id="heroBgFileName" style="font-size: 0.75rem; color: #64748B;">Maks 5 MB (JPG, PNG, WebP)</span>
+                            </div>
+                        </div>
+
+                        <!-- Manual URL Input -->
+                        <div class="cms-form-group">
+                            <label class="cms-label">Atau Masukkan URL Link Foto</label>
+                            <input type="text" id="home_hero_bg_image" name="home_hero_bg_image" value="{{ $settings['home_hero_bg_image'] ?? '' }}" placeholder="https://images.unsplash.com/..." class="cms-input" oninput="previewHeroBgUrl(this.value)">
+                            <span class="cms-hint">Bisa paste link foto Unsplash, Cloudinary, atau CDN aset properti Anda.</span>
+                        </div>
+                    </div>
+
+                    <!-- Options: Overlay & Curated Presets -->
+                    <div style="display: grid; grid-template-columns: 240px 1fr; gap: 20px; align-items: flex-start; border-top: 1px dashed #E2E8F0; padding-top: 16px;">
+                        <!-- Overlay Selector -->
+                        <div class="cms-form-group" style="margin: 0;">
+                            <label class="cms-label">Intensitas Filter Gelap (Overlay)</label>
+                            <select name="home_hero_bg_overlay" id="home_hero_bg_overlay" class="cms-select" onchange="updateHeroOverlay(this.value)">
+                                <option value="0.30" {{ ($settings['home_hero_bg_overlay'] ?? '0.45') == '0.30' ? 'selected' : '' }}>Ringan (30% - Foto Terang)</option>
+                                <option value="0.45" {{ ($settings['home_hero_bg_overlay'] ?? '0.45') == '0.45' ? 'selected' : '' }}>Seimbang (45% - Rekomendasi)</option>
+                                <option value="0.60" {{ ($settings['home_hero_bg_overlay'] ?? '0.45') == '0.60' ? 'selected' : '' }}>Kontras Tinggi (60%)</option>
+                                <option value="0.75" {{ ($settings['home_hero_bg_overlay'] ?? '0.45') == '0.75' ? 'selected' : '' }}>Sinematik Gelap (75%)</option>
+                            </select>
+                            <span class="cms-hint">Memastikan teks headline dan card pencarian selalu kontras &amp; terbaca jelas.</span>
+                        </div>
+
+                        <!-- Curated Luxury Presets -->
+                        <div>
+                            <label class="cms-label">Pilihan Cepat Foto Arsitektur Mewah (Klik untuk Terapkan Langsung):</label>
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                                <div onclick="applyHeroPreset('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=2000&q=80', 'Villa Modern Bali')" style="cursor: pointer; border: 1px solid #CBD5E1; border-radius: 8px; overflow: hidden; background: #0E1E2E; transition: all 0.15s;" onmouseover="this.style.borderColor='#00838F'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#CBD5E1'; this.style.transform='none'">
+                                    <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=300&q=80" style="width: 100%; height: 50px; object-fit: cover; display: block;" alt="Preset 1">
+                                    <div style="padding: 4px 6px; font-size: 0.68rem; font-weight: 700; color: #FFFFFF; background: #0E1E2E; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Villa Modern Bali</div>
+                                </div>
+                                <div onclick="applyHeroPreset('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=80', 'Mansion Senopati')" style="cursor: pointer; border: 1px solid #CBD5E1; border-radius: 8px; overflow: hidden; background: #0E1E2E; transition: all 0.15s;" onmouseover="this.style.borderColor='#00838F'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#CBD5E1'; this.style.transform='none'">
+                                    <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=300&q=80" style="width: 100%; height: 50px; object-fit: cover; display: block;" alt="Preset 2">
+                                    <div style="padding: 4px 6px; font-size: 0.68rem; font-weight: 700; color: #FFFFFF; background: #0E1E2E; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Mansion Senopati</div>
+                                </div>
+                                <div onclick="applyHeroPreset('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=2000&q=80', 'Penthouse Sudirman')" style="cursor: pointer; border: 1px solid #CBD5E1; border-radius: 8px; overflow: hidden; background: #0E1E2E; transition: all 0.15s;" onmouseover="this.style.borderColor='#00838F'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#CBD5E1'; this.style.transform='none'">
+                                    <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=300&q=80" style="width: 100%; height: 50px; object-fit: cover; display: block;" alt="Preset 3">
+                                    <div style="padding: 4px 6px; font-size: 0.68rem; font-weight: 700; color: #FFFFFF; background: #0E1E2E; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Penthouse Sudirman</div>
+                                </div>
+                                <div onclick="applyHeroPreset('https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=2000&q=80', 'Tropis Ubud Sanctuary')" style="cursor: pointer; border: 1px solid #CBD5E1; border-radius: 8px; overflow: hidden; background: #0E1E2E; transition: all 0.15s;" onmouseover="this.style.borderColor='#00838F'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#CBD5E1'; this.style.transform='none'">
+                                    <img src="https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=300&q=80" style="width: 100%; height: 50px; object-fit: cover; display: block;" alt="Preset 4">
+                                    <div style="padding: 4px 6px; font-size: 0.68rem; font-weight: 700; color: #FFFFFF; background: #0E1E2E; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Tropis Ubud Sanctuary</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visual Mockup Hero Text Fields -->
+                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 26px 24px; margin-bottom: 24px; text-align: center;">
+                    
                     <!-- Headline Judul Utama Hero -->
                     <div style="max-width: 720px; margin: 0 auto 16px;">
                         <label class="cms-label" style="text-align: center; margin-bottom: 4px; display: block;">Headline Judul Utama (Besar)</label>
@@ -1041,7 +1177,49 @@
 
 @media (max-width: 900px) {
     #cms-trust-grid {
-        grid-template-columns: 1fr 1fr !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    .cms-panel-card {
+        padding: 20px 20px !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .cms-tabs-nav {
+        overflow-x: auto;
+        flex-wrap: nowrap !important;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 8px;
+    }
+    .cms-tab-pill {
+        flex-shrink: 0;
+        font-size: 0.78rem !important;
+        padding: 8px 12px !important;
+        min-height: 40px;
+    }
+    #cms-trust-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .cms-panel-card {
+        padding: 16px 14px !important;
+    }
+    .cms-panel-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+    }
+    .cms-sticky-bar {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+        padding: 12px 14px !important;
+    }
+    .cms-sticky-bar button {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+    #heroBgSimBox {
+        height: 220px !important;
     }
 }
 </style>
@@ -1101,6 +1279,69 @@ function previewLogoUrl(url) {
 function openCategoryModal() {
     const modal = document.getElementById('modal-category');
     if (modal) modal.style.display = 'flex';
+}
+
+function previewHeroBgFile(event) {
+    const file = event.target.files[0];
+    if (file) {
+        document.getElementById('heroBgFileName').innerText = file.name + ' (' + Math.round(file.size / 1024) + ' KB)';
+        document.getElementById('remove_hero_bg_input').value = '0';
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const simBox = document.getElementById('heroBgSimBox');
+            const placeholder = document.getElementById('heroEmptyPlaceholder');
+            if (simBox) simBox.style.backgroundImage = 'url(' + e.target.result + ')';
+            if (placeholder) placeholder.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function previewHeroBgUrl(url) {
+    const simBox = document.getElementById('heroBgSimBox');
+    const placeholder = document.getElementById('heroEmptyPlaceholder');
+    document.getElementById('remove_hero_bg_input').value = '0';
+    if (url && url.trim().length > 0) {
+        if (simBox) simBox.style.backgroundImage = 'url(' + url.trim() + ')';
+        if (placeholder) placeholder.style.display = 'none';
+    } else {
+        if (simBox) simBox.style.backgroundImage = 'none';
+        if (placeholder) placeholder.style.display = 'flex';
+    }
+}
+
+function applyHeroPreset(url, name) {
+    const input = document.getElementById('home_hero_bg_image');
+    if (input) {
+        input.value = url;
+        previewHeroBgUrl(url);
+    }
+    const fileInput = document.getElementById('home_hero_bg_file');
+    if (fileInput) fileInput.value = '';
+    document.getElementById('heroBgFileName').innerText = 'Preset aktif: ' + name;
+    document.getElementById('remove_hero_bg_input').value = '0';
+}
+
+function removeHeroBackground() {
+    const input = document.getElementById('home_hero_bg_image');
+    if (input) input.value = '';
+    const fileInput = document.getElementById('home_hero_bg_file');
+    if (fileInput) fileInput.value = '';
+    document.getElementById('remove_hero_bg_input').value = '1';
+    document.getElementById('heroBgFileName').innerText = 'Foto akan dihapus saat tombol Simpan ditekan.';
+    
+    const simBox = document.getElementById('heroBgSimBox');
+    const placeholder = document.getElementById('heroEmptyPlaceholder');
+    if (simBox) simBox.style.backgroundImage = 'none';
+    if (placeholder) placeholder.style.display = 'flex';
+}
+
+function updateHeroOverlay(val) {
+    const simOverlay = document.getElementById('heroBgSimOverlay');
+    if (simOverlay) {
+        const v = parseFloat(val);
+        simOverlay.style.background = 'linear-gradient(180deg, rgba(14, 30, 46, ' + (v * 0.9) + ') 0%, rgba(14, 30, 46, ' + (v * 1.2) + ') 100%)';
+    }
 }
 
 function closeCategoryModal() {
