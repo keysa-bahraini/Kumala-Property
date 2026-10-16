@@ -737,6 +737,387 @@ class ExampleTest extends TestCase
             'action' => 'Cetak / Ekspor Rekapitulasi Closing Transaksi (PDF)',
         ]);
     }
+
+    /**
+     * Revisi 1: Test explore page does NOT render active filters section when no filter is applied or defaults are used
+     */
+    public function test_explore_page_does_not_render_active_filters_when_no_filter_applied(): void
+    {
+        // 1. Plain /explore
+        $response = $this->get('/explore');
+        $response->assertStatus(200);
+        $response->assertDontSee('FILTER AKTIF:');
+        $response->assertDontSee('active-filters-section');
+        $response->assertDontSee('Reset semua');
+        $response->assertDontSee('Wilayah Strategis');
+
+        // 2. Default values provided
+        $responseDefaults = $this->get('/explore?type=Semua&category=Semua+Tipe+Properti&location=Semua+Wilayah&price_range=Semua+Rentang+Harga');
+        $responseDefaults->assertStatus(200);
+        $responseDefaults->assertDontSee('FILTER AKTIF:');
+        $responseDefaults->assertDontSee('active-filters-section');
+        $responseDefaults->assertDontSee('Reset semua');
+    }
+
+    /**
+     * Revisi 1: Test explore page renders active filters chips only for applied non-default filters
+     */
+    public function test_explore_page_renders_active_filters_when_filter_applied(): void
+    {
+        $response = $this->get('/explore?type=Jual&category=Villa&location=Bali');
+        $response->assertStatus(200);
+        $response->assertSee('FILTER AKTIF:');
+        $response->assertSee('Tipe: Jual');
+        $response->assertSee('Villa');
+        $response->assertSee('Bali');
+        $response->assertSee('Reset semua');
+        $response->assertDontSee('Wilayah Strategis');
+    }
+
+    /**
+     * Revisi 2: Test newly submitted property is REVIEW and does NOT appear in public catalog until approved
+     */
+    public function test_newly_submitted_property_does_not_appear_in_public_catalog_until_approved(): void
+    {
+        $payload = [
+            'owner_name' => 'Pak Hendra Pratama',
+            'owner_phone' => '081299887766',
+            'owner_email' => 'hendra@testreview.id',
+            'ownership_status' => 'direct_owner',
+            'transaction_type' => 'Jual',
+            'property_category' => 'Rumah Mewah',
+            'property_title' => 'Mansion Mewah Pondok Indah Unit Uji',
+            'city_region' => 'Jakarta Selatan',
+            'specific_area' => 'Pondok Indah',
+            'full_address' => 'Jl. Bukit Hijau No. 12, Pondok Indah',
+            'asking_price' => '45.000.000.000',
+            'land_size' => 700,
+            'building_size' => 600,
+            'bedrooms' => '5 KT',
+            'bathrooms' => '5 KM',
+            'facilities' => ['pool', 'furnished', 'shm'],
+            'description' => 'Mansion mewah eksklusif siap huni di kawasan Pondok Indah.',
+            'legal_consent' => '1',
+        ];
+
+        $postRes = $this->postJson('/titip-properti', $payload);
+        $postRes->assertStatus(200);
+        $postRes->assertJson(['success' => true]);
+
+        $subId = $postRes->json('submission_id');
+        $propId = $postRes->json('property_id');
+        $propSlug = $postRes->json('property_slug');
+
+        // Verify status in database: submission is pending, property is REVIEW
+        $this->assertDatabaseHas('submissions', [
+            'id' => $subId,
+            'status' => 'pending',
+        ]);
+        $this->assertDatabaseHas('properties', [
+            'id' => $propId,
+            'status' => 'REVIEW',
+        ]);
+
+        // Verify it DOES NOT appear in public catalog
+        // 1. Home
+        $homeRes = $this->get('/');
+        $homeRes->assertStatus(200);
+        $homeRes->assertDontSee('Mansion Mewah Pondok Indah Unit Uji');
+
+        // 2. Explore
+        $exploreRes = $this->get('/explore');
+        $exploreRes->assertStatus(200);
+        $exploreRes->assertDontSee('Mansion Mewah Pondok Indah Unit Uji');
+
+        // 3. Favorites
+        $favRes = $this->get('/favorit');
+        $favRes->assertStatus(200);
+        $favRes->assertDontSee('Mansion Mewah Pondok Indah Unit Uji');
+
+        // 4. Detail page for guest: 404
+        $detailRes = $this->get("/properti/{$propSlug}");
+        $detailRes->assertStatus(404);
+
+        // Approve via admin
+        $admin = $this->getAdminUser();
+        $listingBeforeRes = $this->actingAs($admin)->get('/admin/listing-masuk');
+        $listingBeforeRes->assertStatus(200);
+        $listingBeforeRes->assertSee('Mansion Mewah Pondok Indah Unit Uji');
+
+        $encodedSubId = rawurlencode($subId);
+        $approveRes = $this->actingAs($admin)->postJson("/admin/listing-masuk/{$encodedSubId}/approve");
+        $approveRes->assertStatus(200);
+        $approveRes->assertJson(['success' => true]);
+
+        // Verify status after approval in database
+        $this->assertDatabaseHas('submissions', [
+            'id' => $subId,
+            'status' => 'approved',
+        ]);
+        $this->assertDatabaseHas('properties', [
+            'id' => $propId,
+            'status' => 'ACTIVE',
+        ]);
+
+        // After approve, listing disappears from active queue in /admin/listing-masuk
+        $listingAfterRes = $this->actingAs($admin)->get('/admin/listing-masuk');
+        $listingAfterRes->assertStatus(200);
+        $listingAfterRes->assertDontSee('Mansion Mewah Pondok Indah Unit Uji');
+
+        // But it remains in database and can be seen in approved history tab
+        $listingApprovedTabRes = $this->actingAs($admin)->get('/admin/listing-masuk?status=approved');
+        $listingApprovedTabRes->assertStatus(200);
+        $listingApprovedTabRes->assertSee('Mansion Mewah Pondok Indah Unit Uji');
+
+        // Now it MUST appear in Explore catalog
+        $exploreAfterRes = $this->get('/explore');
+        $exploreAfterRes->assertStatus(200);
+        $exploreAfterRes->assertSee('Mansion Mewah Pondok Indah Unit Uji');
+
+        // Detail page for guest is now accessible
+        $detailAfterRes = $this->get("/properti/{$propSlug}");
+        $detailAfterRes->assertStatus(200);
+        $detailAfterRes->assertSee('Mansion Mewah Pondok Indah Unit Uji');
+    }
+
+    /**
+     * Revisi 2: Test admin can reject submission with reason and property is archived
+     */
+    public function test_admin_can_reject_submission_with_reason(): void
+    {
+        $payload = [
+            'owner_name' => 'Budi Santoso',
+            'owner_phone' => '081233445566',
+            'owner_email' => 'budi@testreject.id',
+            'ownership_status' => 'direct_owner',
+            'transaction_type' => 'Jual',
+            'property_category' => 'Rumah Mewah',
+            'property_title' => 'Rumah Ditolak Spesifikasi Tidak Lengkap',
+            'city_region' => 'Jakarta Selatan',
+            'specific_area' => 'Cilandak',
+            'full_address' => 'Jl. Cilandak No. 5',
+            'asking_price' => '10.000.000.000',
+            'land_size' => 200,
+            'building_size' => 150,
+            'bedrooms' => '3 KT',
+            'bathrooms' => '2 KM',
+            'facilities' => ['shm'],
+            'description' => 'Rumah tes penolakan kurator.',
+            'legal_consent' => '1',
+        ];
+
+        $postRes = $this->postJson('/titip-properti', $payload);
+        $postRes->assertStatus(200);
+
+        $subId = $postRes->json('submission_id');
+        $propId = $postRes->json('property_id');
+
+        $admin = $this->getAdminUser();
+        $encodedSubId = rawurlencode($subId);
+        $rejectRes = $this->actingAs($admin)->postJson("/admin/listing-masuk/{$encodedSubId}/reject", [
+            'notes' => 'Dokumen SHM tidak dapat diverifikasi BPN.',
+        ]);
+        $rejectRes->assertStatus(200);
+        $rejectRes->assertJson(['success' => true]);
+
+        $this->assertDatabaseHas('submissions', [
+            'id' => $subId,
+            'status' => 'rejected',
+            'notes' => 'Dokumen SHM tidak dapat diverifikasi BPN.',
+        ]);
+
+        $this->assertDatabaseHas('properties', [
+            'id' => $propId,
+            'status' => 'ARCHIVED',
+        ]);
+
+        $exploreRes = $this->get('/explore');
+        $exploreRes->assertDontSee('Rumah Ditolak Spesifikasi Tidak Lengkap');
+    }
+
+    /**
+     * Revisi Listing Masuk: Submission disappears from active queue upon approval, appears in public catalog, and remains in database
+     */
+    public function test_approved_submission_disappears_from_active_queue_and_appears_in_public_catalog(): void
+    {
+        $payload = [
+            'owner_name' => 'Hendro Wijaya',
+            'owner_phone' => '081299887766',
+            'owner_email' => 'hendro@testapprove.id',
+            'ownership_status' => 'direct_owner',
+            'transaction_type' => 'Jual',
+            'property_category' => 'Villa Mewah',
+            'property_title' => 'Villa Sanur Sunrise Eksklusif Unit Uji',
+            'city_region' => 'Bali',
+            'specific_area' => 'Sanur, Denpasar',
+            'full_address' => 'Jl. Danau Tamblingan No. 88, Sanur',
+            'asking_price' => '25.000.000.000',
+            'land_size' => 600,
+            'building_size' => 450,
+            'bedrooms' => '4 KT',
+            'bathrooms' => '4 KM',
+            'facilities' => ['shm', 'swimming_pool'],
+            'description' => 'Villa tropis mewah dekat pantai Sanur.',
+            'legal_consent' => '1',
+        ];
+
+        $postRes = $this->postJson('/titip-properti', $payload);
+        $postRes->assertStatus(200);
+
+        $subId = $postRes->json('submission_id');
+        $propId = $postRes->json('property_id');
+        $propSlug = $postRes->json('property_slug');
+
+        $admin = $this->getAdminUser();
+
+        // 1. Before approval: item is present in /admin/listing-masuk active queue
+        $queueBefore = $this->actingAs($admin)->get('/admin/listing-masuk');
+        $queueBefore->assertStatus(200);
+        $queueBefore->assertSee('Villa Sanur Sunrise Eksklusif Unit Uji');
+
+        // Not yet in public catalog
+        $exploreBefore = $this->get('/explore');
+        $exploreBefore->assertDontSee('Villa Sanur Sunrise Eksklusif Unit Uji');
+
+        // 2. Approve via admin
+        $encodedSubId = rawurlencode($subId);
+        $approveRes = $this->actingAs($admin)->postJson("/admin/listing-masuk/{$encodedSubId}/approve");
+        $approveRes->assertStatus(200);
+        $approveRes->assertJson(['success' => true]);
+
+        // 3. After approval: item disappears from active queue in /admin/listing-masuk
+        $queueAfter = $this->actingAs($admin)->get('/admin/listing-masuk');
+        $queueAfter->assertStatus(200);
+        $queueAfter->assertDontSee('Villa Sanur Sunrise Eksklusif Unit Uji');
+
+        // 4. Item still exists in database with status approved
+        $this->assertDatabaseHas('submissions', [
+            'id' => $subId,
+            'status' => 'approved',
+        ]);
+        $this->assertDatabaseHas('properties', [
+            'id' => $propId,
+            'status' => 'ACTIVE',
+        ]);
+
+        // 5. Item is visible in the approved history tab
+        $approvedTab = $this->actingAs($admin)->get('/admin/listing-masuk?status=approved');
+        $approvedTab->assertStatus(200);
+        $approvedTab->assertSee('Villa Sanur Sunrise Eksklusif Unit Uji');
+
+        // 6. Item is immediately visible in public catalog (/explore)
+        $exploreAfter = $this->get('/explore');
+        $exploreAfter->assertStatus(200);
+        $exploreAfter->assertSee('Villa Sanur Sunrise Eksklusif Unit Uji');
+
+        // 7. Property detail page is accessible
+        $detailAfter = $this->get("/properti/{$propSlug}");
+        $detailAfter->assertStatus(200);
+        $detailAfter->assertSee('Villa Sanur Sunrise Eksklusif Unit Uji');
+    }
+
+    /**
+     * Test notification and Indonesian validation messages for Titip Properti and Inquiry
+     */
+    public function test_form_validation_and_notification_responses(): void
+    {
+        $this->seed(\Database\Seeders\SettingSeeder::class);
+
+        // 1. Validation failure for Titip Properti returns Indonesian error
+        $failTitip = $this->postJson('/titip-properti', []);
+        $failTitip->assertStatus(422);
+        $failTitip->assertJsonValidationErrors(['owner_name', 'owner_phone', 'owner_email', 'property_title', 'description']);
+        $failTitip->assertJsonFragment([
+            'owner_name' => ['Nama lengkap pemilik atau kuasa hukum wajib diisi.'],
+        ]);
+
+        // 2. Validation failure for Inquiry returns Indonesian error
+        $failInquiry = $this->postJson('/inquiry', []);
+        $failInquiry->assertStatus(422);
+        $failInquiry->assertJsonValidationErrors(['name', 'phone', 'email']);
+        $failInquiry->assertJsonFragment([
+            'name' => ['Nama lengkap wajib diisi.'],
+            'phone' => ['Nomor WhatsApp atau telepon wajib diisi.'],
+            'email' => ['Alamat email aktif wajib diisi.'],
+        ]);
+
+        // 3. Successful Titip Properti response contains submission ID and review notice
+        $successTitip = $this->postJson('/titip-properti', [
+            'owner_name' => 'Bpk. Test Notif',
+            'owner_phone' => '+62 812-3344-5566',
+            'owner_email' => 'test.notif@example.com',
+            'property_title' => 'Penthouse Test Notifikasi Unit',
+            'city_region' => 'Jakarta Selatan',
+            'specific_area' => 'Kebayoran Baru',
+            'full_address' => 'Jl. Senopati No. 10',
+            'asking_price' => '18.000.000.000',
+            'description' => 'Unit penthouse mewah dengan legalitas lengkap siap huni.',
+            'legal_consent' => '1',
+        ]);
+        $successTitip->assertStatus(200);
+        $successTitip->assertJson(['success' => true]);
+        $this->assertNotEmpty($successTitip->json('submission_id'));
+
+        // 4. Successful Inquiry response contains lead ID
+        $successInquiry = $this->postJson('/inquiry', [
+            'name' => 'Ibu Pembeli Test',
+            'phone' => '+62 813-9988-7766',
+            'email' => 'pembeli.test@example.com',
+            'notes' => 'Tolong jadwalkan survei hari Sabtu.',
+        ]);
+        $successInquiry->assertStatus(200);
+        $successInquiry->assertJson(['success' => true]);
+        $this->assertNotEmpty($successInquiry->json('lead_id'));
+    }
+
+    /**
+     * Test admin notification badges increase with new items and decrease when acted upon
+     */
+    public function test_admin_notification_badges_and_flash_messages(): void
+    {
+        $this->seed(\Database\Seeders\PropertySeeder::class);
+        $admin = $this->getAdminUser();
+
+        // 1. Check initial active inquiries and pending submissions count
+        $initialPending = \App\Models\Submission::where('status', 'pending')->count();
+        $initialActiveInq = \App\Models\Lead::whereNotIn('stage', ['Closing', 'closing', 'Closing / Selesai', 'won', 'lost', 'batal', 'Batal', 'Selesai', 'selesai'])->count();
+
+        // 2. Submit new inquiry
+        $inqRes = $this->postJson('/inquiry', [
+            'name' => 'Klien Prospek Baru',
+            'phone' => '+62 812-0000-1111',
+            'email' => 'prospek.baru@test.id',
+            'notes' => 'Minat unit villa tropis.',
+        ]);
+        $inqRes->assertStatus(200);
+        $newLeadId = $inqRes->json('lead_id');
+
+        // Verify active inquiry badge increased by 1
+        $currentActiveInq = \App\Models\Lead::whereNotIn('stage', ['Closing', 'closing', 'Closing / Selesai', 'won', 'lost', 'batal', 'Batal', 'Selesai', 'selesai'])->count();
+        $this->assertEquals($initialActiveInq + 1, $currentActiveInq);
+
+        // 3. Admin acts on the lead -> changes stage to 'Closing'
+        $encodedLeadId = rawurlencode($newLeadId);
+        $stageRes = $this->actingAs($admin)->postJson("/admin/inquiry/{$encodedLeadId}/stage", [
+            'stage' => 'Closing',
+        ]);
+        $stageRes->assertStatus(200);
+
+        // Verify active inquiry badge decreased back
+        $afterClosingActiveInq = \App\Models\Lead::whereNotIn('stage', ['Closing', 'closing', 'Closing / Selesai', 'won', 'lost', 'batal', 'Batal', 'Selesai', 'selesai'])->count();
+        $this->assertEquals($initialActiveInq, $afterClosingActiveInq);
+
+        // 4. Test Flash Session rendering in admin layout
+        $flashRes = $this->actingAs($admin)->withSession(['success' => 'Unit uji transaksi closing berhasil!'])->get('/admin/riwayat-transaksi');
+        $flashRes->assertStatus(200);
+        $flashRes->assertSee('Unit uji transaksi closing berhasil!');
+        $flashRes->assertSee('showToast');
+
+        // 5. Test Settings page does not double-render toast flash
+        $settingsRes = $this->actingAs($admin)->withSession(['success' => 'Konfigurasi tersimpan'])->get('/admin/pengaturan');
+        $settingsRes->assertStatus(200);
+        $settingsRes->assertSee('Konfigurasi tersimpan');
+    }
 }
 
 

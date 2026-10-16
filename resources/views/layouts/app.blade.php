@@ -253,12 +253,41 @@
     </footer>
 
     <!-- Global Toast Notification -->
-    <div id="toast-notification" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; background: #0E2238; color: #FFFFFF; padding: 14px 22px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); display: none; align-items: center; gap: 12px; border-left: 4px solid #00B488;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00B488" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        <span id="toast-message" style="font-size: 0.92rem; font-weight: 500;"></span>
+    <style>
+        #toast-notification {
+            position: fixed;
+            bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+            right: 24px;
+            z-index: 99999;
+            background: #0E2238;
+            color: #FFFFFF;
+            padding: 14px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            border-left: 4px solid #00B488;
+            max-width: 440px;
+            word-break: break-word;
+            box-sizing: border-box;
+            line-height: 1.4;
+        }
+        @media (max-width: 640px) {
+            #toast-notification {
+                left: 16px !important;
+                right: 16px !important;
+                bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+                max-width: calc(100% - 32px) !important;
+                font-size: 0.85rem !important;
+                padding: 12px 16px !important;
+            }
+        }
+    </style>
+    <div id="toast-notification">
+        <svg id="app-toast-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00B488" stroke-width="2.5" style="flex-shrink: 0;"><polyline points="20 6 9 17 4 12"/></svg>
+        <span id="toast-message" style="font-size: 0.9rem; font-weight: 500;"></span>
     </div>
-
-
 
     <!-- Client Script for Favorites and Global Interactions -->
     <script>
@@ -334,11 +363,25 @@
             });
         }
 
-        function showToast(message) {
+        function showToast(message, isError = false) {
             const toast = document.getElementById('toast-notification');
             const msgEl = document.getElementById('toast-message');
+            const iconSvg = document.getElementById('app-toast-icon');
             if (toast && msgEl) {
                 msgEl.textContent = message;
+                if (isError) {
+                    toast.style.borderLeftColor = '#EF4444';
+                    if (iconSvg) {
+                        iconSvg.style.stroke = '#EF4444';
+                        iconSvg.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
+                    }
+                } else {
+                    toast.style.borderLeftColor = '#00B488';
+                    if (iconSvg) {
+                        iconSvg.style.stroke = '#00B488';
+                        iconSvg.innerHTML = '<polyline points="20 6 9 17 4 12"/>';
+                    }
+                }
                 toast.style.display = 'flex';
                 clearTimeout(window.toastTimer);
                 window.toastTimer = setTimeout(() => {
@@ -349,6 +392,11 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             updateFavoriteCounter();
+            @if(session('success'))
+                showToast(@json(session('success')), false);
+            @elseif(session('error'))
+                showToast(@json(session('error')), true);
+            @endif
         });
     </script>
 

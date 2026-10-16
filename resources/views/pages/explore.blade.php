@@ -130,30 +130,22 @@
 
     <!-- Active Chips & Sorting Toolbar -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; flex-wrap: wrap; gap: 14px;">
-        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        @if(!empty($activeFilters) && count($activeFilters) > 0)
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;" id="active-filters-section">
             <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-light); text-transform: uppercase;">FILTER AKTIF:</span>
             
+            @foreach($activeFilters as $af)
             <span class="active-chip">
-                {{ $category !== 'Semua Tipe Properti' ? $category : 'Semua Properti' }}
-                <a href="{{ route('explore') }}" style="color: var(--text-muted); font-weight: 700;">✕</a>
+                {{ $af['label'] }}
+                <a href="{{ $af['url'] }}" style="color: var(--text-muted); font-weight: 700; text-decoration: none; margin-left: 4px;" title="Hapus filter {{ $af['label'] }}">✕</a>
             </span>
+            @endforeach
 
-            @if($location !== 'Semua Wilayah')
-            <span class="active-chip">
-                {{ $location }}
-                <a href="{{ route('explore') }}" style="color: var(--text-muted); font-weight: 700;">✕</a>
-            </span>
-            @else
-            <span class="active-chip">
-                Wilayah Strategis
-                <a href="{{ route('explore') }}" style="color: var(--text-muted); font-weight: 700;">✕</a>
-            </span>
-            @endif
-
-            <a href="{{ route('explore') }}" style="font-size: 0.8rem; color: var(--text-muted); text-decoration: underline; margin-left: 4px;">Hapus Semua</a>
+            <a href="{{ route('explore') }}" style="font-size: 0.8rem; color: var(--text-muted); text-decoration: underline; margin-left: 4px;">Reset semua</a>
         </div>
+        @endif
 
-        <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px; @if(empty($activeFilters) || count($activeFilters) === 0) margin-left: auto; @endif">
             <div style="display: flex; align-items: center; gap: 6px;">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="m21 8-4-4-4 4"/><path d="M17 4v16"/></svg>
                 <select style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 6px 12px; font-size: 0.85rem; font-weight: 600; color: var(--primary-navy); cursor: pointer;">

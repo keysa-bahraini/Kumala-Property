@@ -36,29 +36,29 @@
 
     <!-- Status Tabs -->
     <div class="sub-tabs-wrapper">
-        <button type="button" class="sub-tab-btn active" onclick="filterSubmissions('all', this)">
-            Semua Pengajuan <span style="background: rgba(255,255,255,0.2); padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['all'] ?? count($submissions) }}</span>
-        </button>
-        <button type="button" class="sub-tab-btn" onclick="filterSubmissions('pending', this)">
+        <a href="{{ route('admin.submissions') }}" class="sub-tab-btn {{ (!request()->filled('status') || request('status') === 'active' || request('status') === 'all') ? 'active' : '' }}" style="text-decoration: none;">
+            Semua Antrean Aktif <span id="badge-all" style="background: rgba(255,255,255,0.2); padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['all'] ?? 0 }}</span>
+        </a>
+        <a href="{{ route('admin.submissions', ['status' => 'pending']) }}" class="sub-tab-btn {{ request('status') === 'pending' ? 'active' : '' }}" style="text-decoration: none;">
             <span style="width: 6px; height: 6px; border-radius: 50%; background: #D97706; display: inline-block; margin-right: 6px;"></span>
-            Menunggu Review <span style="background: #FEF3C7; color: #D97706; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['pending'] ?? 0 }}</span>
-        </button>
-        <button type="button" class="sub-tab-btn" onclick="filterSubmissions('revision', this)">
-            Perlu Revisi Pemilik <span style="background: #F1F5F9; color: #64748B; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['revision'] ?? 0 }}</span>
-        </button>
-        <button type="button" class="sub-tab-btn" onclick="filterSubmissions('approved', this)">
-            Disetujui &amp; Diterbitkan <span style="background: #E6FBF5; color: #059669; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['approved'] ?? 0 }}</span>
-        </button>
-        <button type="button" class="sub-tab-btn" onclick="filterSubmissions('rejected', this)">
-            Ditolak <span style="background: #F1F5F9; color: #64748B; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['rejected'] ?? 0 }}</span>
-        </button>
+            Menunggu Review <span id="badge-pending" style="background: #FEF3C7; color: #D97706; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['pending'] ?? 0 }}</span>
+        </a>
+        <a href="{{ route('admin.submissions', ['status' => 'revision']) }}" class="sub-tab-btn {{ request('status') === 'revision' ? 'active' : '' }}" style="text-decoration: none;">
+            Perlu Revisi Pemilik <span id="badge-revision" style="background: #F1F5F9; color: #64748B; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['revision'] ?? 0 }}</span>
+        </a>
+        <a href="{{ route('admin.submissions', ['status' => 'approved']) }}" class="sub-tab-btn {{ request('status') === 'approved' ? 'active' : '' }}" style="text-decoration: none;">
+            Disetujui &amp; Diterbitkan <span id="badge-approved" style="background: #E6FBF5; color: #059669; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['approved'] ?? 0 }}</span>
+        </a>
+        <a href="{{ route('admin.submissions', ['status' => 'rejected']) }}" class="sub-tab-btn {{ request('status') === 'rejected' ? 'active' : '' }}" style="text-decoration: none;">
+            Ditolak <span id="badge-rejected" style="background: #F1F5F9; color: #64748B; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['rejected'] ?? 0 }}</span>
+        </a>
     </div>
 
     <!-- Antrian Horizontal Cards Row -->
     <div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.74rem; flex-wrap: wrap; gap: 6px;">
             <div style="font-weight: 800; color: #64748B; letter-spacing: 0.6px; text-transform: uppercase;">
-                ANTRIAN VERIFIKASI MASUK <span style="font-weight: 500; color: #94A3B8; text-transform: none; margin-left: 6px;">{{ count($submissions) }} Berkas Tersimpan</span>
+                ANTRIAN VERIFIKASI MASUK <span id="queue-stored-text" style="font-weight: 500; color: #94A3B8; text-transform: none; margin-left: 6px;">{{ count($submissions) }} Berkas Tersimpan</span>
             </div>
             <span style="color: #64748B; font-size: 0.72rem;">Klik kartu untuk meninjau detail berkas di bawah</span>
         </div>
@@ -82,7 +82,7 @@
             <div class="queue-card {{ $index === 0 ? 'active' : '' }}" 
                  data-status="{{ $sub['status'] ?? 'pending' }}" 
                  data-sub-id="{{ $sub['id'] }}"
-                 onclick="selectSubmission({{ json_encode($sub) }}, this)">
+                 onclick="selectSubmissionById('{{ $sub['id'] }}', this)">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                     <strong style="color: #0E1E2E; font-size: 0.78rem;">{{ $sub['id'] }}</strong>
                     <span class="{{ $statusPillClass }}">&bull; {{ $statusText }}</span>
@@ -117,17 +117,17 @@
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; padding-bottom: 16px; border-bottom: 1px solid #F1F5F9;" class="deck-header-row">
             <div style="flex: 1; min-width: 260px;">
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
-                    <span id="deck-id" style="background: #0E1E2E; color: #FFFFFF; font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 4px; white-space: nowrap; display: inline-block;">{{ $initSub['id'] }}</span>
+                    <span id="deck-id" style="background: #0E1E2E; color: #FFFFFF; font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 4px; white-space: nowrap; display: inline-block;">{{ $initSub['id'] ?? '' }}</span>
                     <span id="deck-trx-type" style="background: #E0F2FE; color: #0284C7; font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; white-space: nowrap; display: inline-block;">
                         {{ $initSub['category'] ?? 'RUMAH TINGGAL' }} ({{ strtoupper($initSub['trx_type'] ?? 'JUAL') }})
                     </span>
                     <span id="deck-time" style="font-size: 0.76rem; color: #64748B; white-space: nowrap;">&bull; Terdaftar: {{ $initSub['time_ago'] ?? 'Baru saja' }}</span>
                 </div>
                 <h2 id="deck-title" style="font-size: 1.45rem; font-weight: 800; color: #0E1E2E; margin: 0 0 6px 0; line-height: 1.25;">
-                    {{ $initSub['title'] }}
+                    {{ $initSub['title'] ?? '' }}
                 </h2>
                 <div id="deck-location" style="font-size: 0.8rem; color: #64748B; line-height: 1.4;">
-                    {{ $initSub['address'] ?? $initSub['location'] }}
+                    {{ $initSub['address'] ?? ($initSub['location'] ?? '') }}
                 </div>
             </div>
 
@@ -158,14 +158,14 @@
                 <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.8rem;">
                     <div>
                         <span style="font-size: 0.7rem; color: #64748B; display: block;">Nama Lengkap</span>
-                        <strong id="deck-owner-name" style="color: #0E1E2E; font-size: 0.88rem;">{{ $initSub['owner'] }}</strong>
+                        <strong id="deck-owner-name" style="color: #0E1E2E; font-size: 0.88rem;">{{ $initSub['owner'] ?? '' }}</strong>
                     </div>
 
                     <div>
                         <span style="font-size: 0.7rem; color: #64748B; display: block;">Kontak WhatsApp</span>
                         <div style="display: flex; align-items: center; gap: 8px; margin-top: 3px; flex-wrap: wrap;">
-                            <strong id="deck-owner-phone" style="color: #0E1E2E; font-size: 0.86rem; white-space: nowrap;">{{ $initSub['phone'] }}</strong>
-                            <a id="deck-owner-wa-link" href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $initSub['phone']) }}" target="_blank" style="background: #00838F; color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;">
+                            <strong id="deck-owner-phone" style="color: #0E1E2E; font-size: 0.86rem; white-space: nowrap;">{{ $initSub['phone'] ?? '' }}</strong>
+                            <a id="deck-owner-wa-link" href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $initSub['phone'] ?? '') }}" target="_blank" style="background: #00838F; color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;">
                                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                                 <span>Chat WA</span>
                             </a>
@@ -174,7 +174,7 @@
 
                     <div>
                         <span style="font-size: 0.7rem; color: #64748B; display: block;">Email</span>
-                        <span id="deck-owner-email" style="color: #0E1E2E; font-size: 0.82rem; word-break: break-all;">{{ $initSub['email'] }}</span>
+                        <span id="deck-owner-email" style="color: #0E1E2E; font-size: 0.82rem; word-break: break-all;">{{ $initSub['email'] ?? '' }}</span>
                     </div>
                 </div>
             </div>
@@ -289,27 +289,43 @@
 
         <!-- Action Footer Buttons -->
         <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid #F1F5F9; flex-wrap: wrap; gap: 10px;" class="deck-footer-actions">
-            <div style="display: flex; gap: 8px;" class="deck-footer-secondary">
-                <button type="button" class="btn-deck-reject" onclick="handleRejectSubmission()">
+            <div style="display: {{ ($initSub['status'] ?? '') === 'approved' ? 'none' : 'flex' }}; gap: 8px;" class="deck-footer-secondary" id="deck-secondary-actions">
+                <button type="button" class="btn-deck-reject" id="btn-action-reject" onclick="handleRejectSubmission()">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
                     <span>Tolak Pengajuan</span>
                 </button>
-                <button type="button" class="btn-deck-outline" onclick="handleRevisionSubmission()">
+                <button type="button" class="btn-deck-outline" id="btn-action-revision" onclick="handleRevisionSubmission()">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                     <span>Minta Revisi Berkas</span>
                 </button>
             </div>
 
             <div style="display: flex; gap: 8px;" class="deck-footer-primary">
+                @if(($initSub['status'] ?? '') === 'approved')
+                <button type="button" class="btn-deck-approve" id="btn-action-approve" disabled style="background: #059669; border-color: #059669; cursor: default;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Telah Tayang di Web Publik</span>
+                </button>
+                @else
                 <button type="button" class="btn-deck-approve" id="btn-action-approve" onclick="handleApproveSubmission()">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                     <span>Setujui &amp; Publikasikan ke Web</span>
                 </button>
+                @endif
             </div>
         </div>
 
     </div>
     @endif
+
+    <!-- Deck Empty State when no submissions are left -->
+    <div id="deck-empty-state" style="{{ $initSub ? 'display: none;' : '' }} background: #FFFFFF; border: 1px dashed #CBD5E1; border-radius: 12px; padding: 48px 24px; text-align: center; color: #64748B;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: #E6FBF5; color: #059669; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h3 style="font-size: 1.1rem; color: #0E1E2E; font-weight: 700; margin: 0 0 6px 0;">Semua Berkas Telah Diverifikasi</h3>
+        <p style="font-size: 0.85rem; margin: 0;">Tidak ada pengajuan yang sedang menunggu tindakan di antrean ini.</p>
+    </div>
 
 </div>
 @endsection
@@ -613,7 +629,15 @@
 
 @section('scripts')
 <script>
+const submissionsData = @json($submissions ?? []);
 let activeSubData = @json($initSub ?? null);
+
+function selectSubmissionById(id, el) {
+    const found = submissionsData.find(s => String(s.id) === String(id));
+    if (found) {
+        selectSubmission(found, el);
+    }
+}
 
 function selectSubmission(sub, el) {
     activeSubData = sub;
@@ -623,29 +647,63 @@ function selectSubmission(sub, el) {
     if (el) el.classList.add('active');
 
     // Update Deck
-    document.getElementById('deck-id').innerText = sub.id || '';
-    document.getElementById('deck-trx-type').innerText = (sub.category || 'PROPERTI') + ' (' + (sub.trx_type || 'JUAL').toUpperCase() + ')';
-    document.getElementById('deck-time').innerText = '• Terdaftar: ' + (sub.time_ago || 'Baru saja');
-    document.getElementById('deck-title').innerText = sub.title || '';
-    document.getElementById('deck-location').innerText = sub.address || sub.location || '';
+    const deckId = document.getElementById('deck-id');
+    if (deckId) deckId.innerText = sub.id || '';
     
-    document.getElementById('deck-owner-name').innerText = sub.owner || '';
-    document.getElementById('deck-owner-phone').innerText = sub.phone || '';
-    document.getElementById('deck-owner-email').innerText = sub.email || '';
+    const deckTrx = document.getElementById('deck-trx-type');
+    if (deckTrx) deckTrx.innerText = (sub.category || 'PROPERTI') + ' (' + (sub.trx_type || 'JUAL').toUpperCase() + ')';
     
-    const phoneClean = (sub.phone || '').replace(/[^0-9]/g, '');
+    const deckTime = document.getElementById('deck-time');
+    if (deckTime) deckTime.innerText = '• Terdaftar: ' + (sub.time_ago || 'Baru saja');
+    
+    const deckTitle = document.getElementById('deck-title');
+    if (deckTitle) deckTitle.innerText = sub.title || '';
+    
+    const deckLoc = document.getElementById('deck-location');
+    if (deckLoc) deckLoc.innerText = sub.address || sub.location || '';
+    
+    const deckOwner = document.getElementById('deck-owner-name');
+    if (deckOwner) deckOwner.innerText = sub.owner || '';
+    
+    const deckPhone = document.getElementById('deck-owner-phone');
+    if (deckPhone) deckPhone.innerText = sub.phone || '';
+    
+    const deckEmail = document.getElementById('deck-owner-email');
+    if (deckEmail) deckEmail.innerText = sub.email || '';
+    
+    const phoneClean = String(sub.phone || '').replace(/[^0-9]/g, '');
     const waLink = document.getElementById('deck-owner-wa-link');
     if (waLink) waLink.href = 'https://wa.me/' + phoneClean;
 
-    document.getElementById('deck-price').innerText = sub.price || 'Rp 0';
-    document.getElementById('deck-legal').innerText = sub.legal || 'SHM';
-    document.getElementById('deck-land').innerText = 'LT ' + (sub.land_size || 0) + ' m²';
-    document.getElementById('deck-building').innerText = 'LB ' + (sub.building_size || 0) + ' m²';
-    document.getElementById('deck-rooms').innerText = (sub.bedrooms || '3 KT') + ' / ' + (sub.bathrooms || '2 KM');
-    document.getElementById('deck-electricity').innerText = 'Listrik ' + (sub.electricity || '3500 VA');
-    document.getElementById('deck-trx').innerText = sub.trx_type || 'Jual';
-    document.getElementById('deck-category').innerText = sub.category || 'Rumah Mewah';
-    document.getElementById('deck-notes').innerText = sub.notes || 'Pengajuan via portal Titip Properti.';
+    const deckPrice = document.getElementById('deck-price');
+    if (deckPrice) deckPrice.innerText = sub.price || 'Rp 0';
+    
+    const deckLegal = document.getElementById('deck-legal');
+    if (deckLegal) deckLegal.innerText = sub.legal || 'SHM';
+    
+    const deckLand = document.getElementById('deck-land');
+    if (deckLand) deckLand.innerText = 'LT ' + (sub.land_size || 0) + ' m²';
+    
+    const deckBldg = document.getElementById('deck-building');
+    if (deckBldg) deckBldg.innerText = 'LB ' + (sub.building_size || 0) + ' m²';
+    
+    const deckRooms = document.getElementById('deck-rooms');
+    if (deckRooms) deckRooms.innerText = (sub.bedrooms || '3 KT') + ' / ' + (sub.bathrooms || '2 KM');
+    
+    const deckElec = document.getElementById('deck-electricity');
+    if (deckElec) deckElec.innerText = 'Listrik ' + (sub.electricity || '3500 VA');
+    
+    const deckTrxSub = document.getElementById('deck-trx');
+    if (deckTrxSub) deckTrxSub.innerText = sub.trx_type || 'Jual';
+    
+    const deckCat = document.getElementById('deck-category');
+    if (deckCat) deckCat.innerText = sub.category || 'Rumah Mewah';
+    
+    const deckNotes = document.getElementById('deck-notes');
+    if (deckNotes) deckNotes.innerText = sub.notes || 'Pengajuan via portal Titip Properti.';
+
+    const deckVal = document.getElementById('deck-valuation');
+    if (deckVal) deckVal.innerText = sub.valuation_range || 'Dalam Estimasi';
     
     // Update status badge
     const statusPill = document.getElementById('deck-status-pill');
@@ -657,6 +715,9 @@ function selectSubmission(sub, el) {
         } else if (sub.status === 'rejected') {
             statusPill.style.background = '#FEE2E2';
             statusPill.style.color = '#DC2626';
+        } else if (sub.status === 'revision') {
+            statusPill.style.background = '#F1F5F9';
+            statusPill.style.color = '#64748B';
         } else {
             statusPill.style.background = '#FEF3C7';
             statusPill.style.color = '#D97706';
@@ -665,9 +726,12 @@ function selectSubmission(sub, el) {
 
     // Update photos row
     const photosRow = document.getElementById('photos-row');
-    if (photosRow && Array.isArray(sub.photos) && sub.photos.length > 0) {
+    if (photosRow) {
+        const photoList = Array.isArray(sub.photos) && sub.photos.length > 0 
+            ? sub.photos 
+            : ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80'];
         let photosHtml = '';
-        sub.photos.forEach((url, i) => {
+        photoList.forEach((url, i) => {
             photosHtml += `
                 <div class="berkas-photo-thumb">
                     <img src="${url}" alt="Dokumen ${i+1}">
@@ -677,21 +741,27 @@ function selectSubmission(sub, el) {
         });
         photosRow.innerHTML = photosHtml;
     }
-}
 
-function filterSubmissions(status, btn) {
-    document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-
-    const cards = document.querySelectorAll('.queue-card');
-    cards.forEach(card => {
-        const cardStatus = card.getAttribute('data-status');
-        if (status === 'all' || cardStatus === status) {
-            card.style.display = 'block';
+    // Update action buttons state
+    const btnApprove = document.getElementById('btn-action-approve');
+    const secActions = document.getElementById('deck-secondary-actions');
+    if (btnApprove) {
+        if (sub.status === 'approved') {
+            btnApprove.disabled = true;
+            btnApprove.style.background = '#059669';
+            btnApprove.style.borderColor = '#059669';
+            btnApprove.style.cursor = 'default';
+            btnApprove.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Telah Tayang di Web Publik</span>`;
+            if (secActions) secActions.style.display = 'none';
         } else {
-            card.style.display = 'none';
+            btnApprove.disabled = false;
+            btnApprove.style.background = '#00838F';
+            btnApprove.style.borderColor = '#00838F';
+            btnApprove.style.cursor = 'pointer';
+            btnApprove.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Setujui &amp; Publikasikan ke Web</span>`;
+            if (secActions) secActions.style.display = 'flex';
         }
-    });
+    }
 }
 
 function handleApproveSubmission() {
@@ -700,13 +770,14 @@ function handleApproveSubmission() {
         return;
     }
 
+    const approvedId = String(activeSubData.id);
     const btn = document.getElementById('btn-action-approve');
     btn.disabled = true;
     btn.innerText = 'Menerbitkan Listing...';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '{{ csrf_token() }}';
 
-    fetch('/admin/listing-masuk/' + encodeURIComponent(activeSubData.id) + '/approve', {
+    fetch('/admin/listing-masuk/' + encodeURIComponent(approvedId) + '/approve', {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': csrfToken,
@@ -720,10 +791,65 @@ function handleApproveSubmission() {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            showToast(`Sukses! Pengajuan ${activeSubData.id} telah disetujui & otomatis tayang di halaman publik sebagai properti aktif!`);
-            setTimeout(() => {
-                window.location.reload();
-            }, 1200);
+            showToast(`Sukses! Pengajuan ${approvedId} telah disetujui & otomatis tayang di katalog publik!`);
+
+            // 1. Update queue count badges
+            if (data.pending_count !== undefined) {
+                const pendText = document.getElementById('pending-count-text');
+                if (pendText) pendText.innerText = data.pending_count + ' Menunggu';
+                const badgePend = document.getElementById('badge-pending');
+                if (badgePend) badgePend.innerText = data.pending_count;
+            }
+            if (data.active_count !== undefined) {
+                const badgeAll = document.getElementById('badge-all');
+                if (badgeAll) badgeAll.innerText = data.active_count;
+            }
+            if (data.approved_count !== undefined) {
+                const badgeApp = document.getElementById('badge-approved');
+                if (badgeApp) badgeApp.innerText = data.approved_count;
+            }
+
+            // 2. Remove the approved card from active queue
+            const cardEl = document.querySelector(`.queue-card[data-sub-id="${approvedId}"]`);
+            if (cardEl) {
+                cardEl.remove();
+            }
+
+            // 3. Update local submissionsData array
+            const removeIdx = submissionsData.findIndex(s => String(s.id) === approvedId);
+            if (removeIdx !== -1) {
+                submissionsData.splice(removeIdx, 1);
+            }
+
+            // 4. Update stored count text
+            const storedText = document.getElementById('queue-stored-text');
+            if (storedText) {
+                storedText.innerText = submissionsData.length + ' Berkas Tersimpan';
+            }
+
+            // 5. Select next item in queue or show empty state
+            const remainingCards = document.querySelectorAll('.queue-card');
+            if (remainingCards.length > 0 && submissionsData.length > 0) {
+                const nextCard = remainingCards[0];
+                const nextId = nextCard.getAttribute('data-sub-id');
+                const nextSub = submissionsData.find(s => String(s.id) === String(nextId)) || submissionsData[0];
+                selectSubmission(nextSub, nextCard);
+            } else {
+                activeSubData = null;
+                const deckWrapper = document.getElementById('deck-wrapper');
+                if (deckWrapper) deckWrapper.style.display = 'none';
+                const emptyState = document.getElementById('deck-empty-state');
+                if (emptyState) emptyState.style.display = 'block';
+
+                const queueGrid = document.getElementById('queue-grid');
+                if (queueGrid) {
+                    queueGrid.innerHTML = `
+                        <div id="queue-empty-msg" style="grid-column: 1 / -1; padding: 24px; text-align: center; background: #fff; border-radius: 8px; border: 1px dashed #CBD5E1; color: #64748B; font-size: 0.85rem;">
+                            Semua pengajuan telah diverifikasi. Tidak ada berkas yang menunggu review di antrean ini.
+                        </div>
+                    `;
+                }
+            }
         } else {
             showToast('Gagal memproses persetujuan berkas.');
             btn.disabled = false;
@@ -739,10 +865,15 @@ function handleApproveSubmission() {
 }
 
 function handleRejectSubmission() {
-    if (!activeSubData || !activeSubData.id) return;
-    if (!confirm('Apakah Anda yakin ingin menolak pengajuan ' + activeSubData.id + '?')) return;
+    if (!activeSubData || !activeSubData.id) {
+        showToast('Pilih berkas pengajuan terlebih dahulu.');
+        return;
+    }
 
-    updateStatusDirect(activeSubData.id, 'rejected', 'Berkas ditolak setelah pemeriksaan spesifikasi fisik.');
+    const reason = prompt('Masukkan alasan penolakan pengajuan ' + activeSubData.id + ':', 'Berkas ditolak setelah pemeriksaan spesifikasi fisik dan kelengkapan dokumen.');
+    if (reason === null) return; // Batal jika tekan cancel
+
+    updateStatusDirect(activeSubData.id, 'rejected', reason.trim() || 'Berkas ditolak oleh kurator.');
 }
 
 function handleRevisionSubmission() {

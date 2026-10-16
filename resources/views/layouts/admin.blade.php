@@ -150,6 +150,14 @@
             padding: 2px 7px;
             border-radius: 12px;
             line-height: 1.2;
+            min-width: 20px;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            white-space: nowrap;
         }
 
         .admin-sidebar-footer {
@@ -268,6 +276,9 @@
             color: #FFFFFF;
         }
 
+        .admin-notification-wrapper {
+            position: relative;
+        }
         .admin-notification-btn {
             position: relative;
             background: transparent;
@@ -279,6 +290,8 @@
             align-items: center;
             justify-content: center;
             border-radius: 6px;
+            min-width: 36px;
+            min-height: 36px;
         }
         .admin-notification-btn:hover {
             color: #0F172A;
@@ -288,11 +301,128 @@
             position: absolute;
             top: 5px;
             right: 5px;
-            width: 7px;
-            height: 7px;
+            width: 8px;
+            height: 8px;
             background: #EF4444;
             border-radius: 50%;
             border: 1.5px solid #FFFFFF;
+        }
+
+        .admin-notification-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            width: 310px;
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.14);
+            z-index: 10000;
+            overflow: hidden;
+            display: none;
+            text-align: left;
+            box-sizing: border-box;
+        }
+        .admin-notification-dropdown.open {
+            display: block;
+            animation: fadeInAdminDrop 0.2s ease;
+        }
+        @keyframes fadeInAdminDrop {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .dropdown-header-box {
+            padding: 12px 16px;
+            background: #F8FAFC;
+            border-bottom: 1px solid #E2E8F0;
+        }
+        .dropdown-item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 11px 16px;
+            border-bottom: 1px solid #F1F5F9;
+            text-decoration: none;
+            color: #1E293B;
+            transition: background 0.15s;
+        }
+        .dropdown-item-row:hover {
+            background: #F8FAFC;
+        }
+        .dropdown-item-badge {
+            font-size: 0.74rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            min-width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .dropdown-footer-box {
+            padding: 10px 16px;
+            background: #F8FAFC;
+            border-top: 1px solid #E2E8F0;
+        }
+        .btn-dropdown-close {
+            width: 100%;
+            min-height: 44px;
+            background: #FFFFFF;
+            border: 1px solid #CBD5E1;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-dropdown-close:hover {
+            background: #F1F5F9;
+            color: #0F172A;
+        }
+
+        #toast-notification {
+            position: fixed;
+            bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+            right: 24px;
+            z-index: 99999;
+            background: #0E1E2E;
+            color: #FFFFFF;
+            padding: 12px 18px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            border-left: 4px solid #00838F;
+            max-width: 420px;
+            word-break: break-word;
+            box-sizing: border-box;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 640px) {
+            .admin-notification-dropdown {
+                position: fixed;
+                top: auto;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
+                max-width: 100%;
+                border-radius: 16px 16px 0 0;
+                box-shadow: 0 -10px 35px rgba(0,0,0,0.3);
+                max-height: 80vh;
+                overflow-y: auto;
+            }
+            #toast-notification {
+                left: 16px;
+                right: 16px;
+                bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+                max-width: calc(100% - 32px);
+                font-size: 0.85rem;
+            }
         }
 
         .admin-content {
@@ -511,10 +641,70 @@
                     <span class="btn-admin-add-text-short">Tambah</span>
                 </a>
 
-                <button type="button" class="admin-notification-btn" title="Notifikasi" onclick="showToast('Sistem sinkronisasi real-time beroperasi normal.')">
-                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                    <span class="notification-badge-dot"></span>
-                </button>
+                <div class="admin-notification-wrapper">
+                    <button type="button" class="admin-notification-btn" id="btn-admin-bell" title="Notifikasi Operasional" onclick="toggleAdminNotificationDropdown(event)">
+                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        @if(($adminNotificationCount ?? 0) > 0)
+                            <span class="notification-badge-dot" id="bell-badge-dot"></span>
+                        @endif
+                    </button>
+
+                    <!-- Dropdown Notifikasi Operasional -->
+                    <div id="admin-notification-dropdown" class="admin-notification-dropdown">
+                        <div class="dropdown-header-box">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <strong style="font-size: 0.88rem; color: #0E1E2E;">Notifikasi Operasional</strong>
+                                <span class="dropdown-item-badge" style="background: #E0F2FE; color: #0284C7;">{{ $adminNotificationCount ?? 0 }} Total</span>
+                            </div>
+                            <span style="font-size: 0.74rem; color: #64748B;">Ringkasan tugas yang memerlukan perhatian admin</span>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column;">
+                            <a href="{{ route('admin.submissions') }}" class="dropdown-item-row" onclick="closeAdminNotificationDropdown()">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 30px; height: 30px; border-radius: 6px; background: #E0F2FE; color: #0284C7; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 0.82rem; font-weight: 700; color: #0E1E2E;">Listing Masuk</div>
+                                        <div style="font-size: 0.72rem; color: #64748B;">Pengajuan pending kurasi</div>
+                                    </div>
+                                </div>
+                                <span class="dropdown-item-badge" style="background: #E0F2FE; color: #0284C7;">{{ $pendingSubmissionsCount ?? 0 }}</span>
+                            </a>
+
+                            <a href="{{ route('admin.inquiries') }}" class="dropdown-item-row" onclick="closeAdminNotificationDropdown()">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 30px; height: 30px; border-radius: 6px; background: #E6FBF5; color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 0.82rem; font-weight: 700; color: #0E1E2E;">Data Inquiry</div>
+                                        <div style="font-size: 0.72rem; color: #64748B;">Prospek aktif pipeline</div>
+                                    </div>
+                                </div>
+                                <span class="dropdown-item-badge" style="background: #E6FBF5; color: #059669;">{{ $activeInquiriesCount ?? 0 }}</span>
+                            </a>
+
+                            <a href="{{ route('admin.inquiries') }}" class="dropdown-item-row" onclick="closeAdminNotificationDropdown()">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 30px; height: 30px; border-radius: 6px; background: #FEF3C7; color: #D97706; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 0.82rem; font-weight: 700; color: #0E1E2E;">Jadwal Survei</div>
+                                        <div style="font-size: 0.72rem; color: #64748B;">Agenda survei fisik</div>
+                                    </div>
+                                </div>
+                                <span class="dropdown-item-badge" style="background: #FEF3C7; color: #D97706;">{{ $upcomingSurveysCount ?? 0 }}</span>
+                            </a>
+                        </div>
+
+                        <div class="dropdown-footer-box">
+                            <button type="button" class="btn-dropdown-close" onclick="closeAdminNotificationDropdown()">Tutup</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -524,9 +714,12 @@
         </main>
     </div>
 
+    <!-- Mobile Backdrop for Notification Bottom Sheet -->
+    <div id="admin-notification-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 9998;" onclick="closeAdminNotificationDropdown()"></div>
+
     <!-- Global Toast Notification -->
-    <div id="toast-notification" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; background: #0E1E2E; color: #FFFFFF; padding: 12px 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; align-items: center; gap: 10px; border-left: 4px solid #00838F;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00838F" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    <div id="toast-notification">
+        <svg id="toast-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00838F" stroke-width="2.5" style="flex-shrink: 0;"><polyline points="20 6 9 17 4 12"/></svg>
         <span id="toast-message" style="font-size: 0.88rem; font-weight: 500;"></span>
     </div>
 
@@ -547,17 +740,70 @@
             document.body.style.overflow = '';
         }
 
-        function showToast(msg) {
+        function toggleAdminNotificationDropdown(e) {
+            if (e) e.stopPropagation();
+            const dropdown = document.getElementById('admin-notification-dropdown');
+            const backdrop = document.getElementById('admin-notification-backdrop');
+            if (!dropdown) return;
+            const isOpen = dropdown.classList.contains('open');
+            if (isOpen) {
+                closeAdminNotificationDropdown();
+            } else {
+                dropdown.classList.add('open');
+                if (backdrop && window.innerWidth <= 640) {
+                    backdrop.style.display = 'block';
+                }
+            }
+        }
+
+        function closeAdminNotificationDropdown() {
+            const dropdown = document.getElementById('admin-notification-dropdown');
+            const backdrop = document.getElementById('admin-notification-backdrop');
+            if (dropdown) dropdown.classList.remove('open');
+            if (backdrop) backdrop.style.display = 'none';
+        }
+
+        document.addEventListener('click', (e) => {
+            const wrapper = document.querySelector('.admin-notification-wrapper');
+            if (wrapper && !wrapper.contains(e.target)) {
+                closeAdminNotificationDropdown();
+            }
+        });
+
+        function showToast(msg, isError = false) {
             const toast = document.getElementById('toast-notification');
             const messageEl = document.getElementById('toast-message');
+            const iconSvg = document.getElementById('toast-icon');
             if (toast && messageEl) {
                 messageEl.textContent = msg;
+                if (isError) {
+                    toast.style.borderLeftColor = '#EF4444';
+                    if (iconSvg) {
+                        iconSvg.style.stroke = '#EF4444';
+                        iconSvg.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
+                    }
+                } else {
+                    toast.style.borderLeftColor = '#00838F';
+                    if (iconSvg) {
+                        iconSvg.style.stroke = '#00838F';
+                        iconSvg.innerHTML = '<polyline points="20 6 9 17 4 12"/>';
+                    }
+                }
                 toast.style.display = 'flex';
-                setTimeout(() => {
+                clearTimeout(window.adminToastTimer);
+                window.adminToastTimer = setTimeout(() => {
                     toast.style.display = 'none';
                 }, 3500);
             }
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            @if(session('success') && !request()->routeIs('admin.settings'))
+                showToast(@json(session('success')), false);
+            @elseif(session('error'))
+                showToast(@json(session('error')), true);
+            @endif
+        });
     </script>
     @yield('scripts')
 </body>
