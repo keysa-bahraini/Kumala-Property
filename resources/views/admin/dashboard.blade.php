@@ -199,15 +199,19 @@
                 </div>
 
                 <div class="action-item-actions">
-                    @if(!empty($item['btn_url_1']) || !empty($item['btn1_url']))
-                        <a href="{{ $item['btn_url_1'] ?? $item['btn1_url'] ?? '#' }}" class="btn-action-outline">{{ $item['btn_action_1'] ?? $item['btn1_text'] ?? 'Buka Detail' }}</a>
+                    @php
+                        $targetUrl1 = $item['btn_url_1'] ?? $item['btn1_url'] ?? $item['url_1'] ?? null;
+                        $targetUrl2 = $item['btn_url_2'] ?? $item['btn2_url'] ?? $item['url_2'] ?? null;
+                    @endphp
+                    @if(!empty($targetUrl1))
+                        <a href="{{ $targetUrl1 }}" target="{{ str_contains($targetUrl1, 'wa.me') ? '_blank' : '_self' }}" class="btn-action-outline">{{ $item['btn_action_1'] ?? $item['btn1_text'] ?? 'Buka Detail' }}</a>
                     @else
                         <button type="button" class="btn-action-outline" onclick="showToast('Memproses {{ $item['id'] }}...')">{{ $item['btn_action_1'] ?? 'Tindak Lanjut' }}</button>
                     @endif
 
-                    @if(!empty($item['btn_url_2']) || !empty($item['btn2_url']))
-                        <a href="{{ $item['btn_url_2'] ?? $item['btn2_url'] ?? '#' }}" target="{{ str_contains($item['btn_url_2'] ?? '', 'wa.me') ? '_blank' : '_self' }}" class="{{ str_contains($item['btn_url_2'] ?? '', 'wa.me') ? 'btn-action-teal' : 'btn-action-dark' }}">
-                            @if(str_contains($item['btn_url_2'] ?? '', 'wa.me'))
+                    @if(!empty($targetUrl2))
+                        <a href="{{ $targetUrl2 }}" target="{{ str_contains($targetUrl2, 'wa.me') ? '_blank' : '_self' }}" class="{{ str_contains($targetUrl2, 'wa.me') ? 'btn-action-teal' : 'btn-action-dark' }}">
+                            @if(str_contains($targetUrl2, 'wa.me'))
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                             @endif
                             <span>{{ $item['btn_action_2'] ?? $item['btn2_text'] ?? 'Proses' }}</span>

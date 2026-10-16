@@ -1392,19 +1392,13 @@ function handleTitipSubmit(e) {
     .then(data => {
         if (data.success) {
             if (typeof showToast === 'function') {
-                showToast(`Pengajuan berhasil dikirim dengan ID ${data.submission_id}!`);
+                showToast(`Pengajuan ${data.submission_id} berhasil diterima dan menunggu review admin sebelum tayang.`);
             }
             
             // Populate Modal
             document.getElementById('modal-sub-id').textContent = data.submission_id || '#TP-New';
-            document.getElementById('modal-prop-id').textContent = data.property_id || '#KP-New';
-            document.getElementById('modal-success-title').textContent = data.title || 'Properti Anda Telah Terdaftar';
+            document.getElementById('modal-success-title').textContent = data.title || 'Pengajuan Berhasil Diterima';
             
-            if (data.property_url) {
-                const viewBtn = document.getElementById('modal-btn-view-prop');
-                viewBtn.href = data.property_url;
-            }
-
             document.getElementById('modal-titip-success').style.display = 'flex';
             form.reset();
             selectedFilesList = [];
@@ -1441,40 +1435,35 @@ function closeSuccessModal() {
 </script>
 
 <!-- Modal Konfirmasi Sukses Titip Properti -->
-<div id="modal-titip-success" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(14, 30, 46, 0.75); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 20px;">
-    <div style="background: #FFFFFF; border-radius: 16px; max-width: 480px; width: 100%; padding: 32px 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: center; border: 1px solid #E2E8F0; position: relative; animation: fadeInScale 0.3s ease;">
-        <div style="width: 56px; height: 56px; border-radius: 50%; background: #E6FBF5; color: #00B488; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+<div id="modal-titip-success" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(14, 30, 46, 0.75); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 16px; box-sizing: border-box;">
+    <div style="background: #FFFFFF; border-radius: 16px; max-width: 460px; width: 100%; max-height: calc(100vh - 32px); overflow-y: auto; padding: 28px 22px; box-shadow: 0 20px 40px rgba(0,0,0,0.25); text-align: center; border: 1px solid #E2E8F0; position: relative; box-sizing: border-box; animation: fadeInScale 0.3s ease;">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: #E6FBF5; color: #00B488; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
-        <span style="font-size: 0.72rem; font-weight: 800; color: #00838F; text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 6px;">DATA BERHASIL TERKIRIM</span>
-        <h3 style="font-size: 1.3rem; color: #0E1E2E; margin-bottom: 8px; font-weight: 800;" id="modal-success-title">Properti Anda Telah Terdaftar</h3>
-        <p style="font-size: 0.86rem; color: #64748B; line-height: 1.5; margin-bottom: 20px;">
-            Data konsinyasi berhasil masuk ke antrean verifikasi Admin dan otomatis telah terbit di katalog publik Kumala Property.
+        <span style="font-size: 0.72rem; font-weight: 800; color: #00838F; text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 6px;">DATA PENGAJUAN DITERIMA</span>
+        <h3 style="font-size: 1.25rem; color: #0E1E2E; margin-bottom: 8px; font-weight: 800;" id="modal-success-title">Pengajuan Berhasil Diterima</h3>
+        <p style="font-size: 0.86rem; color: #64748B; line-height: 1.5; margin-bottom: 18px;">
+            Pengajuan properti Anda telah berhasil diterima dan menunggu review tim kurator kami sebelum ditayangkan di katalog publik.
         </p>
         
-        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px 16px; margin-bottom: 22px; text-align: left; font-size: 0.84rem;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <span style="color: #64748B;">ID Pengajuan Admin:</span>
-                <strong style="color: #0E1E2E;" id="modal-sub-id">#TP-205</strong>
+        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; text-align: left; font-size: 0.84rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="color: #64748B;">Nomor Referensi Pengajuan:</span>
+                <strong style="color: #0E1E2E; font-size: 0.95rem;" id="modal-sub-id">#TP-205</strong>
             </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                <span style="color: #64748B;">ID Listing Web:</span>
-                <strong style="color: #00838F;" id="modal-prop-id">#KP-8825</strong>
-            </div>
-            <div style="display: flex; justify-content: space-between;">
-                <span style="color: #64748B;">Status Publikasi:</span>
-                <span style="background: #E6FBF5; color: #059669; font-weight: 700; font-size: 0.74rem; padding: 2px 8px; border-radius: 4px;">TAYANG DI WEB (ACTIVE)</span>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #64748B;">Status Pengajuan:</span>
+                <span style="background: #FEF3C7; color: #D97706; font-weight: 700; font-size: 0.74rem; padding: 3px 8px; border-radius: 4px;">MENUNGGU REVIEW ADMIN</span>
             </div>
         </div>
 
         <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-            <a href="{{ route('explore') }}" id="modal-btn-view-prop" class="btn-primary" style="padding: 11px 20px; border-radius: 8px; font-size: 0.88rem; text-decoration: none;">
-                <span>Lihat di Katalog</span>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-            </a>
-            <button type="button" onclick="closeSuccessModal()" class="btn-outline-navy" style="padding: 11px 18px; border-radius: 8px; font-size: 0.88rem; cursor: pointer;">
-                Titip Properti Lain
+            <button type="button" onclick="closeSuccessModal()" class="btn-primary" style="padding: 11px 20px; border-radius: 8px; font-size: 0.88rem; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: 1; min-width: 140px;">
+                <span>Selesai & Tutup</span>
             </button>
+            <a href="{{ route('explore') }}" class="btn-outline-navy" style="padding: 11px 18px; border-radius: 8px; font-size: 0.88rem; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; flex: 1; min-width: 140px;">
+                <span>Jelajahi Properti</span>
+            </a>
         </div>
     </div>
 </div>

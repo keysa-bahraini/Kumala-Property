@@ -119,13 +119,15 @@ class AdminController extends Controller
             'closing_target_pct' => $closingTargetPct,
         ];
 
-        // Priority Action Inbox (Queried from Submissions, Leads, Transactions)
+        // Priority Action Inbox (Queried from Submissions & Leads only, excluding completed transactions)
         $priorityActions = [];
 
         // 1. Pending submissions
         $pendingSubs = Submission::where('status', 'pending')->latest()->take(2)->get();
         foreach ($pendingSubs as $sub) {
             $phoneClean = preg_replace('/[^0-9]/', '', $sub->owner_phone ?: '6281288992345');
+            $subUrl = route('admin.submissions') . '?selected=' . $sub->id;
+            $waUrl = "https://wa.me/{$phoneClean}";
             $priorityActions[] = [
                 'id' => $sub->id,
                 'type' => 'listing',
@@ -138,15 +140,21 @@ class AdminController extends Controller
                 'detail' => 'Harga pengajuan ' . ($sub->asking_price ?: 'Rp ' . number_format($sub->asking_val, 0, ',', '.')) . '. Legalitas: ' . ($sub->legal ?: 'SHM (Hak Milik)') . '. Membutuhkan verifikasi appraisal & persetujuan tayang.',
                 'btn_action_1' => 'Hubungi via WA',
                 'btn_action_2' => 'Tinjau & Kurasi Unit',
-                'url_1' => "https://wa.me/{$phoneClean}",
-                'url_2' => route('admin.submissions') . '?selected=' . $sub->id,
+                'btn_url_1' => $waUrl,
+                'btn_url_2' => $subUrl,
+                'btn1_url' => $waUrl,
+                'btn2_url' => $subUrl,
+                'url_1' => $waUrl,
+                'url_2' => $subUrl,
             ];
         }
 
         // 2. New Inquiries
-        $newLeads = Lead::whereIn('stage', ['Baru', 'new', 'NEW'])->latest()->take(1)->get();
+        $newLeads = Lead::whereIn('stage', ['Baru', 'new', 'NEW'])->latest()->take(2)->get();
         foreach ($newLeads as $lead) {
             $phoneClean = preg_replace('/[^0-9]/', '', ($lead->client_phone ?: $lead->phone) ?: '6281192345678');
+            $inqUrl = route('admin.inquiries');
+            $waUrl = "https://wa.me/{$phoneClean}";
             $priorityActions[] = [
                 'id' => $lead->id,
                 'type' => 'inquiry',
@@ -159,28 +167,12 @@ class AdminController extends Controller
                 'detail' => $lead->quote ?: ($lead->message ?: 'Meminta jadwal survei privat dengan penjemputan bandara. Skema pembayaran Cash Keras.'),
                 'btn_action_1' => 'Hubungi via WhatsApp',
                 'btn_action_2' => 'Jadwalkan Survei',
-                'url_1' => "https://wa.me/{$phoneClean}",
-                'url_2' => route('admin.inquiries'),
-            ];
-        }
-
-        // 3. Recent Closing
-        $latestTrx = Transaction::latest()->first();
-        if ($latestTrx) {
-            $priorityActions[] = [
-                'id' => $latestTrx->id,
-                'type' => 'closing',
-                'title' => 'Draft Final PPJB: ' . $latestTrx->property_title . ' (' . ($latestTrx->property_id ?: '#KP-8822') . ')',
-                'owner' => 'Notaris: ' . ($latestTrx->notary ?: 'Dra. Sri Wahyuni, S.H.'),
-                'phone' => '+62 813-7722-1100',
-                'time_ago' => $latestTrx->created_at ? $latestTrx->created_at->diffForHumans() : '2 jam yang lalu',
-                'sla_status' => 'normal',
-                'sla_badge' => 'Jadwal Closing: ' . ($latestTrx->date ?: '14:00 WIB'),
-                'detail' => 'Nilai deal disepakati ' . $latestTrx->deal_price . '. Salinan draft PPJB dan bukti validasi PPh/BPHTB siap ditandatangani.',
-                'btn_action_1' => 'Lihat Rekap Closing',
-                'btn_action_2' => 'Kelola Transaksi',
-                'url_1' => route('admin.transactions'),
-                'url_2' => route('admin.transactions'),
+                'btn_url_1' => $waUrl,
+                'btn_url_2' => $inqUrl,
+                'btn1_url' => $waUrl,
+                'btn2_url' => $inqUrl,
+                'url_1' => $waUrl,
+                'url_2' => $inqUrl,
             ];
         }
 
@@ -315,24 +307,34 @@ class AdminController extends Controller
      */
     public function submissions(Request $request)
     {
-        $allCount = Submission::count();
+        $activeCount = Submission::where('status', '!=', 'approved')->count();
         $pendingCount = Submission::where('status', 'pending')->count();
         $revisionCount = Submission::where('status', 'revision')->count();
         $approvedCount = Submission::where('status', 'approved')->count();
         $rejectedCount = Submission::where('status', 'rejected')->count();
 
         $queueCounts = [
-            'all' => $allCount ?: 28,
-            'pending' => $pendingCount ?: 3,
-            'revision' => $revisionCount ?: 2,
-            'approved' => $approvedCount ?: 19,
-            'rejected' => $rejectedCount ?: 4,
+            'all' => $activeCount,
+            'pending' => $pendingCount,
+            'revision' => $revisionCount,
+            'approved' => $approvedCount,
+            'rejected' => $rejectedCount,
         ];
 
+        $currentStatus = $request->query('status', 'active');
         $submissionsQuery = Submission::with(['checklists', 'checklist'])->latest();
 
-        if ($request->filled('status') && $request->status !== 'all') {
-            $submissionsQuery->where('status', $request->status);
+        if ($currentStatus === 'pending') {
+            $submissionsQuery->where('status', 'pending');
+        } elseif ($currentStatus === 'revision') {
+            $submissionsQuery->where('status', 'revision');
+        } elseif ($currentStatus === 'approved') {
+            $submissionsQuery->where('status', 'approved');
+        } elseif ($currentStatus === 'rejected') {
+            $submissionsQuery->where('status', 'rejected');
+        } else {
+            // Default active queue hides approved items
+            $submissionsQuery->where('status', '!=', 'approved');
         }
 
         $submissions = $submissionsQuery->get()->map(function ($sub) {
@@ -383,12 +385,13 @@ class AdminController extends Controller
                 'status' => $sub->status,
                 'priority' => $sub->priority ?: 'P2 - High Priority',
                 'photos_count' => (int) ($sub->photos_count ?: 6),
+                'photos' => is_array($sub->photos) ? $sub->photos : (!empty($sub->photos) ? (array) $sub->photos : []),
                 'checklist' => $checklistMap,
                 'notes' => $sub->notes ?: '',
             ];
         })->toArray();
 
-        if (empty($submissions)) {
+        if (empty($submissions) && Submission::count() === 0) {
             $submissions = self::getDefaultSubmissions();
         }
 
@@ -567,10 +570,24 @@ class AdminController extends Controller
     {
         $sub = Submission::findOrFail($id);
         $sub->status = 'approved';
+        if ($request->filled('notes')) {
+            $sub->notes = $request->notes;
+        }
         $sub->save();
 
-        $existingProperty = Property::where('id', $sub->id)->first();
-        if (!$existingProperty) {
+        $property = null;
+        if (!empty($sub->property_id)) {
+            $property = Property::find($sub->property_id);
+        }
+        if (!$property) {
+            $property = Property::where('id', $sub->id)->first();
+        }
+
+        if ($property) {
+            $property->status = 'ACTIVE';
+            $property->save();
+            $createdPropertyId = $property->id;
+        } else {
             $allIds = Property::pluck('id')->map(function ($pid) {
                 if (preg_match('/#KP-(\d+)/', $pid, $m)) {
                     return (int) $m[1];
@@ -611,14 +628,15 @@ class AdminController extends Controller
                 'bedrooms' => (int) preg_replace('/[^0-9]/', '', (string) $sub->bedrooms) ?: 3,
                 'bathrooms' => (int) preg_replace('/[^0-9]/', '', (string) $sub->bathrooms) ?: 2,
                 'electricity' => $sub->electricity ?: '3500 VA',
-                'image_main' => 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+                'image_main' => !empty($sub->photos) && is_array($sub->photos) ? $sub->photos[0] : 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
                 'description' => $sub->notes ?: ('Properti eksklusif ' . $sub->title . ' dengan sertifikat ' . ($sub->legal ?: 'SHM') . ' dan spesifikasi premium.'),
                 'status' => 'ACTIVE',
             ]);
 
+            $sub->property_id = $property->id;
+            $sub->save();
+
             $createdPropertyId = $property->id;
-        } else {
-            $createdPropertyId = $existingProperty->id;
         }
 
         AuditLog::create([
@@ -634,6 +652,9 @@ class AdminController extends Controller
                 'success' => true,
                 'message' => "Listing {$id} berhasil disetujui & langsung diterbitkan ke katalog publik dengan ID {$createdPropertyId}!",
                 'property_id' => $createdPropertyId,
+                'pending_count' => Submission::where('status', 'pending')->count(),
+                'active_count' => Submission::where('status', '!=', 'approved')->count(),
+                'approved_count' => Submission::where('status', 'approved')->count(),
             ]);
         }
 
@@ -652,22 +673,57 @@ class AdminController extends Controller
         }
         $sub->save();
 
+        if (!empty($sub->property_id)) {
+            $prop = Property::find($sub->property_id);
+            if ($prop) {
+                $prop->status = 'ARCHIVED';
+                $prop->save();
+            }
+        }
+
         AuditLog::create([
             'timestamp_display' => now()->format('H:i') . ' WIB',
             'action' => "Penolakan Pengajuan Listing {$id}",
             'user' => auth()->user() ? auth()->user()->name : 'Super Admin',
             'status' => 'Rejected',
-            'details' => ['submission_id' => $id],
+            'details' => ['submission_id' => $id, 'reason' => $sub->notes],
         ]);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => "Pengajuan {$id} ditolak. Notifikasi email terkirim ke pemilik.",
+                'message' => "Pengajuan {$id} berhasil ditolak. Alasan: " . ($sub->notes ?: 'Spesifikasi tidak memenuhi kriteria.'),
             ]);
         }
 
         return redirect()->route('admin.submissions')->with('success', "Pengajuan {$id} berhasil ditolak.");
+    }
+
+    /**
+     * Fase 5: Generic Status Update for Submission
+     */
+    public function updateSubmissionStatus(Request $request, $id)
+    {
+        $status = $request->input('status', 'pending');
+        if ($status === 'approved') {
+            return $this->approveSubmission($request, $id);
+        } elseif ($status === 'rejected') {
+            return $this->rejectSubmission($request, $id);
+        } elseif ($status === 'revision') {
+            return $this->revisionSubmission($request, $id);
+        }
+
+        $sub = Submission::findOrFail($id);
+        $sub->status = $status;
+        if ($request->filled('notes')) {
+            $sub->notes = $request->notes;
+        }
+        $sub->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => "Status pengajuan {$id} berhasil diubah ke {$status}.",
+        ]);
     }
 
     /**

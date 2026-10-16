@@ -12,23 +12,36 @@ class PropertyDataService
     public static function transform(Property $p): array
     {
         $images = [];
-        if ($p->relationLoaded('photos') && $p->photos && $p->photos->isNotEmpty()) {
-            $images = $p->photos->pluck('photo_url')->toArray();
-        } elseif ($p->photos()->exists()) {
-            $images = $p->photos()->pluck('photo_url')->toArray();
+        $photosRel = $p->relationLoaded('photos') ? $p->getRelation('photos') : null;
+        if ($photosRel instanceof \Illuminate\Support\Collection && $photosRel->isNotEmpty()) {
+            $images = $photosRel->pluck('photo_url')->filter()->values()->toArray();
+        } elseif (!$p->relationLoaded('photos') && $p->photos()->exists()) {
+            $images = $p->photos()->pluck('photo_url')->filter()->values()->toArray();
         }
+
+        if (empty($images) && is_array($p->images) && !empty($p->images)) {
+            $images = array_values(array_filter($p->images));
+        }
+
         if (empty($images) && $p->image_main) {
             $images = [$p->image_main];
         }
 
         $features = [];
-        if ($p->relationLoaded('features') && $p->features && $p->features->isNotEmpty()) {
-            $features = $p->features->map(fn($f) => [
-                'title' => $f->title,
-                'desc' => $f->desc,
-                'icon' => $f->icon ?: 'star',
+        $featuresRel = $p->relationLoaded('features') ? $p->getRelation('features') : null;
+        if ($featuresRel instanceof \Illuminate\Support\Collection && $featuresRel->isNotEmpty()) {
+            $features = $featuresRel->map(fn($f) => [
+                'title' => is_object($f) ? ($f->title ?? '') : ($f['title'] ?? ''),
+                'desc' => is_object($f) ? ($f->desc ?? '') : ($f['desc'] ?? ''),
+                'icon' => (is_object($f) ? ($f->icon ?? '') : ($f['icon'] ?? '')) ?: 'star',
             ])->toArray();
-        } elseif ($p->features()->exists()) {
+        } elseif (is_array($p->features) && !empty($p->features)) {
+            $features = array_values(array_map(fn($f) => [
+                'title' => is_object($f) ? ($f->title ?? '') : ($f['title'] ?? ''),
+                'desc' => is_object($f) ? ($f->desc ?? '') : ($f['desc'] ?? ''),
+                'icon' => (is_object($f) ? ($f->icon ?? '') : ($f['icon'] ?? '')) ?: 'star',
+            ], $p->features));
+        } elseif (!$p->relationLoaded('features') && $p->features()->exists()) {
             $features = $p->features()->get()->map(fn($f) => [
                 'title' => $f->title,
                 'desc' => $f->desc,

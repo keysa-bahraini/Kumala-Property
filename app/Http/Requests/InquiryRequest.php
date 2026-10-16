@@ -40,9 +40,17 @@ class InquiryRequest extends FormRequest
     {
         return [
             'name.required' => 'Nama lengkap wajib diisi.',
+            'name.string' => 'Nama lengkap harus berupa teks.',
+            'name.max' => 'Nama lengkap maksimal 255 karakter.',
             'phone.required' => 'Nomor WhatsApp atau telepon wajib diisi.',
+            'phone.string' => 'Nomor WhatsApp atau telepon harus berupa teks yang valid.',
+            'phone.max' => 'Nomor WhatsApp atau telepon maksimal 50 karakter.',
             'email.required' => 'Alamat email aktif wajib diisi.',
             'email.email' => 'Format email tidak valid.',
+            'email.max' => 'Alamat email maksimal 255 karakter.',
+            'survey_date.date' => 'Format tanggal preferensi survei tidak valid.',
+            'notes.string' => 'Catatan harus berupa teks.',
+            'notes.max' => 'Catatan maksimal 1000 karakter.',
         ];
     }
 }

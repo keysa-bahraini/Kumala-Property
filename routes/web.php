@@ -63,6 +63,7 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
     // Halaman 10: Manajemen Listing Masuk (Gatekeeper Verification)
     Route::get('/listing-masuk', [AdminController::class, 'submissions'])->name('admin.submissions');
     Route::post('/listing-masuk/{id}/approve', [AdminController::class, 'approveSubmission']);
+    Route::post('/listing-masuk/{id}/reject', [AdminController::class, 'rejectSubmission']);
     Route::post('/listing-masuk/{id}/status', [AdminController::class, 'updateSubmissionStatus'])->name('admin.submissions.status');
     Route::post('/submissions/{id}/approve', [AdminController::class, 'approveSubmission'])->name('admin.submissions.approve');
     Route::post('/submissions/{id}/reject', [AdminController::class, 'rejectSubmission'])->name('admin.submissions.reject');

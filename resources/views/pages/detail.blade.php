@@ -311,37 +311,37 @@
 
                     <div style="margin-bottom: 14px;">
                         <label class="form-label-field">Nama Lengkap *</label>
-                        <input type="text" name="name" class="form-input-field" placeholder="Contoh: Bpk. Hendra Gunawan" required>
+                        <input type="text" name="name" class="form-input-field" placeholder="Contoh: Bpk. Hendra Gunawan" value="{{ old('name') }}" required>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
                         <div>
                             <label class="form-label-field">WhatsApp / Telepon *</label>
-                            <input type="tel" name="phone" class="form-input-field" placeholder="+62 812-xxxx-xxxx" required>
+                            <input type="tel" name="phone" class="form-input-field" placeholder="+62 812-xxxx-xxxx" value="{{ old('phone') }}" required>
                         </div>
                         <div>
                             <label class="form-label-field">Email Aktif *</label>
-                            <input type="email" name="email" class="form-input-field" placeholder="hendra@perusahaan.com" required>
+                            <input type="email" name="email" class="form-input-field" placeholder="hendra@perusahaan.com" value="{{ old('email') }}" required>
                         </div>
                     </div>
 
                     <div style="margin-bottom: 14px;">
                         <label class="form-label-field">Rencana Skema Pembelian</label>
                         <select name="payment_scheme" class="form-input-field">
-                            <option>Cash Keras (Diskon Khusus Nego)</option>
-                            <option>KPR Bank Rekanan (BCA / Mandiri)</option>
-                            <option>Termin Bertahap</option>
+                            <option {{ old('payment_scheme') == 'Cash Keras (Diskon Khusus Nego)' ? 'selected' : '' }}>Cash Keras (Diskon Khusus Nego)</option>
+                            <option {{ old('payment_scheme') == 'KPR Bank Rekanan (BCA / Mandiri)' ? 'selected' : '' }}>KPR Bank Rekanan (BCA / Mandiri)</option>
+                            <option {{ old('payment_scheme') == 'Termin Bertahap' ? 'selected' : '' }}>Termin Bertahap</option>
                         </select>
                     </div>
 
                     <div style="margin-bottom: 14px;">
                         <label class="form-label-field">Preferensi Waktu Survei Lokasi</label>
-                        <input type="date" name="survey_date" class="form-input-field">
+                        <input type="date" name="survey_date" class="form-input-field" value="{{ old('survey_date') }}">
                     </div>
 
                     <div style="margin-bottom: 16px;">
                         <label class="form-label-field">Catatan Tambahan / Pertanyaan</label>
-                        <textarea name="notes" rows="3" class="form-input-field" placeholder="Tuliskan jika ingin meminta video tour terkini atau jadwal penjemputan bandara..."></textarea>
+                        <textarea name="notes" rows="3" class="form-input-field" placeholder="Tuliskan jika ingin meminta video tour terkini atau jadwal penjemputan bandara...">{{ old('notes') }}</textarea>
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 8px; font-size: 0.76rem; color: #64748B; margin-bottom: 18px;">
@@ -604,10 +604,21 @@ function handleInquirySubmit(e) {
         },
         body: formData
     })
-    .then(res => res.json())
+    .then(async res => {
+        const data = await res.json();
+        if (!res.ok) {
+            let errorMsg = data.message || 'Terjadi kesalahan pada data formulir.';
+            if (data.errors) {
+                const firstKey = Object.keys(data.errors)[0];
+                errorMsg = data.errors[firstKey][0];
+            }
+            throw new Error(errorMsg);
+        }
+        return data;
+    })
     .then(data => {
         if (data.success) {
-            showToast(`Pengajuan berhasil dikirim dengan ID ${data.lead_id}! Concierge kami akan menghubungi via WhatsApp dalam < 15 menit.`);
+            showToast(`Pengajuan berhasil dikirim dengan ID ${data.lead_id}! Concierge kami akan menghubungi via WhatsApp dalam < 15 menit.`, false);
             form.reset();
             btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><span>Pengajuan Terkirim (${data.lead_id}) ✓</span>`;
             setTimeout(() => {
@@ -615,14 +626,14 @@ function handleInquirySubmit(e) {
                 btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><span>Kirim Pengajuan Minat Beli</span>`;
             }, 5000);
         } else {
-            showToast(data.message || 'Gagal mengirim pengajuan. Silakan hubungi via WhatsApp hotline.');
+            showToast(data.message || 'Gagal mengirim pengajuan. Silakan periksa formulir Anda.', true);
             btn.disabled = false;
             btn.innerHTML = '<span>Kirim Ulang Pengajuan</span>';
         }
     })
     .catch(err => {
         console.error(err);
-        showToast('Terjadi gangguan jaringan. Silakan hubungi via WhatsApp hotline kami.');
+        showToast(err.message || 'Terjadi gangguan jaringan. Silakan hubungi via WhatsApp hotline kami.', true);
         btn.disabled = false;
         btn.innerHTML = '<span>Kirim Ulang Pengajuan</span>';
     });

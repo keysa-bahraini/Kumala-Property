@@ -458,7 +458,7 @@ class KumalaDataHub
             'images' => $photos,
             'description' => $description,
             'highlight_badge' => 'Listing Baru',
-            'status' => 'ACTIVE',
+            'status' => 'REVIEW',
         ]);
 
         // 10. Create Submission Record in MySQL
@@ -507,12 +507,12 @@ class KumalaDataHub
             'time_ago' => 'Baru saja',
             'sla_status' => 'warning',
             'sla_badge' => 'SLA Respon < 4 Jam',
-            'detail' => 'Harga pengajuan ' . $subModel->asking_price . '. Unit telah tayang perdana di katalog publik (' . $newProp['id'] . ').',
+            'detail' => 'Harga pengajuan ' . $subModel->asking_price . '. Menunggu verifikasi kurator untuk tayang di katalog publik (' . $newProp['id'] . ').',
             'btn_action_1' => 'Verifikasi SHM BPN',
             'btn_action_2' => 'Tinjau & Kurasi Unit',
         ]);
 
-        self::logAction("Pengajuan Titip Properti Baru {$id} ({$newProp['id']}) dari {$subModel->owner_name}", 'Portal Publik (User)', 'Published');
+        self::logAction("Pengajuan Titip Properti Baru {$id} ({$newProp['id']}) dari {$subModel->owner_name}", 'Portal Publik (User)', 'Pending Review');
 
         return self::transformSubmission($subModel);
     }
@@ -533,6 +533,17 @@ class KumalaDataHub
                 if ($sub->property_id) {
                     $prop = Property::where('id', $sub->property_id)->first();
                     if ($prop) {
+                        $prop->status = 'ACTIVE';
+                        $prop->save();
+                        return self::transformProperty($prop);
+                    }
+                } else {
+                    $prop = Property::where('id', $sub->id)->first();
+                    if ($prop) {
+                        $prop->status = 'ACTIVE';
+                        $prop->save();
+                        $sub->property_id = $prop->id;
+                        $sub->save();
                         return self::transformProperty($prop);
                     }
                 }
@@ -1152,18 +1163,34 @@ class KumalaDataHub
 
     public static function transformProperty(Property $p): array
     {
-        $images = is_array($p->images) && !empty($p->images) ? $p->images : [];
+        $images = is_array($p->images) && !empty($p->images) ? array_values(array_filter($p->images)) : [];
         if (empty($images)) {
-            if ($p->relationLoaded('photos') && $p->photos && $p->photos->isNotEmpty()) {
-                $images = $p->photos->pluck('photo_url')->toArray();
+            $photosRel = $p->relationLoaded('photos') ? $p->getRelation('photos') : null;
+            if ($photosRel instanceof \Illuminate\Support\Collection && $photosRel->isNotEmpty()) {
+                $images = $photosRel->pluck('photo_url')->filter()->values()->toArray();
+            } elseif (!$p->relationLoaded('photos') && $p->photos()->exists()) {
+                $images = $p->photos()->pluck('photo_url')->filter()->values()->toArray();
             } elseif ($p->image_main) {
                 $images = [$p->image_main];
             }
         }
 
-        $features = is_array($p->features) && !empty($p->features) ? $p->features : [];
-        if (empty($features) && $p->relationLoaded('features') && $p->features && $p->features->isNotEmpty()) {
-            $features = $p->features->map(fn($f) => [
+        $features = [];
+        $featuresRel = $p->relationLoaded('features') ? $p->getRelation('features') : null;
+        if ($featuresRel instanceof \Illuminate\Support\Collection && $featuresRel->isNotEmpty()) {
+            $features = $featuresRel->map(fn($f) => [
+                'title' => is_object($f) ? ($f->title ?? '') : ($f['title'] ?? ''),
+                'desc' => is_object($f) ? ($f->desc ?? '') : ($f['desc'] ?? ''),
+                'icon' => (is_object($f) ? ($f->icon ?? '') : ($f['icon'] ?? '')) ?: 'shield',
+            ])->toArray();
+        } elseif (is_array($p->features) && !empty($p->features)) {
+            $features = array_values(array_map(fn($f) => [
+                'title' => is_object($f) ? ($f->title ?? '') : ($f['title'] ?? ''),
+                'desc' => is_object($f) ? ($f->desc ?? '') : ($f['desc'] ?? ''),
+                'icon' => (is_object($f) ? ($f->icon ?? '') : ($f['icon'] ?? '')) ?: 'shield',
+            ], $p->features));
+        } elseif (!$p->relationLoaded('features') && $p->features()->exists()) {
+            $features = $p->features()->get()->map(fn($f) => [
                 'title' => $f->title,
                 'desc' => $f->desc,
                 'icon' => $f->icon ?: 'shield',

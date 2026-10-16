@@ -36,7 +36,56 @@ class PropertyController extends Controller
         $categories = KumalaDataHub::getCategories();
         $regions = KumalaDataHub::getRegions();
 
-        return view('pages.explore', compact('properties', 'type', 'category', 'location', 'priceRange', 'settings', 'categories', 'regions'));
+        // Active filters list (exclude default fallback values)
+        $activeFilters = [];
+        if (!empty($type) && !in_array($type, ['Semua', 'all', ''])) {
+            $queryWithout = $request->query();
+            unset($queryWithout['type']);
+            $activeFilters['type'] = [
+                'key' => 'type',
+                'label' => 'Tipe: ' . $type,
+                'url' => route('explore', $queryWithout),
+            ];
+        }
+        if (!empty($category) && !in_array($category, ['Semua Tipe Properti', 'Semua', 'all', ''])) {
+            $queryWithout = $request->query();
+            unset($queryWithout['category']);
+            $activeFilters['category'] = [
+                'key' => 'category',
+                'label' => $category,
+                'url' => route('explore', $queryWithout),
+            ];
+        }
+        if (!empty($location) && !in_array($location, ['Semua Wilayah', 'Semua', 'all', ''])) {
+            $queryWithout = $request->query();
+            unset($queryWithout['location']);
+            $activeFilters['location'] = [
+                'key' => 'location',
+                'label' => $location,
+                'url' => route('explore', $queryWithout),
+            ];
+        }
+        if (!empty($priceRange) && !in_array($priceRange, ['Semua Rentang Harga', 'Semua', 'all', ''])) {
+            $queryWithout = $request->query();
+            unset($queryWithout['price_range']);
+            $activeFilters['price_range'] = [
+                'key' => 'price_range',
+                'label' => $priceRange,
+                'url' => route('explore', $queryWithout),
+            ];
+        }
+        $searchKey = $request->query('q') ?? ($request->query('search') ?? $request->query('keyword'));
+        if (!empty($searchKey)) {
+            $queryWithout = $request->query();
+            unset($queryWithout['q'], $queryWithout['search'], $queryWithout['keyword']);
+            $activeFilters['q'] = [
+                'key' => 'q',
+                'label' => 'Kata kunci: "' . $searchKey . '"',
+                'url' => route('explore', $queryWithout),
+            ];
+        }
+
+        return view('pages.explore', compact('properties', 'type', 'category', 'location', 'priceRange', 'settings', 'categories', 'regions', 'activeFilters'));
     }
 
     /**
@@ -47,6 +96,13 @@ class PropertyController extends Controller
         $property = KumalaDataHub::findPropertyBySlug($slug);
         if (!$property) {
             abort(404, 'Properti tidak ditemukan');
+        }
+
+        // Only active/published properties are visible to public. DRAFT and REVIEW are hidden from guests.
+        if (in_array(($property['status'] ?? 'ACTIVE'), ['DRAFT', 'REVIEW'])) {
+            if (!\Illuminate\Support\Facades\Auth::check() || !\Illuminate\Support\Facades\Auth::user()->isAdmin()) {
+                abort(404, 'Properti ini sedang dalam peninjauan kurator.');
+            }
         }
 
         $all = KumalaDataHub::getAllProperties(true);
@@ -103,7 +159,7 @@ class PropertyController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Pengajuan konsinyasi properti Anda berhasil dikirim ke antrean kurator Kumala Property dan otomatis terbit di katalog publik!',
+            'message' => 'Pengajuan konsinyasi properti Anda berhasil dikirim ke antrean kurator Kumala Property untuk ditinjau & diverifikasi sebelum diterbitkan di katalog publik!',
             'submission_id' => $submission['id'],
             'title' => $submission['title'],
             'property_id' => $submission['property_id'] ?? null,
@@ -117,7 +173,7 @@ class PropertyController extends Controller
      */
     public function favorites(Request $request)
     {
-        $allProperties = KumalaDataHub::getAllProperties();
+        $allProperties = KumalaDataHub::getAllProperties(true);
         $settings = KumalaDataHub::getSettings();
         return view('pages.favorites', compact('allProperties', 'settings'));
     }
