@@ -226,7 +226,7 @@
                         <span class="card-price-val">{{ ($prop['transaction_type'] ?? 'Jual') === 'Sewa' ? str_replace(' / tahun', '/thn', $prop['price_short']) : $prop['price_short'] }}</span>
                     </div>
                     <div class="card-actions-group">
-                        <a href="https://wa.me/6281288992345?text=Halo%20Concierge%20Kumala,%20saya%20tertarik%20dengan%20unit%20{{ urlencode($prop['title']) }}%20({{ $prop['id'] }})." target="_blank" class="card-btn-wa" title="Tanya via WhatsApp">
+                        <a href="https://wa.me/{{ $hotlineClean }}?text=Halo%20Concierge%20Kumala,%20saya%20tertarik%20dengan%20unit%20{{ urlencode($prop['title']) }}%20({{ $prop['id'] }})." target="_blank" class="card-btn-wa" title="Tanya via WhatsApp">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                         </a>
                         <a href="{{ route('property.detail', $prop['slug']) }}" class="card-btn-detail">Lihat Detail</a>
@@ -289,7 +289,7 @@
             </div>
         </div>
 
-        <a href="https://wa.me/{{ $globalSettings['hotline_wa_numeric'] ?? '6281199887711' }}?text=Halo%20Property%20Advisor%20Kumala,%20saya%20mencari%20properti%20dengan%20kriteria%20khusus." target="_blank" class="btn-cta-whatsapp" style="padding: 11px 22px;">
+        <a href="https://wa.me/{{ $hotlineClean }}?text=Halo%20Property%20Advisor%20Kumala,%20saya%20mencari%20properti%20dengan%20kriteria%20khusus." target="_blank" class="btn-cta-whatsapp" style="padding: 11px 22px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             <span>Konsultasi via WhatsApp</span>
         </a>

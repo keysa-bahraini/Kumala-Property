@@ -1398,6 +1398,149 @@ class ExampleTest extends TestCase
         ]);
         $invalidRes->assertSessionHasErrors(['title', 'price']);
     }
+
+    /**
+     * Test Fase 2.1: Dynamic regional recommendations and Option B fallback
+     */
+    public function test_detail_dynamic_region_recommendations(): void
+    {
+        $this->seed(\Database\Seeders\PropertySeeder::class);
+
+        // 1. Property with other properties in same region (Bali)
+        $detailRes = $this->get('/properti/villa-cliffside-horizon-uluwatu');
+        $detailRes->assertStatus(200);
+        $detailRes->assertSee('Rekomendasi Properti Serupa di Bali');
+        $detailRes->assertSee(route('explore', ['location' => 'Bali']));
+        $detailRes->assertSee('Jelajahi Semua Listing Bali');
+
+        // 2. Option B fallback: Property in a unique region with no other properties
+        \App\Models\Property::create([
+            'id' => '#KP-TEST-LOMBOK',
+            'title' => 'Lombok Private Island Villa',
+            'slug' => 'lombok-private-island-villa',
+            'price' => 25000000000,
+            'price_formatted' => 'Rp 25.000.000.000',
+            'price_short' => 'Rp 25 Miliar',
+            'price_label' => 'HARGA PENAWARAN',
+            'price_notes' => 'Sertifikat Hak Milik (SHM)',
+            'category' => 'Villa Mewah & Tropis',
+            'transaction_type' => 'Jual',
+            'legal_status' => 'SHM (Hak Milik)',
+            'location_city' => 'Lombok',
+            'location_area' => 'Mandalika',
+            'location_address' => 'Jl. Pantai Kuta Mandalika No. 1',
+            'bedrooms' => 4,
+            'bathrooms' => 4,
+            'land_size' => 1500,
+            'building_size' => 600,
+            'image_main' => 'https://images.unsplash.com/photo-1540555700478-4be289fbecef',
+            'images' => ['https://images.unsplash.com/photo-1540555700478-4be289fbecef'],
+            'specs_tags' => ['4 KT', 'LT 1500m²', 'LB 600m²'],
+            'status' => 'ACTIVE',
+            'views_count' => 10,
+            'inquiries_count' => 2,
+            'description' => 'Villa tropis di tepi pantai Mandalika.',
+        ]);
+
+        $lombokRes = $this->get('/properti/lombok-private-island-villa');
+        $lombokRes->assertStatus(200);
+        $lombokRes->assertSee('Rekomendasi Properti Lainnya');
+        $lombokRes->assertSee(route('explore'));
+        $lombokRes->assertSee('Jelajahi Semua Listing');
+        // Ensure the opened property is not in its own recommendations
+        $lombokRes->assertDontSee('Lombok Private Island Villa</a>', false);
+    }
+
+    /**
+     * Test Fase 2.2: Centralized hotline WA normalization & dynamic rendering across views
+     */
+    public function test_dynamic_hotline_wa_normalization_and_links(): void
+    {
+        $this->seed(\Database\Seeders\PropertySeeder::class);
+
+        // 1. Helper normalization unit check
+        $this->assertEquals('6281234567890', \App\Services\KumalaDataHub::normalizePhone('0812-3456-7890'));
+        $this->assertEquals('6281199887711', \App\Services\KumalaDataHub::normalizePhone('+62 811-9988-7711'));
+        $this->assertEquals('6289988776655', \App\Services\KumalaDataHub::normalizePhone('0899 8877 6655'));
+        $this->assertEquals('6281199887711', \App\Services\KumalaDataHub::normalizePhone(''));
+
+        // 2. Default hotline renders on public pages without hardcoded 6281288992345
+        $pages = ['/', '/explore', '/properti/villa-cliffside-horizon-uluwatu', '/titip-properti'];
+        foreach ($pages as $url) {
+            $res = $this->get($url);
+            $res->assertStatus(200);
+            $res->assertSee('wa.me/6281199887711');
+            $res->assertDontSee('wa.me/6281288992345');
+        }
+
+        // 3. Changing hotline in CMS dynamically updates all public WhatsApp links
+        \App\Models\Setting::updateOrCreate(
+            ['key' => 'hotline_wa'],
+            ['value' => '0877-9900-1122', 'group' => 'general']
+        );
+
+        foreach ($pages as $url) {
+            $res = $this->get($url);
+            $res->assertStatus(200);
+            $res->assertSee('wa.me/6287799001122');
+            $res->assertDontSee('wa.me/6281199887711');
+            $res->assertDontSee('wa.me/6281288992345');
+        }
+    }
+
+    /**
+     * Test Fase 2.3: Detail property Lightbox modal and accessible attributes
+     */
+    public function test_detail_lightbox_gallery_markup_and_accessibility(): void
+    {
+        $this->seed(\Database\Seeders\PropertySeeder::class);
+
+        $res = $this->get('/properti/villa-cliffside-horizon-uluwatu');
+        $res->assertStatus(200);
+
+        // Lightbox dialog and accessibility attributes
+        $res->assertSee('id="propertyLightboxModal"', false);
+        $res->assertSee('role="dialog"', false);
+        $res->assertSee('aria-modal="true"', false);
+        $res->assertSee('aria-label="Galeri Foto Properti"', false);
+        $res->assertSee('id="lightboxCloseBtn"', false);
+        $res->assertSee('id="lightboxCounter"', false);
+        $res->assertSee('id="lightboxPrevBtn"', false);
+        $res->assertSee('id="lightboxNextBtn"', false);
+        $res->assertSee('id="lightboxMainImg"', false);
+
+        // Thumbnail triggers
+        $res->assertSee('openGalleryLightbox(0)', false);
+        $res->assertSee('openGalleryLightbox(4)', false);
+    }
+
+    /**
+     * Test Fase 2.4: Admin modals deduplication and CSS restored
+     */
+    public function test_admin_modal_unification_and_btn_fav_tool(): void
+    {
+        $this->seed(\Database\Seeders\PropertySeeder::class);
+        $admin = $this->getAdminUser();
+
+        // 1. Admin Properties: "+ Tambah Properti Baru" triggers openPropertyModal('create')
+        $propRes = $this->actingAs($admin)->get('/admin/properti');
+        $propRes->assertStatus(200);
+        $propRes->assertSee("openPropertyModal('create')", false);
+        $propRes->assertDontSee('id="addPropModal"', false);
+        $propRes->assertDontSee('openAddPropertyModal', false);
+
+        // 2. Admin Transactions: "+ Catat Transaksi Closing" opens modalClosing, no duplicate closingModal
+        $txRes = $this->actingAs($admin)->get('/admin/riwayat-transaksi');
+        $txRes->assertStatus(200);
+        $txRes->assertSee('onclick="openClosingModal()"', false);
+        $txRes->assertSee('id="modalClosing"', false);
+        $txRes->assertDontSee('id="closingModal"', false);
+
+        // 3. Verify .btn-fav-tool exists in style.css
+        $css = file_get_contents(public_path('css/style.css'));
+        $this->assertStringContainsString('.btn-fav-tool {', $css);
+        $this->assertStringContainsString('.lightbox-modal {', $css);
+    }
 }
 
 

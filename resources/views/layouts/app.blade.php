@@ -56,13 +56,6 @@
             <!-- Nav Actions -->
             <div class="nav-actions">
                 <!-- WhatsApp CTA -->
-                @php
-                    $hotlineRaw = $globalSettings['hotline_wa'] ?? '0812-8888-2900';
-                    $hotlineClean = preg_replace('/[^0-9]/', '', $hotlineRaw);
-                    if (substr($hotlineClean, 0, 1) === '0') {
-                        $hotlineClean = '62' . substr($hotlineClean, 1);
-                    }
-                @endphp
                 <a href="https://wa.me/{{ $hotlineClean }}?text=Halo%20Kumala%20Property,%20saya%20tertarik%20dengan%20properti%20eksklusif%20Anda." target="_blank" class="btn-cta-whatsapp" id="btn-header-wa">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>

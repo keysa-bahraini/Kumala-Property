@@ -258,7 +258,7 @@
                             <span class="card-price-val">{{ ($prop['transaction_type'] ?? 'Jual') === 'Sewa' ? str_replace(' / tahun', '/thn', $prop['price_short']) : $prop['price_short'] }}</span>
                         </div>
                         <div class="card-actions-group">
-                            <a href="https://wa.me/6281288992345?text=Halo%20Concierge%20Kumala,%20saya%20tertarik%20dengan%20unit%20{{ urlencode($prop['title']) }}%20({{ $prop['id'] }})." target="_blank" class="card-btn-wa" title="Tanya via WhatsApp">
+                            <a href="https://wa.me/{{ $hotlineClean }}?text=Halo%20Concierge%20Kumala,%20saya%20tertarik%20dengan%20unit%20{{ urlencode($prop['title']) }}%20({{ $prop['id'] }})." target="_blank" class="card-btn-wa" title="Tanya via WhatsApp">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                             </a>
                             <a href="{{ route('property.detail', $prop['slug']) }}" class="card-btn-detail">Lihat Detail</a>
@@ -507,7 +507,7 @@
                     <span>{{ $globalSettings['home_consignment_cta'] ?? 'Titip Properti Sekarang' }}</span>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                 </a>
-                <a href="https://wa.me/{{ $globalSettings['hotline_wa_numeric'] ?? '6281199887711' }}?text=Halo%20Kumala%20Property,%20saya%20ingin%20konsultasi%20titip%20properti." target="_blank" style="background-color: #FFFFFF; color: #0E1E2E; border: 1.5px solid #DDE3EA; border-radius: 8px; padding: 11px 20px; font-size: 0.88rem; font-weight: 700; text-decoration: none; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.15s;">
+                <a href="https://wa.me/{{ $hotlineClean }}?text=Halo%20Kumala%20Property,%20saya%20ingin%20konsultasi%20titip%20properti." target="_blank" style="background-color: #FFFFFF; color: #0E1E2E; border: 1.5px solid #DDE3EA; border-radius: 8px; padding: 11px 20px; font-size: 0.88rem; font-weight: 700; text-decoration: none; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.15s;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00B488" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                     <span>{{ $globalSettings['home_consignment_wa_cta'] ?? 'Tanya Advisor via WA' }}</span>
                 </a>
@@ -538,7 +538,7 @@
                 </div>
             </div>
 
-            <a href="https://wa.me/{{ $globalSettings['hotline_wa_numeric'] ?? '6281199887711' }}?text=Halo%20Kumala%20Property,%20saya%20ingin%20konsultasi%20kriteria%20properti%20khusus." target="_blank" style="background-color: #00B488; color: #FFFFFF; border-radius: 8px; padding: 11px 22px; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; transition: background 0.15s;">
+            <a href="https://wa.me/{{ $hotlineClean }}?text=Halo%20Kumala%20Property,%20saya%20ingin%20konsultasi%20kriteria%20properti%20khusus." target="_blank" style="background-color: #00B488; color: #FFFFFF; border-radius: 8px; padding: 11px 22px; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; transition: background 0.15s;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 <span>{{ $globalSettings['home_consult_cta'] ?? 'Konsultasi via WhatsApp' }}</span>
             </a>

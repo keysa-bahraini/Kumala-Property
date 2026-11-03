@@ -38,7 +38,7 @@
         </div>
 
         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;" class="prop-header-actions">
-            <button type="button" class="btn-top-teal" onclick="openAddPropertyModal()">
+            <button type="button" class="btn-top-teal" onclick="openPropertyModal('create')">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="16"/><line x1="8" x2="16" y1="12" y2="12"/></svg>
                 <span>+ Tambah Properti Baru</span>
             </button>
@@ -581,101 +581,6 @@
     @endif
     </script>
 </div>
-
-<!-- Modal Tambah Properti Baru -->
-<div id="addPropModal" style="display: none; position: fixed; inset: 0; background: rgba(14, 30, 46, 0.6); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
-    <div style="background: #FFFFFF; border-radius: 12px; width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #F1F5F9; padding-bottom: 12px;">
-            <strong style="font-size: 1.1rem; color: #0E1E2E;">Tambah Properti Baru ke Master Katalog</strong>
-            <button type="button" onclick="closeAddPropertyModal()" style="background: none; border: none; cursor: pointer; color: #64748B; display: flex; align-items: center;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-        </div>
-        <form action="{{ route('admin.properties.store') }}" method="POST">
-            @csrf
-            <div style="margin-bottom: 12px;">
-                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Judul Properti *</label>
-                <input type="text" name="title" placeholder="Contoh: Villa Tropical Modern Sunset Uluwatu" required style="width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px;">
-            </div>
-
-            <div class="prop-modal-grid-2">
-                <div>
-                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Kategori *</label>
-                    <select name="category" style="width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px;">
-                        <option>Rumah Mewah</option>
-                        <option>Villa Eksklusif</option>
-                        <option>Apartemen Penthouse</option>
-                        <option>Ruko &amp; Komersial</option>
-                        <option>Tanah Kavling</option>
-                    </select>
-                </div>
-                <div>
-                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Tipe Transaksi *</label>
-                    <select name="transaction_type" style="width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px;">
-                        <option value="Jual">Jual</option>
-                        <option value="Sewa">Sewa</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="prop-modal-grid-2">
-                <div>
-                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Harga (Angka Penuh) *</label>
-                    <input type="number" name="price" placeholder="Contoh: 8500000000" required style="width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px;">
-                </div>
-                <div>
-                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Legalitas Sertifikat</label>
-                    <input type="text" name="legal_status" value="SHM (Hak Milik)" style="width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px;">
-                </div>
-            </div>
-
-            <div class="prop-modal-grid-2">
-                <div>
-                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Kota / Wilayah *</label>
-                    <input type="text" name="location_city" placeholder="Contoh: Jakarta Selatan atau Bali" required style="width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px;">
-                </div>
-                <div>
-                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Area / Kawasan *</label>
-                    <input type="text" name="location_area" placeholder="Contoh: Pondok Indah atau Uluwatu" required style="width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px;">
-                </div>
-            </div>
-
-            <div class="prop-modal-grid-4">
-                <div>
-                    <label style="display: block; font-size: 0.72rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Luas Tanah (m²)</label>
-                    <input type="number" name="land_size" value="300" style="width: 100%; padding: 6px 10px; border: 1px solid #CBD5E1; border-radius: 6px;">
-                </div>
-                <div>
-                    <label style="display: block; font-size: 0.72rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Luas Bangunan (m²)</label>
-                    <input type="number" name="building_size" value="250" style="width: 100%; padding: 6px 10px; border: 1px solid #CBD5E1; border-radius: 6px;">
-                </div>
-                <div>
-                    <label style="display: block; font-size: 0.72rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Kamar Tidur</label>
-                    <input type="number" name="bedrooms" value="4" style="width: 100%; padding: 6px 10px; border: 1px solid #CBD5E1; border-radius: 6px;">
-                </div>
-                <div>
-                    <label style="display: block; font-size: 0.72rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Kamar Mandi</label>
-                    <input type="number" name="bathrooms" value="4" style="width: 100%; padding: 6px 10px; border: 1px solid #CBD5E1; border-radius: 6px;">
-                </div>
-            </div>
-
-            <div style="margin-bottom: 12px;">
-                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">URL Foto Utama (Resolusi Tinggi)</label>
-                <input type="url" name="image_main" placeholder="https://images.unsplash.com/..." style="width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px;">
-            </div>
-
-            <div style="margin-bottom: 16px;">
-                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Deskripsi Properti</label>
-                <textarea name="description" rows="3" placeholder="Tuliskan spesifikasi unggulan, suasana hunian, dan daya tarik investasi..." style="width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px;"></textarea>
-            </div>
-
-            <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                <button type="button" onclick="closeAddPropertyModal()" class="btn-top-outline">Batal</button>
-                <button type="submit" class="btn-top-teal">Terbitkan ke Katalog</button>
-            </div>
-        </form>
-    </div>
-</div>
 @endsection
 
 @section('styles')
@@ -1036,19 +941,9 @@ function changePropertyStatus(id, newStatus) {
     });
 }
 
-function openAddPropertyModal() {
-    const modal = document.getElementById('addPropModal');
-    if (modal) modal.style.display = 'flex';
-}
-
-function closeAddPropertyModal() {
-    const modal = document.getElementById('addPropModal');
-    if (modal) modal.style.display = 'none';
-}
-
 document.addEventListener('DOMContentLoaded', function() {
     if (window.location.search.includes('action=add')) {
-        openAddPropertyModal();
+        openPropertyModal('create');
     }
 });
 </script>

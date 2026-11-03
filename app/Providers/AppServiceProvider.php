@@ -21,7 +21,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // 1. Global Settings untuk semua view
         \Illuminate\Support\Facades\View::composer('*', function ($view) {
-            $view->with('globalSettings', \App\Services\KumalaDataHub::getSettings());
+            $settings = \App\Services\KumalaDataHub::getSettings();
+            $view->with('globalSettings', $settings);
+            $view->with('hotlineClean', $settings['hotline_wa_numeric']);
         });
 
         // 2. Notifikasi Operasional Admin (Dibatasi hanya untuk view admin demi performa)

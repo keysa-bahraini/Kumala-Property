@@ -358,7 +358,7 @@
                             <span>Kirim Data Properti untuk Review</span>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                         </button>
-                        <a href="https://wa.me/6281288992345?text=Halo%20Advisor%20Kumala,%20saya%20ingin%20konsultasi%20titip%20properti." target="_blank" class="btn-outline-navy btn-wa-action">
+                        <a href="https://wa.me/{{ $hotlineClean }}?text=Halo%20Advisor%20Kumala,%20saya%20ingin%20konsultasi%20titip%20properti." target="_blank" class="btn-outline-navy btn-wa-action">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                             <span>Tanya Advisor via WA</span>
                         </a>

@@ -835,6 +835,23 @@ class KumalaDataHub
     // 5. SYSTEM SETTINGS & MASTER CONFIG
     // =========================================================================
 
+    /**
+     * Normalisasi nomor telepon/WhatsApp menjadi format digit murni dengan kode negara (62).
+     */
+    public static function normalizePhone(?string $phone): string
+    {
+        if (empty($phone)) {
+            return '6281199887711';
+        }
+
+        $digits = preg_replace('/[^0-9]/', '', (string)$phone);
+        if (str_starts_with($digits, '0')) {
+            $digits = '62' . substr($digits, 1);
+        }
+
+        return !empty($digits) ? $digits : '6281199887711';
+    }
+
     public static function getSettings(): array
     {
         $defaults = [
@@ -918,11 +935,14 @@ class KumalaDataHub
 
         try {
             $dbSettings = Setting::all()->pluck('value', 'key')->toArray();
-            return array_merge($defaults, $dbSettings);
+            $merged = array_merge($defaults, $dbSettings);
+            $merged['hotline_wa_numeric'] = self::normalizePhone($merged['hotline_wa'] ?? $merged['hotline_wa_numeric'] ?? null);
+            return $merged;
         } catch (\Throwable $e) {
             Log::warning('KumalaDataHub::getSettings fallback: ' . $e->getMessage());
         }
 
+        $defaults['hotline_wa_numeric'] = self::normalizePhone($defaults['hotline_wa'] ?? $defaults['hotline_wa_numeric'] ?? null);
         return $defaults;
     }
 
@@ -930,7 +950,7 @@ class KumalaDataHub
     {
         try {
             if (!empty($newSettings['hotline_wa'])) {
-                $newSettings['hotline_wa_numeric'] = preg_replace('/[^0-9]/', '', $newSettings['hotline_wa']);
+                $newSettings['hotline_wa_numeric'] = self::normalizePhone($newSettings['hotline_wa']);
             }
 
             foreach ($newSettings as $k => $v) {

@@ -167,14 +167,40 @@ class PropertyController extends Controller
             }
         }
 
+        $city = trim($property['location_city'] ?? '');
         $all = KumalaDataHub::getAllProperties(true);
-        $relatedProperties = array_values(array_filter($all, function ($item) use ($property) {
-            return ($item['id'] ?? '') !== ($property['id'] ?? '');
-        }));
-        $relatedProperties = array_slice($relatedProperties, 0, 3);
+
+        // Filter properti se-wilayah (tidak termasuk unit yang sedang dibuka)
+        $sameCityProperties = [];
+        if (!empty($city)) {
+            $sameCityProperties = array_values(array_filter($all, function ($item) use ($property, $city) {
+                if (($item['id'] ?? '') === ($property['id'] ?? '')) {
+                    return false;
+                }
+                $itemCity = trim($item['location_city'] ?? '');
+                return strcasecmp($itemCity, $city) === 0 || stripos($itemCity, $city) !== false || stripos($city, $itemCity) !== false;
+            }));
+        }
+
+        if (count($sameCityProperties) > 0) {
+            $relatedProperties = array_slice($sameCityProperties, 0, 3);
+            $relatedTitle = 'Rekomendasi Properti Serupa di ' . $city;
+            $relatedLink = route('explore', ['location' => $city]);
+            $relatedLinkLabel = 'Jelajahi Semua Listing ' . $city;
+        } else {
+            // Opsi B: bila wilayah tidak punya properti lain, tampilkan properti aktif lain
+            $otherProperties = array_values(array_filter($all, function ($item) use ($property) {
+                return ($item['id'] ?? '') !== ($property['id'] ?? '');
+            }));
+            $relatedProperties = array_slice($otherProperties, 0, 3);
+            $relatedTitle = 'Rekomendasi Properti Lainnya';
+            $relatedLink = route('explore');
+            $relatedLinkLabel = 'Jelajahi Semua Listing';
+        }
+
         $settings = KumalaDataHub::getSettings();
 
-        return view('pages.detail', compact('property', 'relatedProperties', 'settings'));
+        return view('pages.detail', compact('property', 'relatedProperties', 'relatedTitle', 'relatedLink', 'relatedLinkLabel', 'settings'));
     }
 
     /**

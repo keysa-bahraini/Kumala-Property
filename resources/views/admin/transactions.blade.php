@@ -158,70 +158,6 @@
             </form>
         </div>
     </div>
-
-    <script>
-    function openClosingModal() {
-        document.getElementById('modalClosing').style.display = 'flex';
-    }
-    function closeClosingModal() {
-        document.getElementById('modalClosing').style.display = 'none';
-    }
-    </script>
-</div>
-
-<!-- Modal Catat Closing -->
-<div id="closingModal" style="display: none; position: fixed; inset: 0; background: rgba(14, 30, 46, 0.6); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
-    <div style="background: #FFFFFF; border-radius: 12px; width: 100%; max-width: 500px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #F1F5F9; padding-bottom: 12px;">
-            <strong style="font-size: 1.1rem; color: #0E1E2E;">Catat Transaksi Closing Baru</strong>
-            <button type="button" onclick="closeClosingModal()" style="background: none; border: none; cursor: pointer; color: #64748B; display: flex; align-items: center;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-        </div>
-        <form action="{{ route('admin.transactions.store') }}" method="POST">
-            @csrf
-            <div style="margin-bottom: 12px;">
-                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">ID Properti Terkait *</label>
-                <input type="text" name="property_id" placeholder="Contoh: #KP-8821" required style="width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px;">
-            </div>
-
-            <div style="margin-bottom: 12px;">
-                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Judul Properti *</label>
-                <input type="text" name="title" placeholder="Contoh: Rumah Mewah Kebayoran Baru" required style="width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px;">
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                <div>
-                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Tipe Transaksi *</label>
-                    <select name="trx_type" style="width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px;">
-                        <option value="TERJUAL – JUAL BELI">Jual Beli (Terjual)</option>
-                        <option value="TERSEWA – SEWA 1 TAHUN">Sewa 1 Tahun (Tersewa)</option>
-                        <option value="TERSEWA – SEWA 2 TAHUN">Sewa 2 Tahun (Tersewa)</option>
-                    </select>
-                </div>
-                <div>
-                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Lokasi Unit *</label>
-                    <input type="text" name="location" placeholder="Jakarta Selatan" required style="width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px;">
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
-                <div>
-                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Harga Deal Final *</label>
-                    <input type="text" name="price_deal" placeholder="Rp 4.800.000.000" required style="width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px;">
-                </div>
-                <div>
-                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Harga Penawaran Awal</label>
-                    <input type="text" name="price_ask" placeholder="Rp 5.000.000.000" style="width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px;">
-                </div>
-            </div>
-
-            <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                <button type="button" onclick="closeClosingModal()" class="btn-top-outline">Batal</button>
-                <button type="submit" class="btn-top-teal">Simpan Closing</button>
-            </div>
-        </form>
-    </div>
 </div>
 @endsection
 
@@ -274,12 +210,12 @@
 @section('scripts')
 <script>
 function openClosingModal() {
-    const modal = document.getElementById('closingModal');
+    const modal = document.getElementById('modalClosing');
     if (modal) modal.style.display = 'flex';
 }
 
 function closeClosingModal() {
-    const modal = document.getElementById('closingModal');
+    const modal = document.getElementById('modalClosing');
     if (modal) modal.style.display = 'none';
 }
 </script>

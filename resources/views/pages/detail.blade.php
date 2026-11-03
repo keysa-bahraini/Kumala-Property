@@ -4,6 +4,15 @@
 
 @section('content')
 <div class="container" style="padding-top: 20px; padding-bottom: 80px;">
+    @php
+        $galleryPhotos = (!empty($property['images']) && is_array($property['images']))
+            ? array_values(array_filter($property['images']))
+            : [];
+        if (empty($galleryPhotos) && !empty($property['image_main'])) {
+            $galleryPhotos = [$property['image_main']];
+        }
+        $galleryCount = count($galleryPhotos);
+    @endphp
 
     <!-- Breadcrumb Bar & Header Actions -->
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 20px;">
@@ -61,38 +70,38 @@
     <!-- Interactive Media Gallery Grid -->
     <div class="gallery-grid" style="margin-bottom: 32px; border-radius: 14px; overflow: hidden; border: 1px solid var(--border-color);">
         <!-- Main Image -->
-        <div style="position: relative; overflow: hidden; background: #0E2238;">
-            <img src="{{ $property['images'][0] ?? $property['image_main'] }}" alt="{{ $property['title'] }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;" class="gallery-hover-img">
+        <div style="position: relative; overflow: hidden; background: #0E2238; cursor: pointer;" onclick="openGalleryLightbox(0)">
+            <img src="{{ $galleryPhotos[0] ?? $property['image_main'] }}" alt="{{ $property['title'] }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;" class="gallery-hover-img">
             <div style="position: absolute; bottom: 16px; left: 16px; background: rgba(14, 34, 56, 0.9); padding: 8px 14px; border-radius: 6px; color: #FFFFFF; font-size: 0.82rem; font-weight: 600; border: 1px solid rgba(255,255,255,0.15);">
                 {{ $property['location_area'] }} • Dokumentasi Asli Tim Kumala
             </div>
         </div>
 
         <!-- Sub 1 -->
-        <div style="position: relative; overflow: hidden; background: #0E2238;">
-            <img src="{{ $property['images'][1] ?? $property['image_main'] }}" alt="Area Utama" style="width: 100%; height: 100%; object-fit: cover;" class="gallery-hover-img">
+        <div style="position: relative; overflow: hidden; background: #0E2238; cursor: pointer;" onclick="openGalleryLightbox(1)">
+            <img src="{{ $galleryPhotos[1] ?? $galleryPhotos[0] ?? $property['image_main'] }}" alt="Area Utama" style="width: 100%; height: 100%; object-fit: cover;" class="gallery-hover-img">
             <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(14, 34, 56, 0.85); padding: 4px 10px; border-radius: 4px; color: #FFFFFF; font-size: 0.75rem; font-weight: 600;">Area Ruang Tamu</div>
         </div>
 
         <!-- Sub 2 -->
-        <div style="position: relative; overflow: hidden; background: #0E2238;">
-            <img src="{{ $property['images'][2] ?? $property['image_main'] }}" alt="Kamar Utama" style="width: 100%; height: 100%; object-fit: cover;" class="gallery-hover-img">
+        <div style="position: relative; overflow: hidden; background: #0E2238; cursor: pointer;" onclick="openGalleryLightbox(2)">
+            <img src="{{ $galleryPhotos[2] ?? $galleryPhotos[0] ?? $property['image_main'] }}" alt="Kamar Utama" style="width: 100%; height: 100%; object-fit: cover;" class="gallery-hover-img">
             <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(14, 34, 56, 0.85); padding: 4px 10px; border-radius: 4px; color: #FFFFFF; font-size: 0.75rem; font-weight: 600;">Kamar Utama (Ensuite)</div>
         </div>
 
         <!-- Sub 3 -->
-        <div style="position: relative; overflow: hidden; background: #0E2238;">
-            <img src="{{ $property['images'][3] ?? $property['image_main'] }}" alt="Interior & Sanitasi" style="width: 100%; height: 100%; object-fit: cover;" class="gallery-hover-img">
+        <div style="position: relative; overflow: hidden; background: #0E2238; cursor: pointer;" onclick="openGalleryLightbox(3)">
+            <img src="{{ $galleryPhotos[3] ?? $galleryPhotos[0] ?? $property['image_main'] }}" alt="Interior & Sanitasi" style="width: 100%; height: 100%; object-fit: cover;" class="gallery-hover-img">
             <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(14, 34, 56, 0.85); padding: 4px 10px; border-radius: 4px; color: #FFFFFF; font-size: 0.75rem; font-weight: 600;">Kamar Mandi / Sanitasi</div>
         </div>
 
         <!-- Sub 4 / Gallery Action Overlay -->
-        <div style="position: relative; overflow: hidden; background: #0E2238; cursor: pointer;" onclick="showToast('Membuka Galeri Foto Lengkap...')">
-            <img src="{{ $property['images'][4] ?? $property['image_main'] }}" alt="Eksterior Lingkungan" style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.65);" class="gallery-hover-img">
+        <div style="position: relative; overflow: hidden; background: #0E2238; cursor: pointer;" onclick="openGalleryLightbox(4)">
+            <img src="{{ $galleryPhotos[4] ?? $galleryPhotos[0] ?? $property['image_main'] }}" alt="Eksterior Lingkungan" style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.65);" class="gallery-hover-img">
             <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(14, 34, 56, 0.45);">
                 <div style="background: #FFFFFF; color: var(--primary-navy); padding: 10px 18px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 8px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                    <span>Lihat Semua Foto ({{ count($property['images'] ?? [1,2,3,4,5]) }})</span>
+                    <span>Lihat Semua Foto ({{ $galleryCount }})</span>
                 </div>
             </div>
         </div>
@@ -354,7 +363,7 @@
                         ATAU HUBUNGI LANGSUNG
                     </div>
 
-                    <a href="https://wa.me/{{ $globalSettings['hotline_wa_numeric'] ?? '6281199887711' }}?text=Halo%20Concierge%20Kumala,%20saya%20tertarik%20dengan%20listing%20{{ urlencode($property['title']) }}%20({{ $property['id'] }})." target="_blank" class="btn-teal" style="width: 100%; border-radius: 10px; padding: 12px; font-size: 0.95rem;">
+                    <a href="https://wa.me/{{ $hotlineClean }}?text=Halo%20Concierge%20Kumala,%20saya%20tertarik%20dengan%20listing%20{{ urlencode($property['title']) }}%20({{ $property['id'] }})." target="_blank" class="btn-teal" style="width: 100%; border-radius: 10px; padding: 12px; font-size: 0.95rem;">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                         <span>Tanya Cepat via WhatsApp</span>
                     </a>
@@ -387,15 +396,16 @@
 
     </div>
 
-    <!-- Rekomendasi Properti Serupa -->
+    <!-- Rekomendasi Properti Serupa / Terkait -->
+    @if(!empty($relatedProperties) && count($relatedProperties) > 0)
     <div style="margin-top: 80px; padding-top: 40px; border-top: 1px solid var(--border-color);">
         <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px;">
             <div>
                 <span style="font-size: 0.78rem; font-weight: 700; color: #64748B; text-transform: uppercase;">KOLEKSI TERKAIT</span>
-                <h2 style="font-size: 1.8rem; color: var(--primary-navy);">Rekomendasi Properti Serupa di Bali</h2>
+                <h2 style="font-size: 1.8rem; color: var(--primary-navy);">{{ $relatedTitle }}</h2>
             </div>
-            <a href="{{ route('explore', ['location' => 'Bali']) }}" style="font-size: 0.9rem; font-weight: 700; color: var(--primary-navy); display: inline-flex; align-items: center; gap: 6px;">
-                <span>Jelajahi Semua Listing Bali</span>
+            <a href="{{ $relatedLink }}" style="font-size: 0.9rem; font-weight: 700; color: var(--primary-navy); display: inline-flex; align-items: center; gap: 6px;">
+                <span>{{ $relatedLinkLabel }}</span>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
             </a>
         </div>
@@ -431,7 +441,7 @@
                             <span class="card-price-val">{{ ($rel['transaction_type'] ?? 'Jual') === 'Sewa' ? str_replace(' / tahun', '/thn', $rel['price_short']) : $rel['price_short'] }}</span>
                         </div>
                         <div class="card-actions-group">
-                            <a href="https://wa.me/6281288992345?text=Halo%20Concierge%20Kumala,%20saya%20tertarik%20dengan%20unit%20{{ urlencode($rel['title']) }}%20({{ $rel['id'] }})." target="_blank" class="card-btn-wa" title="Tanya via WhatsApp">
+                            <a href="https://wa.me/{{ $hotlineClean }}?text=Halo%20Concierge%20Kumala,%20saya%20tertarik%20dengan%20unit%20{{ urlencode($rel['title']) }}%20({{ $rel['id'] }})." target="_blank" class="card-btn-wa" title="Tanya via WhatsApp">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                             </a>
                             <a href="{{ route('property.detail', $rel['slug']) }}" class="card-btn-detail">Lihat Detail</a>
@@ -440,6 +450,37 @@
                 </div>
             </div>
             @endforeach
+        </div>
+    </div>
+    @endif
+
+    <!-- Lightbox Galeri Foto Properti -->
+    <div id="propertyLightboxModal" class="lightbox-modal" role="dialog" aria-modal="true" aria-label="Galeri Foto Properti" style="display: none;">
+        <div class="lightbox-backdrop" onclick="closeGalleryLightbox()"></div>
+        <div class="lightbox-content">
+            <div class="lightbox-header">
+                <div class="lightbox-counter" id="lightboxCounter" aria-live="polite">
+                    Foto <span id="lightboxCurrentIdx">1</span> dari <span id="lightboxTotalCount">1</span>
+                </div>
+                <button type="button" class="lightbox-close-btn" id="lightboxCloseBtn" onclick="closeGalleryLightbox()" aria-label="Tutup galeri foto" title="Tutup (ESC)">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <div class="lightbox-stage">
+                <button type="button" class="lightbox-nav-btn lightbox-prev" id="lightboxPrevBtn" onclick="prevGalleryPhoto()" aria-label="Foto sebelumnya" title="Foto sebelumnya (Panah Kiri)">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+
+                <div class="lightbox-img-wrapper">
+                    <img id="lightboxMainImg" src="" alt="Foto Properti" class="lightbox-img" onerror="if (this.src !== '{{ $property['image_main'] }}') { this.src = '{{ $property['image_main'] }}'; } else { this.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22800%22%20height%3D%22500%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%230E2238%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20fill%3D%22%2394A3B8%22%20font-size%3D%2216%22%20font-family%3D%22sans-serif%22%20text-anchor%3D%22middle%22%3EFoto%20tidak%20dapat%20dimuat%3C%2Ftext%3E%3C%2Fsvg%3E'; }">
+                    <div class="lightbox-caption" id="lightboxCaption"></div>
+                </div>
+
+                <button type="button" class="lightbox-nav-btn lightbox-next" id="lightboxNextBtn" onclick="nextGalleryPhoto()" aria-label="Foto selanjutnya" title="Foto selanjutnya (Panah Kanan)">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -628,6 +669,124 @@ function handleInquirySubmit(e) {
         btn.disabled = false;
         btn.innerHTML = '<span>Kirim Ulang Pengajuan</span>';
     });
+}
+
+// Lightbox Galeri Foto
+const galleryPhotos = @js($galleryPhotos);
+const propertyTitle = @js($property['title'] ?? 'Properti');
+let currentPhotoIndex = 0;
+let lastActiveElement = null;
+
+function openGalleryLightbox(startIndex = 0) {
+    if (!galleryPhotos || galleryPhotos.length === 0) {
+        galleryPhotos.push(@js($property['image_main'] ?? ''));
+    }
+    currentPhotoIndex = Math.max(0, Math.min(startIndex, galleryPhotos.length - 1));
+    lastActiveElement = document.activeElement;
+
+    const modal = document.getElementById('propertyLightboxModal');
+    if (!modal) return;
+
+    updateLightboxView();
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    const closeBtn = document.getElementById('lightboxCloseBtn');
+    if (closeBtn) closeBtn.focus();
+
+    document.addEventListener('keydown', handleLightboxKeydown);
+}
+
+function closeGalleryLightbox() {
+    const modal = document.getElementById('propertyLightboxModal');
+    if (!modal) return;
+
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+    document.removeEventListener('keydown', handleLightboxKeydown);
+
+    if (lastActiveElement && typeof lastActiveElement.focus === 'function') {
+        lastActiveElement.focus();
+    }
+}
+
+function updateLightboxView() {
+    const total = galleryPhotos.length;
+    const current = currentPhotoIndex + 1;
+    const imgEl = document.getElementById('lightboxMainImg');
+    const curSpan = document.getElementById('lightboxCurrentIdx');
+    const totSpan = document.getElementById('lightboxTotalCount');
+    const prevBtn = document.getElementById('lightboxPrevBtn');
+    const nextBtn = document.getElementById('lightboxNextBtn');
+    const captionEl = document.getElementById('lightboxCaption');
+
+    if (curSpan) curSpan.textContent = current;
+    if (totSpan) totSpan.textContent = total;
+
+    if (imgEl) {
+        const src = galleryPhotos[currentPhotoIndex] || @js($property['image_main'] ?? '');
+        imgEl.src = src;
+        imgEl.alt = `Foto ${current} dari ${total} - ${propertyTitle}`;
+    }
+
+    if (captionEl) {
+        if (total === 1) {
+            captionEl.textContent = `${propertyTitle} (Foto Utama)`;
+        } else {
+            captionEl.textContent = `Dokumentasi Visual Unit • ${propertyTitle}`;
+        }
+    }
+
+    if (prevBtn) {
+        prevBtn.style.display = total <= 1 ? 'none' : 'inline-flex';
+    }
+    if (nextBtn) {
+        nextBtn.style.display = total <= 1 ? 'none' : 'inline-flex';
+    }
+}
+
+function prevGalleryPhoto() {
+    if (galleryPhotos.length <= 1) return;
+    currentPhotoIndex = (currentPhotoIndex - 1 + galleryPhotos.length) % galleryPhotos.length;
+    updateLightboxView();
+}
+
+function nextGalleryPhoto() {
+    if (galleryPhotos.length <= 1) return;
+    currentPhotoIndex = (currentPhotoIndex + 1) % galleryPhotos.length;
+    updateLightboxView();
+}
+
+function handleLightboxKeydown(e) {
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        closeGalleryLightbox();
+    } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        prevGalleryPhoto();
+    } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        nextGalleryPhoto();
+    } else if (e.key === 'Tab') {
+        const modal = document.getElementById('propertyLightboxModal');
+        if (!modal) return;
+        const focusables = modal.querySelectorAll('button:not([disabled]):not([style*="display: none"])');
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey) {
+            if (document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            }
+        } else {
+            if (document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        }
+    }
 }
 </script>
 @endsection
