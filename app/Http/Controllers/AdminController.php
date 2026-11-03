@@ -1546,20 +1546,47 @@ class AdminController extends Controller
     }
 
     /**
-     * Fase 6: Store New Region
+     * Fase 6 & 3: Store New Region
      */
     public function storeRegion(Request $request)
     {
+        $cleanName = preg_replace('/\s+/', ' ', trim((string)$request->input('name', '')));
+        $request->merge(['name' => $cleanName]);
+
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'city' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($cleanName) {
+                    $exists = Region::all()->contains(function ($r) use ($cleanName) {
+                        $norm = preg_replace('/\s+/', ' ', trim($r->name ?? ''));
+                        return strcasecmp($norm, $cleanName) === 0;
+                    });
+                    if ($exists) {
+                        $fail('Nama wilayah tersebut sudah terdaftar.');
+                    }
+                },
+            ],
+            'city' => 'nullable|string|max:255',
             'area' => 'nullable|string|max:255',
+        ], [
+            'name.required' => 'Nama wilayah wajib diisi.',
         ]);
 
+        $city = preg_replace('/\s+/', ' ', trim((string)($validated['city'] ?? '')));
+        if (empty($city)) {
+            $city = $cleanName;
+        }
+        $area = preg_replace('/\s+/', ' ', trim((string)($validated['area'] ?? '')));
+        if (empty($area)) {
+            $area = $city;
+        }
+
         $reg = Region::create([
-            'name' => $validated['name'],
-            'city' => $validated['city'],
-            'area' => $validated['area'] ?? $validated['city'],
+            'name' => $cleanName,
+            'city' => $city,
+            'area' => $area,
             'is_active' => true,
         ]);
 

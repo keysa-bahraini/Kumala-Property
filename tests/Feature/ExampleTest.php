@@ -1541,6 +1541,162 @@ class ExampleTest extends TestCase
         $this->assertStringContainsString('.btn-fav-tool {', $css);
         $this->assertStringContainsString('.lightbox-modal {', $css);
     }
+
+    /**
+     * Test Fase 3.1: Admin daily report CSV download link and response
+     */
+    public function test_admin_daily_report_csv_download(): void
+    {
+        $this->seed(\Database\Seeders\PropertySeeder::class);
+        $admin = $this->getAdminUser();
+
+        // 1. Dashboard renders download link without toast
+        $dashRes = $this->actingAs($admin)->get('/admin/dashboard');
+        $dashRes->assertStatus(200);
+        $dashRes->assertSee('href="' . route('admin.export.daily') . '"', false);
+        $dashRes->assertDontSee("onclick=\"showToast('Mengekspor Laporan Operasional Harian", false);
+
+        // 2. Download returns 200 with proper CSV headers and BOM
+        $csvRes = $this->actingAs($admin)->get('/admin/export/daily-report');
+        $csvRes->assertStatus(200);
+        $csvRes->assertHeader('content-type', 'text/csv; charset=UTF-8');
+        $this->assertStringContainsString('attachment; filename="kumala_daily_report_', $csvRes->headers->get('content-disposition'));
+        $this->assertStringStartsWith("\xEF\xBB\xBF", $csvRes->streamedContent());
+
+        // 3. Guest is denied and redirected to login
+        auth()->logout();
+        $guestRes = $this->get('/admin/export/daily-report');
+        $guestRes->assertRedirect('/admin/login');
+    }
+
+    /**
+     * Test Fase 3.2: PDF print link in transactions page and response
+     */
+    public function test_admin_transactions_pdf_link_and_response(): void
+    {
+        $this->seed(\Database\Seeders\PropertySeeder::class);
+        $admin = $this->getAdminUser();
+
+        // 1. Transactions page contains PDF link with target="_blank"
+        $txRes = $this->actingAs($admin)->get('/admin/riwayat-transaksi');
+        $txRes->assertStatus(200);
+        $txRes->assertSee('href="' . route('admin.export.transactions') . '"', false);
+        $txRes->assertSee('target="_blank"', false);
+        $txRes->assertSee('Cetak Rekap PDF');
+
+        // 2. Export PDF route responds successfully
+        $pdfRes = $this->actingAs($admin)->get('/admin/export/transactions');
+        $pdfRes->assertStatus(200);
+        $pdfRes->assertSee('Rekapitulasi Closing Transaksi');
+    }
+
+    /**
+     * Test Fase 3.3: Master Region creation, case-insensitive duplicate rejection, and explore filtering
+     */
+    public function test_admin_settings_store_region_and_explore_dropdown(): void
+    {
+        $this->seed(\Database\Seeders\PropertySeeder::class);
+        $admin = $this->getAdminUser();
+
+        // 1. Settings page renders "+ Tambah Wilayah" and #modal-region
+        $settingsRes = $this->actingAs($admin)->get('/admin/pengaturan');
+        $settingsRes->assertStatus(200);
+        $settingsRes->assertSee('+ Tambah Wilayah');
+        $settingsRes->assertSee('id="modal-region"', false);
+        $settingsRes->assertSee('openRegionModal()', false);
+
+        // 2. Successfully add new region
+        $storeRes = $this->actingAs($admin)->post('/admin/pengaturan/wilayah/store', [
+            '_form' => 'region',
+            'name' => 'Jawa Barat - Bandung Raya',
+            'city' => 'Bandung',
+        ]);
+        $storeRes->assertRedirect(route('admin.settings'));
+        $storeRes->assertSessionHas('success');
+
+        $this->assertDatabaseHas('regions', [
+            'name' => 'Jawa Barat - Bandung Raya',
+            'city' => 'Bandung',
+            'is_active' => true,
+        ]);
+
+        // 3. Case-insensitive and whitespace-tolerant duplicate rejection
+        $dupRes = $this->actingAs($admin)->post('/admin/pengaturan/wilayah/store', [
+            '_form' => 'region',
+            'name' => '  jawa   barat - bandung raya  ',
+            'city' => 'Bandung',
+        ]);
+        $dupRes->assertSessionHasErrors(['name']);
+        $dupErrors = session('errors')->get('name');
+        $this->assertContains('Nama wilayah tersebut sudah terdaftar.', $dupErrors);
+
+        // 4. Create property matching the new region city ('Bandung')
+        \App\Models\Property::create([
+            'id' => '#KP-TEST-BDG',
+            'title' => 'Dago Heritage Highland Villa',
+            'slug' => 'dago-heritage-highland-villa',
+            'price' => 18000000000,
+            'price_formatted' => 'Rp 18.000.000.000',
+            'price_short' => 'Rp 18 Miliar',
+            'price_label' => 'HARGA PENAWARAN',
+            'price_notes' => 'SHM',
+            'category' => 'Villa Mewah & Tropis',
+            'transaction_type' => 'Jual',
+            'legal_status' => 'SHM (Hak Milik)',
+            'location_city' => 'Bandung',
+            'location_area' => 'Dago Pakar',
+            'location_address' => 'Jl. Dago Pakar Timur No. 12',
+            'bedrooms' => 5,
+            'bathrooms' => 4,
+            'land_size' => 1000,
+            'building_size' => 500,
+            'image_main' => 'https://images.unsplash.com/photo-1540555700478-4be289fbecef',
+            'images' => ['https://images.unsplash.com/photo-1540555700478-4be289fbecef'],
+            'specs_tags' => ['5 KT', 'LT 1000m²', 'LB 500m²'],
+            'status' => 'ACTIVE',
+            'views_count' => 0,
+            'inquiries_count' => 0,
+            'description' => 'Villa sejuk di perbukitan Dago Pakar Bandung.',
+        ]);
+
+        // 5. Explore page renders new region in dropdown and finds the property
+        $exploreRes = $this->get('/explore');
+        $exploreRes->assertStatus(200);
+        $exploreRes->assertSee('value="Bandung"', false);
+        $exploreRes->assertSee('Jawa Barat - Bandung Raya');
+
+        // Filter explore with location=Bandung finds Dago Heritage Highland Villa
+        $filterRes = $this->get('/explore?location=Bandung');
+        $filterRes->assertStatus(200);
+        $filterRes->assertSee('Dago Heritage Highland Villa');
+    }
+
+    /**
+     * Test Fase 3.4: Privacy & terms generic placeholder page and footer link
+     */
+    public function test_privacy_and_terms_page_and_footer_link(): void
+    {
+        // 1. Page returns 200 with generic placeholders
+        $res = $this->get('/privasi-syarat');
+        $res->assertStatus(200);
+        $res->assertSee('Privasi &amp; Syarat Ketentuan', false);
+        $res->assertSee('Kebijakan Privasi');
+        $res->assertSee('Ketentuan Layanan');
+        $res->assertSee('Ketentuan Konsinyasi dan Kurasi Listing');
+        $res->assertSee('Kontak');
+        $res->assertSee('[Teks resmi menunggu dari pihak Kumala Property]');
+
+        // Ensure forbidden claims are NOT present
+        $res->assertDontSee('Kumala Realty');
+        $res->assertDontSee('HNWI');
+        $res->assertDontSee('Versi 1.0 (Resmi)');
+
+        // 2. Footer link on home page points to route('privacy-terms') and not '#'
+        $homeRes = $this->get('/');
+        $homeRes->assertStatus(200);
+        $homeRes->assertSee('href="' . route('privacy-terms') . '"', false);
+        $homeRes->assertDontSee('<a href="#">Privasi & Syarat</a>', false);
+    }
 }
 
 

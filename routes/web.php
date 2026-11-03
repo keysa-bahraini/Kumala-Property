@@ -28,6 +28,9 @@ Route::post('/titip-properti', [PropertyController::class, 'submitTitipProperti'
 Route::get('/tentang-kami', [PropertyController::class, 'about'])->name('about');
 Route::redirect('/about', '/tentang-kami');
 
+// Privasi & Syarat Ketentuan
+Route::get('/privasi-syarat', [PropertyController::class, 'privacyTerms'])->name('privacy-terms');
+
 // Inquiry API for Detail Page Concierge
 Route::post('/inquiry', [PropertyController::class, 'submitInquiry'])->name('inquiry.submit');
 

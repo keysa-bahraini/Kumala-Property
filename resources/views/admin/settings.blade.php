@@ -851,6 +851,10 @@
                         <h3 class="cms-panel-title">Wilayah Operasional Terdaftar</h3>
                         <p class="cms-panel-desc">Area geolokasi yang dicakup oleh kurator Kumala Property.</p>
                     </div>
+                    <button type="button" class="btn-clean-outline" onclick="openRegionModal()">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        <span>+ Tambah Wilayah</span>
+                    </button>
                 </div>
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px;">
@@ -905,6 +909,41 @@
                 <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
                     <button type="button" class="btn-clean-outline" onclick="closeCategoryModal()">Batal</button>
                     <button type="submit" class="btn-clean-teal" style="padding: 8px 18px;">Simpan Kategori</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Wilayah -->
+    <div id="modal-region" style="display: {{ ($errors->has('name') || $errors->has('city')) && old('_form') === 'region' ? 'flex' : 'none' }}; position: fixed; inset: 0; background: rgba(14, 30, 46, 0.45); z-index: 9999; align-items: center; justify-content: center;">
+        <div style="background: #FFFFFF; border-radius: 12px; padding: 26px; width: 100%; max-width: 460px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                <h3 style="margin: 0; font-size: 1.1rem; color: #0E1E2E; font-weight: 800;">Tambah Wilayah Operasional</h3>
+                <button type="button" onclick="closeRegionModal()" style="background: none; border: none; font-size: 1.3rem; color: #94A3B8; cursor: pointer; line-height: 1;">&times;</button>
+            </div>
+
+            @if(($errors->has('name') || $errors->has('city')) && old('_form') === 'region')
+            <div style="background: #FEF2F2; border-left: 4px solid #EF4444; padding: 10px 14px; border-radius: 6px; margin-bottom: 14px; color: #991B1B; font-size: 0.82rem; font-weight: 600;">
+                {{ $errors->first('name') ?: $errors->first('city') }}
+            </div>
+            @endif
+
+            <form action="{{ route('admin.settings.region.store') }}" method="POST" style="display: flex; flex-direction: column; gap: 16px;">
+                @csrf
+                <input type="hidden" name="_form" value="region">
+                <div class="cms-form-group">
+                    <label class="cms-label">Nama Wilayah Baru <span style="color: #E53E3E;">*</span></label>
+                    <input type="text" name="name" value="{{ old('_form') === 'region' ? old('name') : '' }}" required placeholder="Contoh: Jawa Barat - Bandung Raya" class="cms-input">
+                    <span style="font-size: 0.73rem; color: #64748B; margin-top: 2px;">Label tampilan nama wilayah di sistem dan dropdown.</span>
+                </div>
+                <div class="cms-form-group">
+                    <label class="cms-label">Kota / Wilayah Pencocokan Listing (Opsional)</label>
+                    <input type="text" name="city" value="{{ old('_form') === 'region' ? old('city') : '' }}" placeholder="Contoh: Bandung (otomatis disamakan bila kosong)" class="cms-input">
+                    <span style="font-size: 0.73rem; color: #64748B; margin-top: 2px;">Digunakan untuk mencocokkan kota properti di filter explore.</span>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                    <button type="button" class="btn-clean-outline" onclick="closeRegionModal()">Batal</button>
+                    <button type="submit" class="btn-clean-teal" style="padding: 8px 18px;">Simpan Wilayah</button>
                 </div>
             </form>
         </div>
@@ -1316,5 +1355,25 @@ function closeCategoryModal() {
     const modal = document.getElementById('modal-category');
     if (modal) modal.style.display = 'none';
 }
+
+function openRegionModal() {
+    const modal = document.getElementById('modal-region');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeRegionModal() {
+    const modal = document.getElementById('modal-region');
+    if (modal) modal.style.display = 'none';
+}
+
+@if(($errors->has('name') || $errors->has('city')) && old('_form') === 'region')
+document.addEventListener('DOMContentLoaded', function() {
+    const tabBtn = document.querySelector('button[onclick*="tab-master"]');
+    if (typeof switchCmsTab === 'function') {
+        switchCmsTab('tab-master', tabBtn);
+    }
+    openRegionModal();
+});
+@endif
 </script>
 @endsection

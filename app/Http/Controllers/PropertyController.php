@@ -266,6 +266,15 @@ class PropertyController extends Controller
     }
 
     /**
+     * Page: Privasi & Syarat Ketentuan
+     */
+    public function privacyTerms()
+    {
+        $settings = KumalaDataHub::getSettings();
+        return view('pages.privacy-terms', compact('settings'));
+    }
+
+    /**
      * Submit Inquiry Form (Minat Beli / Sewa dari User / Konsultasi Umum)
      * Langsung tersambung ke Admin Lead Pipeline CRM & Dashboard!
      */

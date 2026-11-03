@@ -209,7 +209,7 @@
             <div class="footer-bottom-bar">
                 <p>{{ $globalSettings['footer_copyright'] ?? '© ' . date('Y') . ' Kumala Property. Seluruh hak cipta dilindungi undang-undang.' }}</p>
                 <div class="footer-bottom-links">
-                    <a href="#">Privasi & Syarat</a>
+                    <a href="{{ route('privacy-terms') }}">Privasi &amp; Syarat</a>
                 </div>
             </div>
         </div>
