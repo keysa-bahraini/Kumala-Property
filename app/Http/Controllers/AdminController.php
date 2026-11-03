@@ -1937,5 +1937,21 @@ class AdminController extends Controller
     {
         return redirect()->route('admin.login');
     }
+
+    /**
+     * Endpoint API JSON Polling Notifikasi Admin
+     * GET /admin/notifications/count
+     */
+    public function notificationCount()
+    {
+        $metrics = \App\Services\KumalaDataHub::getAdminNotificationMetrics();
+
+        return response()->json([
+            'pending_submissions' => $metrics['pending_submissions'],
+            'new_inquiries' => $metrics['new_inquiries'],
+            'upcoming_surveys' => $metrics['upcoming_surveys'],
+            'total' => $metrics['total'],
+        ]);
+    }
 }
 

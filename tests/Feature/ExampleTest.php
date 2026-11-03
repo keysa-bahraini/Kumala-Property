@@ -67,14 +67,12 @@ class ExampleTest extends TestCase
     }
 
     /**
-     * Test Page 5: Properti Favorit Saya
+     * Test Page 5: Properti Favorit Saya (Telah Dihapus Sesuai Keputusan Mentor)
      */
-    public function test_favorites_page_returns_successful_response(): void
+    public function test_favorites_page_is_not_found(): void
     {
         $response = $this->get('/favorit');
-        $response->assertStatus(200);
-        $response->assertSee('Properti Favorit Saya');
-        $response->assertSee('Bandingkan Spek');
+        $response->assertStatus(404);
     }
 
     /**
@@ -829,12 +827,7 @@ class ExampleTest extends TestCase
         $exploreRes->assertStatus(200);
         $exploreRes->assertDontSee('Mansion Mewah Pondok Indah Unit Uji');
 
-        // 3. Favorites
-        $favRes = $this->get('/favorit');
-        $favRes->assertStatus(200);
-        $favRes->assertDontSee('Mansion Mewah Pondok Indah Unit Uji');
-
-        // 4. Detail page for guest: 404
+        // 3. Detail page for guest: 404
         $detailRes = $this->get("/properti/{$propSlug}");
         $detailRes->assertStatus(404);
 
@@ -1117,6 +1110,122 @@ class ExampleTest extends TestCase
         $settingsRes = $this->actingAs($admin)->withSession(['success' => 'Konfigurasi tersimpan'])->get('/admin/pengaturan');
         $settingsRes->assertStatus(200);
         $settingsRes->assertSee('Konfigurasi tersimpan');
+    }
+
+    /**
+     * Test Tugas B: Admin notification metrics calculation and polling endpoint
+     */
+    public function test_admin_notification_metrics_endpoint_and_logic(): void
+    {
+        $admin = $this->getAdminUser();
+
+        // 1. Guest cannot access endpoint (redirected to admin login)
+        $guestRes = $this->get('/admin/notifications/count');
+        $guestRes->assertRedirect(route('admin.login'));
+
+        $guestJsonRes = $this->getJson('/admin/notifications/count');
+        $guestJsonRes->assertRedirect(route('admin.login'));
+
+        // 2. Initial state (empty database before test data)
+        $authRes = $this->actingAs($admin)->getJson('/admin/notifications/count');
+        $authRes->assertStatus(200);
+        $authRes->assertExactJson([
+            'pending_submissions' => 0,
+            'new_inquiries' => 0,
+            'upcoming_surveys' => 0,
+            'total' => 0,
+        ]);
+
+        // 3. Submissions: pending counted, revision NOT counted
+        \App\Models\Submission::create([
+            'id' => 'SUB-TEST-1',
+            'title' => 'Submission Pending',
+            'owner_name' => 'Pak Budi',
+            'owner_phone' => '08123456789',
+            'owner_email' => 'budi@test.com',
+            'status' => 'pending',
+        ]);
+        \App\Models\Submission::create([
+            'id' => 'SUB-TEST-2',
+            'title' => 'Submission Revisi',
+            'owner_name' => 'Pak Joko',
+            'owner_phone' => '08123456788',
+            'owner_email' => 'joko@test.com',
+            'status' => 'revision',
+        ]);
+
+        // 4. Inquiries: only 'Baru' / 'new' / 'NEW' counted, 'Follow-Up' NOT counted
+        \App\Models\Lead::create([
+            'id' => 'LEAD-TEST-1',
+            'client_name' => 'Lead Baru',
+            'client_phone' => '0811111111',
+            'client_email' => 'lead1@test.com',
+            'stage' => 'Baru',
+        ]);
+        \App\Models\Lead::create([
+            'id' => 'LEAD-TEST-2',
+            'client_name' => 'Lead Follow Up',
+            'client_phone' => '0822222222',
+            'client_email' => 'lead2@test.com',
+            'stage' => 'Follow-Up',
+        ]);
+
+        // 5. Surveys: today/future counted; past NOT counted; finished/cancelled NOT counted
+        \App\Models\Survey::create([
+            'property_title' => 'Villa Cliffside Horizon Uluwatu',
+            'client_name' => 'Survei Besok',
+            'agent_name' => 'Agent A',
+            'survey_time' => '10:00 WIB',
+            'survey_date' => now()->addDay()->toDateString(),
+            'status' => 'Terkonfirmasi',
+        ]);
+        \App\Models\Survey::create([
+            'property_title' => 'Villa Cliffside Horizon Uluwatu',
+            'client_name' => 'Survei Kemarin',
+            'agent_name' => 'Agent B',
+            'survey_time' => '11:00 WIB',
+            'survey_date' => now()->subDay()->toDateString(),
+            'status' => 'Terkonfirmasi',
+        ]);
+        \App\Models\Survey::create([
+            'property_title' => 'Villa Cliffside Horizon Uluwatu',
+            'client_name' => 'Survei Selesai',
+            'agent_name' => 'Agent C',
+            'survey_time' => '13:00 WIB',
+            'survey_date' => now()->addDay()->toDateString(),
+            'status' => 'Selesai',
+        ]);
+        \App\Models\Survey::create([
+            'property_title' => 'Villa Cliffside Horizon Uluwatu',
+            'client_name' => 'Survei Batal',
+            'agent_name' => 'Agent D',
+            'survey_time' => '14:00 WIB',
+            'survey_date' => now()->addDay()->toDateString(),
+            'status' => 'Batal',
+        ]);
+
+        // Check metrics: pending_submissions=1, new_inquiries=1, upcoming_surveys=1, total=3
+        $checkRes = $this->actingAs($admin)->getJson('/admin/notifications/count');
+        $checkRes->assertStatus(200);
+        $checkRes->assertExactJson([
+            'pending_submissions' => 1,
+            'new_inquiries' => 1,
+            'upcoming_surveys' => 1,
+            'total' => 3,
+        ]);
+
+        // 6. When submission is approved and inquiry moves to 'Follow-Up', count decreases
+        \App\Models\Submission::where('id', 'SUB-TEST-1')->update(['status' => 'approved']);
+        \App\Models\Lead::where('id', 'LEAD-TEST-1')->update(['stage' => 'Follow-Up']);
+
+        $afterRes = $this->actingAs($admin)->getJson('/admin/notifications/count');
+        $afterRes->assertStatus(200);
+        $afterRes->assertExactJson([
+            'pending_submissions' => 0,
+            'new_inquiries' => 0,
+            'upcoming_surveys' => 1,
+            'total' => 1,
+        ]);
     }
 }
 

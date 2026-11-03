@@ -72,7 +72,7 @@
         </button>
         <button type="button" class="cms-tab-pill" onclick="switchCmsTab('tab-titip-fav', this)">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            <span>Titip Properti &amp; Favorit</span>
+            <span>Titip Properti</span>
         </button>
         <button type="button" class="cms-tab-pill" onclick="switchCmsTab('tab-about-contact', this)">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
@@ -557,7 +557,7 @@
         </div>
 
         <!-- ================================================================= -->
-        <!-- TAB 4: TITIP PROPERTI & FAVORIT -->
+        <!-- TAB 4: TITIP PROPERTI -->
         <!-- ================================================================= -->
         <div id="tab-titip-fav" class="cms-tab-content">
             
@@ -604,38 +604,6 @@
                             <input type="text" name="titip_benefit_3" value="{{ $settings['titip_benefit_3'] ?? 'Transparan & Legalitas Aman BPN' }}" class="cms-input" style="font-weight: 600;">
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Halaman Favorit Pengunjung -->
-            <div class="cms-panel-card" style="margin-top: 24px;">
-                <div class="cms-panel-header">
-                    <div>
-                        <h3 class="cms-panel-title">Halaman Favorit Pengunjung (/favorit)</h3>
-                        <p class="cms-panel-desc">Teks panduan untuk koleksi properti yang disimpan di browser pengunjung.</p>
-                    </div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 280px 1fr; gap: 20px; margin-bottom: 20px;">
-                    <div class="cms-form-group">
-                        <label class="cms-label">Badge Header Favorit</label>
-                        <input type="text" name="favorites_badge" value="{{ $settings['favorites_badge'] ?? 'KOLEKSI PRIBADI TERSIMPAN' }}" class="cms-input">
-                    </div>
-
-                    <div class="cms-form-group">
-                        <label class="cms-label">Judul Halaman Favorit</label>
-                        <input type="text" name="favorites_title" value="{{ $settings['favorites_title'] ?? 'Properti Favorit Saya' }}" class="cms-input">
-                    </div>
-                </div>
-
-                <div class="cms-form-group" style="margin-bottom: 20px;">
-                    <label class="cms-label">Deskripsi Panduan Favorit</label>
-                    <textarea name="favorites_desc" rows="2" class="cms-textarea">{{ $settings['favorites_desc'] ?? 'Daftar unit properti pilihan yang Anda simpan di perangkat ini. Anda dapat membandingkan spesifikasi teknis atau mengajukan jadwal survei privat sekaligus.' }}</textarea>
-                </div>
-
-                <div class="cms-form-group">
-                    <label class="cms-label">Teks Tombol Aksi Permohonan Survei via WhatsApp</label>
-                    <input type="text" name="favorites_cta" value="{{ $settings['favorites_cta'] ?? 'Konsultasi Semua Favorit via WA' }}" class="cms-input">
                 </div>
             </div>
 

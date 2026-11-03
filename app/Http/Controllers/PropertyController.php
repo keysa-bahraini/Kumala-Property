@@ -169,16 +169,6 @@ class PropertyController extends Controller
     }
 
     /**
-     * Page 5: Properti Favorit Saya
-     */
-    public function favorites(Request $request)
-    {
-        $allProperties = KumalaDataHub::getAllProperties(true);
-        $settings = KumalaDataHub::getSettings();
-        return view('pages.favorites', compact('allProperties', 'settings'));
-    }
-
-    /**
      * Page 6: Tentang Kami & Kontak
      */
     public function about()

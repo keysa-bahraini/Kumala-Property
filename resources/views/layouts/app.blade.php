@@ -55,22 +55,6 @@
 
             <!-- Nav Actions -->
             <div class="nav-actions">
-                <!-- Favorite Counter Button -->
-                <a href="{{ route('favorites') }}" class="btn-icon-action {{ request()->routeIs('favorites') ? 'active' : '' }}" id="btn-favorite-counter" title="Properti Favorit Saya">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
-                    </svg>
-                    <span class="action-badge-counter" id="fav-count-badge">3</span>
-                </a>
-
-                <!-- Notification Bell -->
-                <button type="button" class="btn-icon-action" id="btn-notifications" title="Notifikasi Properti">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-                        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-                    </svg>
-                </button>
-
                 <!-- WhatsApp CTA -->
                 @php
                     $hotlineRaw = $globalSettings['hotline_wa'] ?? '0812-8888-2900';
@@ -127,17 +111,9 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/></svg>
                 <span>Titip Property</span>
             </a>
-            <a href="{{ route('favorites') }}" class="mobile-nav-link {{ request()->routeIs('favorites') ? 'active' : '' }}" onclick="closeMobileNav()">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-                <span>Favorit Saya</span>
-            </a>
             <a href="{{ route('about') }}" class="mobile-nav-link {{ request()->routeIs('about') ? 'active' : '' }}" onclick="closeMobileNav()">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                 <span>Tentang Kami & Kontak</span>
-            </a>
-            <a href="{{ route('admin.login') }}" class="mobile-nav-link" onclick="closeMobileNav()">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                <span>Portal Admin</span>
             </a>
         </div>
 
@@ -197,7 +173,6 @@
                         <li><a href="{{ route('home') }}">Beranda Utama</a></li>
                         <li><a href="{{ route('explore') }}">Eksplorasi Listing Properti</a></li>
                         <li><a href="{{ route('titip-properti') }}">Titip Jual & Sewa Unit</a></li>
-                        <li><a href="{{ route('explore') }}">Daftar Properti Favorit</a></li>
                         <li><a href="{{ route('explore') }}#terms">Syarat & Ketentuan Layanan</a></li>
                     </ul>
                 </div>
@@ -242,11 +217,6 @@
                 <p>{{ $globalSettings['footer_copyright'] ?? '© ' . date('Y') . ' Kumala Property. Seluruh hak cipta dilindungi undang-undang.' }}</p>
                 <div class="footer-bottom-links">
                     <a href="#">Privasi & Syarat</a>
-                    <span>•</span>
-                    <a href="{{ route('admin.login') }}" class="footer-admin-link" title="Akses Tim Internal Kumala">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                        <span>Portal Admin</span>
-                    </a>
                 </div>
             </div>
         </div>
@@ -289,7 +259,7 @@
         <span id="toast-message" style="font-size: 0.9rem; font-weight: 500;"></span>
     </div>
 
-    <!-- Client Script for Favorites and Global Interactions -->
+    <!-- Client Script for Global Interactions -->
     <script>
         function openMobileNav() {
             const drawer = document.getElementById('mobile-nav-drawer');
@@ -305,62 +275,6 @@
             if (drawer) drawer.classList.remove('open');
             if (backdrop) backdrop.classList.remove('open');
             document.body.style.overflow = '';
-        }
-
-        // Favorite Management using LocalStorage
-        function getFavorites() {
-            try {
-                return JSON.parse(localStorage.getItem('kumala_favorites')) || ['#KP-8821', '#KP-8822', '#KP-8823'];
-            } catch(e) {
-                return ['#KP-8821', '#KP-8822', '#KP-8823'];
-            }
-        }
-
-        function saveFavorites(favs) {
-            localStorage.setItem('kumala_favorites', JSON.stringify(favs));
-            updateFavoriteCounter();
-        }
-
-        function toggleFavorite(id, title) {
-            let favs = getFavorites();
-            const index = favs.indexOf(id);
-            let added = false;
-            if (index > -1) {
-                favs.splice(index, 1);
-                showToast(`"${title}" dihapus dari favorit.`);
-            } else {
-                favs.push(id);
-                added = true;
-                showToast(`"${title}" berhasil disimpan ke favorit!`);
-            }
-            saveFavorites(favs);
-
-            // Update button styles on page
-            document.querySelectorAll(`[data-fav-id="${id}"]`).forEach(btn => {
-                if (added) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-        }
-
-        function updateFavoriteCounter() {
-            const favs = getFavorites();
-            const badge = document.getElementById('fav-count-badge');
-            const mobileBadge = document.getElementById('mobile-fav-count-badge');
-            if (badge) badge.textContent = favs.length;
-            if (mobileBadge) mobileBadge.textContent = favs.length;
-
-            // Sync all heart buttons on page
-            document.querySelectorAll('[data-fav-id]').forEach(btn => {
-                const id = btn.getAttribute('data-fav-id');
-                if (favs.includes(id)) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
         }
 
         function showToast(message, isError = false) {
@@ -391,7 +305,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            updateFavoriteCounter();
             @if(session('success'))
                 showToast(@json(session('success')), false);
             @elseif(session('error'))

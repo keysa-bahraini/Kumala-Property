@@ -580,7 +580,7 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                     <span>Listing Masuk</span>
                 </div>
-                <span class="admin-nav-badge">{{ $pendingSubmissionsCount ?? 0 }}</span>
+                <span class="admin-nav-badge" id="sidebar-submissions-badge">{{ $pendingSubmissionsCount ?? 0 }}</span>
             </a>
 
             <a href="{{ route('admin.transactions') }}" class="admin-nav-item {{ request()->routeIs('admin.transactions') ? 'active' : '' }}" onclick="closeAdminSidebar()">
@@ -595,7 +595,7 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                     <span>Data Inquiry</span>
                 </div>
-                <span class="admin-nav-badge">{{ $activeInquiriesCount ?? 0 }}</span>
+                <span class="admin-nav-badge" id="sidebar-inquiries-badge">{{ $newInquiriesCount ?? 0 }}</span>
             </a>
 
             <a href="{{ route('admin.settings') }}" class="admin-nav-item {{ request()->routeIs('admin.settings') ? 'active' : '' }}" onclick="closeAdminSidebar()">
@@ -642,11 +642,9 @@
                 </a>
 
                 <div class="admin-notification-wrapper">
-                    <button type="button" class="admin-notification-btn" id="btn-admin-bell" title="Notifikasi Operasional" onclick="toggleAdminNotificationDropdown(event)">
+                    <button type="button" class="admin-notification-btn" id="btn-admin-bell" title="Notifikasi Operasional" aria-expanded="false" aria-haspopup="true" onclick="toggleAdminNotificationDropdown(event)">
                         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                        @if(($adminNotificationCount ?? 0) > 0)
-                            <span class="notification-badge-dot" id="bell-badge-dot"></span>
-                        @endif
+                        <span class="notification-badge-dot" id="bell-badge-dot" style="display: {{ ($adminNotificationCount ?? 0) > 0 ? 'block' : 'none' }};"></span>
                     </button>
 
                     <!-- Dropdown Notifikasi Operasional -->
@@ -654,7 +652,7 @@
                         <div class="dropdown-header-box">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <strong style="font-size: 0.88rem; color: #0E1E2E;">Notifikasi Operasional</strong>
-                                <span class="dropdown-item-badge" style="background: #E0F2FE; color: #0284C7;">{{ $adminNotificationCount ?? 0 }} Total</span>
+                                <span id="notif-total-badge" class="dropdown-item-badge" style="background: #E0F2FE; color: #0284C7;">{{ $adminNotificationCount ?? 0 }} Total</span>
                             </div>
                             <span style="font-size: 0.74rem; color: #64748B;">Ringkasan tugas yang memerlukan perhatian admin</span>
                         </div>
@@ -670,7 +668,7 @@
                                         <div style="font-size: 0.72rem; color: #64748B;">Pengajuan pending kurasi</div>
                                     </div>
                                 </div>
-                                <span class="dropdown-item-badge" style="background: #E0F2FE; color: #0284C7;">{{ $pendingSubmissionsCount ?? 0 }}</span>
+                                <span id="notif-submissions-badge" class="dropdown-item-badge" style="background: #E0F2FE; color: #0284C7;">{{ $pendingSubmissionsCount ?? 0 }}</span>
                             </a>
 
                             <a href="{{ route('admin.inquiries') }}" class="dropdown-item-row" onclick="closeAdminNotificationDropdown()">
@@ -680,10 +678,10 @@
                                     </div>
                                     <div>
                                         <div style="font-size: 0.82rem; font-weight: 700; color: #0E1E2E;">Data Inquiry</div>
-                                        <div style="font-size: 0.72rem; color: #64748B;">Prospek aktif pipeline</div>
+                                        <div style="font-size: 0.72rem; color: #64748B;">Inquiry baru belum direspons</div>
                                     </div>
                                 </div>
-                                <span class="dropdown-item-badge" style="background: #E6FBF5; color: #059669;">{{ $activeInquiriesCount ?? 0 }}</span>
+                                <span id="notif-inquiries-badge" class="dropdown-item-badge" style="background: #E6FBF5; color: #059669;">{{ $newInquiriesCount ?? 0 }}</span>
                             </a>
 
                             <a href="{{ route('admin.inquiries') }}" class="dropdown-item-row" onclick="closeAdminNotificationDropdown()">
@@ -696,7 +694,7 @@
                                         <div style="font-size: 0.72rem; color: #64748B;">Agenda survei fisik</div>
                                     </div>
                                 </div>
-                                <span class="dropdown-item-badge" style="background: #FEF3C7; color: #D97706;">{{ $upcomingSurveysCount ?? 0 }}</span>
+                                <span id="notif-surveys-badge" class="dropdown-item-badge" style="background: #FEF3C7; color: #D97706;">{{ $upcomingSurveysCount ?? 0 }}</span>
                             </a>
                         </div>
 
@@ -744,12 +742,14 @@
             if (e) e.stopPropagation();
             const dropdown = document.getElementById('admin-notification-dropdown');
             const backdrop = document.getElementById('admin-notification-backdrop');
+            const bellBtn = document.getElementById('btn-admin-bell');
             if (!dropdown) return;
             const isOpen = dropdown.classList.contains('open');
             if (isOpen) {
                 closeAdminNotificationDropdown();
             } else {
                 dropdown.classList.add('open');
+                if (bellBtn) bellBtn.setAttribute('aria-expanded', 'true');
                 if (backdrop && window.innerWidth <= 640) {
                     backdrop.style.display = 'block';
                 }
@@ -759,9 +759,18 @@
         function closeAdminNotificationDropdown() {
             const dropdown = document.getElementById('admin-notification-dropdown');
             const backdrop = document.getElementById('admin-notification-backdrop');
+            const bellBtn = document.getElementById('btn-admin-bell');
             if (dropdown) dropdown.classList.remove('open');
             if (backdrop) backdrop.style.display = 'none';
+            if (bellBtn) bellBtn.setAttribute('aria-expanded', 'false');
         }
+
+        // Close notification dropdown when pressing Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' || e.key === 'Esc') {
+                closeAdminNotificationDropdown();
+            }
+        });
 
         document.addEventListener('click', (e) => {
             const wrapper = document.querySelector('.admin-notification-wrapper');
@@ -769,6 +778,111 @@
                 closeAdminNotificationDropdown();
             }
         });
+
+        // Background polling for admin operational notifications
+        (function() {
+            let pollingInterval = null;
+            let isPollingStopped = false;
+
+            async function fetchNotificationCounts() {
+                if (isPollingStopped || document.hidden) return;
+
+                try {
+                    const response = await fetch("{{ route('admin.notifications.count') }}", {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (response.status === 401 || response.status === 419 || response.redirected) {
+                        stopPolling();
+                        return;
+                    }
+
+                    if (!response.ok) {
+                        return;
+                    }
+
+                    const data = await response.json();
+                    updateNotificationUI(data);
+                } catch (err) {
+                    // Silently ignore network failures and retry on the next interval
+                }
+            }
+
+            function updateNotificationUI(data) {
+                if (!data || typeof data.total === 'undefined') return;
+
+                // Red dot
+                const dot = document.getElementById('bell-badge-dot');
+                if (dot) {
+                    dot.style.display = data.total > 0 ? 'block' : 'none';
+                }
+
+                // Header total badge
+                const totalBadge = document.getElementById('notif-total-badge');
+                if (totalBadge) {
+                    totalBadge.textContent = `${data.total} Total`;
+                }
+
+                // Dropdown badges
+                const subBadge = document.getElementById('notif-submissions-badge');
+                if (subBadge) {
+                    subBadge.textContent = data.pending_submissions;
+                }
+
+                const inqBadge = document.getElementById('notif-inquiries-badge');
+                if (inqBadge) {
+                    inqBadge.textContent = data.new_inquiries;
+                }
+
+                const survBadge = document.getElementById('notif-surveys-badge');
+                if (survBadge) {
+                    survBadge.textContent = data.upcoming_surveys;
+                }
+
+                // Sidebar badges
+                const sideSub = document.getElementById('sidebar-submissions-badge');
+                if (sideSub) {
+                    sideSub.textContent = data.pending_submissions;
+                }
+
+                const sideInq = document.getElementById('sidebar-inquiries-badge');
+                if (sideInq) {
+                    sideInq.textContent = data.new_inquiries;
+                }
+            }
+
+            function startPolling() {
+                if (isPollingStopped || pollingInterval) return;
+                pollingInterval = setInterval(fetchNotificationCounts, 60000);
+            }
+
+            function stopPolling() {
+                isPollingStopped = true;
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
+            }
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    if (pollingInterval) {
+                        clearInterval(pollingInterval);
+                        pollingInterval = null;
+                    }
+                } else {
+                    if (!isPollingStopped) {
+                        fetchNotificationCounts();
+                        startPolling();
+                    }
+                }
+            });
+
+            startPolling();
+        })();
 
         function showToast(msg, isError = false) {
             const toast = document.getElementById('toast-notification');

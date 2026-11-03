@@ -727,6 +727,51 @@ class KumalaDataHub
         }
     }
 
+    /**
+     * Unified Operational Notification Counts for Admin Suite
+     * Digunakan secara konsisten oleh View Composer dan Endpoint JSON Polling
+     */
+    public static function getAdminNotificationMetrics(): array
+    {
+        // 1. Pending Submissions (HANYA status pending, revision TIDAK dihitung)
+        try {
+            $pendingSubmissions = Submission::where('status', 'pending')->count();
+        } catch (\Throwable $e) {
+            $fallback = self::loadFallbackData()['submissions'] ?? [];
+            $pendingSubmissions = count(array_filter($fallback, fn($s) => ($s['status'] ?? '') === 'pending'));
+        }
+
+        // 2. New Inquiries (HANYA lead berstatus baru: Baru, new, NEW yang belum direspons)
+        $newStages = ['Baru', 'new', 'NEW'];
+        try {
+            $newInquiries = Lead::whereIn('stage', $newStages)->count();
+        } catch (\Throwable $e) {
+            $fallback = self::loadFallbackData()['inquiries'] ?? [];
+            $newInquiries = count(array_filter($fallback, fn($i) => in_array($i['stage'] ?? '', $newStages)));
+        }
+
+        // 3. Upcoming Surveys (Tanggal hari ini atau setelahnya, status bukan selesai/batal)
+        $closedSurveyStatuses = ['Selesai', 'selesai', 'Batal', 'batal'];
+        try {
+            $today = now()->toDateString();
+            $upcomingSurveys = Survey::whereDate('survey_date', '>=', $today)
+                ->whereNotIn('status', $closedSurveyStatuses)
+                ->count();
+        } catch (\Throwable $e) {
+            $fallback = self::loadFallbackData()['surveys_today'] ?? [];
+            $upcomingSurveys = count(array_filter($fallback, fn($s) => !in_array($s['status'] ?? '', $closedSurveyStatuses)));
+        }
+
+        $total = $pendingSubmissions + $newInquiries + $upcomingSurveys;
+
+        return [
+            'pending_submissions' => (int) $pendingSubmissions,
+            'new_inquiries' => (int) $newInquiries,
+            'upcoming_surveys' => (int) $upcomingSurveys,
+            'total' => (int) $total,
+        ];
+    }
+
     // =========================================================================
     // 4. TRANSACTIONS & CLOSINGS
     // =========================================================================

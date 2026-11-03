@@ -23,8 +23,6 @@ Route::get('/properti/{slug}', [PropertyController::class, 'detail'])->name('pro
 Route::get('/titip-properti', [PropertyController::class, 'titipProperti'])->name('titip-properti');
 Route::post('/titip-properti', [PropertyController::class, 'submitTitipProperti'])->name('titip-properti.submit');
 
-// Halaman 5: Properti Favorit Saya
-Route::get('/favorit', [PropertyController::class, 'favorites'])->name('favorites');
 
 // Halaman 6: Tentang Kami & Kontak
 Route::get('/tentang-kami', [PropertyController::class, 'about'])->name('about');
@@ -97,6 +95,9 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
     Route::get('/export/properties', [AdminController::class, 'exportPropertiesCsv'])->name('admin.export.properties');
     Route::get('/export/daily-report', [AdminController::class, 'exportDailyReportCsv'])->name('admin.export.daily');
     Route::get('/export/transactions', [AdminController::class, 'exportTransactionsPdf'])->name('admin.export.transactions');
+
+    // Operational Notifications Count API (JSON Polling)
+    Route::get('/notifications/count', [AdminController::class, 'notificationCount'])->name('admin.notifications.count');
 });
 
 Route::get('/admin', function() {

@@ -19,42 +19,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // 1. Global Settings untuk semua view
         \Illuminate\Support\Facades\View::composer('*', function ($view) {
             $view->with('globalSettings', \App\Services\KumalaDataHub::getSettings());
+        });
 
-            // 1. Pending Submissions Count
-            try {
-                $pendingSubmissionsCount = \App\Models\Submission::where('status', 'pending')->count();
-            } catch (\Throwable $e) {
-                $pendingSubmissionsCount = count(\App\Services\KumalaDataHub::getSubmissions('pending'));
-            }
-            $view->with('pendingSubmissionsCount', $pendingSubmissionsCount);
+        // 2. Notifikasi Operasional Admin (Dibatasi hanya untuk view admin demi performa)
+        \Illuminate\Support\Facades\View::composer(['admin.*', 'layouts.admin'], function ($view) {
+            $metrics = \App\Services\KumalaDataHub::getAdminNotificationMetrics();
 
-            // 2. Active Inquiries Count (Belum closing/selesai/batal)
-            $closedStages = ['Closing', 'closing', 'Closing / Selesai', 'won', 'lost', 'batal', 'Batal', 'Selesai', 'selesai'];
-            try {
-                $activeInquiriesCount = \App\Models\Lead::whereNotIn('stage', $closedStages)->count();
-            } catch (\Throwable $e) {
-                $activeInquiriesCount = count(array_filter(\App\Services\KumalaDataHub::getInquiries(), function ($i) use ($closedStages) {
-                    return !in_array($i['stage'] ?? '', $closedStages);
-                }));
-            }
-            $view->with('activeInquiriesCount', $activeInquiriesCount);
-
-            // 3. Upcoming Surveys Count
-            try {
-                $upcomingSurveysCount = \App\Models\Survey::whereDate('survey_date', '>=', now()->toDateString())->count();
-                if ($upcomingSurveysCount === 0) {
-                    $upcomingSurveysCount = \App\Models\Survey::count();
-                }
-            } catch (\Throwable $e) {
-                $upcomingSurveysCount = count(\App\Services\KumalaDataHub::getSurveysToday());
-            }
-            $view->with('upcomingSurveysCount', $upcomingSurveysCount);
-
-            // 4. Admin Total Notification Count
-            $adminNotificationCount = $pendingSubmissionsCount + $activeInquiriesCount + $upcomingSurveysCount;
-            $view->with('adminNotificationCount', $adminNotificationCount);
+            $view->with('pendingSubmissionsCount', $metrics['pending_submissions']);
+            $view->with('newInquiriesCount', $metrics['new_inquiries']);
+            $view->with('activeInquiriesCount', $metrics['new_inquiries']);
+            $view->with('upcomingSurveysCount', $metrics['upcoming_surveys']);
+            $view->with('adminNotificationCount', $metrics['total']);
         });
     }
 }

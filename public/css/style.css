@@ -474,34 +474,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   z-index: 2;
 }
 
-.card-btn-favorite {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 36px;
-  height: 36px;
-  background-color: #FFFFFF;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-light);
-  transition: var(--transition-fast);
-  z-index: 2;
-}
-
-.card-btn-favorite:hover {
-  color: #E11D48;
-  border-color: #FECDD3;
-}
-
-.card-btn-favorite.active {
-  background-color: #FFF1F2;
-  color: #E11D48;
-  border-color: #FECDD3;
-}
-
 .card-highlight-pill {
   position: absolute;
   bottom: 10px;
@@ -869,17 +841,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   gap: 16px;
 }
 
-.footer-admin-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: #64748B;
-}
-
-.footer-admin-link:hover {
-  color: var(--accent-teal);
-}
-
 /* ==========================================================================
    Mobile Navigation & Responsive System
    ========================================================================== */
@@ -1081,9 +1042,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 /* Touch Target Minimum (44px x 44px hit-box rule) */
 .mobile-nav-toggle,
-.btn-icon-action,
-.card-btn-favorite,
-.btn-remove-fav {
+.btn-icon-action {
   min-width: 44px;
   min-height: 44px;
   display: inline-flex;
@@ -1380,6 +1339,3 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     flex-wrap: wrap !important;
   }
 }
-
-
-
