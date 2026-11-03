@@ -1227,6 +1227,177 @@ class ExampleTest extends TestCase
             'total' => 1,
         ]);
     }
+
+    /**
+     * Test Item 1.1: About page contact consultation form submission and validation
+     */
+    public function test_about_page_contact_form_submission_and_validation(): void
+    {
+        $admin = $this->getAdminUser();
+
+        // 1. Validation fails when name, phone, or email is empty
+        $invalidRes = $this->postJson('/inquiry', [
+            'name' => '',
+            'phone' => '',
+            'email' => '',
+            'subject' => 'Konsultasi Sewa Jangka Panjang / Korporat',
+            'message' => 'Mencari villa untuk sewa 1 tahun.',
+        ]);
+        $invalidRes->assertStatus(422);
+        $invalidRes->assertJsonValidationErrors(['name', 'phone', 'email']);
+
+        // 2. Successful consultation submission from /tentang-kami
+        $validRes = $this->postJson('/inquiry', [
+            'name' => 'Bpk. Bambang Sutanto',
+            'phone' => '+62 812-9988-7766',
+            'email' => 'bambang@perusahaan.com',
+            'subject' => 'Konsultasi Sewa Jangka Panjang / Korporat',
+            'message' => 'Mencari villa untuk sewa korporat 2 tahun di Canggu.',
+        ]);
+        $validRes->assertStatus(200);
+        $validRes->assertJson([
+            'success' => true,
+            'client_name' => 'Bpk. Bambang Sutanto',
+            'property_title' => 'Konsultasi Umum (Tentang Kami)',
+        ]);
+        $leadId = $validRes->json('lead_id');
+        $this->assertNotEmpty($leadId);
+
+        // 3. Verify lead stored in DB with status 'Baru', property_id null, notes mapped correctly
+        $lead = \App\Models\Lead::where('id', $leadId)->first();
+        $this->assertNotNull($lead);
+        $this->assertEquals('Baru', $lead->stage);
+        $this->assertNull($lead->property_id);
+        $this->assertEquals('Konsultasi Umum (Tentang Kami)', $lead->property_title);
+        $this->assertEquals('sewa', $lead->inquiry_type);
+        $this->assertStringContainsString('[Topik: Konsultasi Sewa Jangka Panjang / Korporat] Mencari villa untuk sewa korporat 2 tahun di Canggu.', $lead->quote);
+
+        // 4. Verify admin notification bell counts this new inquiry
+        $metricsRes = $this->actingAs($admin)->getJson('/admin/notifications/count');
+        $metricsRes->assertStatus(200);
+        $this->assertGreaterThanOrEqual(1, $metricsRes->json('new_inquiries'));
+
+        // 5. Verify /admin/inquiry and /admin/dashboard render safely with null property_id
+        $inquiryPageRes = $this->actingAs($admin)->get('/admin/inquiry');
+        $inquiryPageRes->assertStatus(200);
+        $inquiryPageRes->assertSee('Bpk. Bambang Sutanto');
+        $inquiryPageRes->assertSee('Konsultasi Umum');
+
+        $dashboardRes = $this->actingAs($admin)->get('/admin/dashboard');
+        $dashboardRes->assertStatus(200);
+        $dashboardRes->assertSee('Bpk. Bambang Sutanto');
+    }
+
+    /**
+     * Test Item 1.2: Explore pagination, sorting, query persistence, and fallback
+     */
+    public function test_explore_page_pagination_sorting_and_fallback(): void
+    {
+        $this->seed(\Database\Seeders\PropertySeeder::class);
+
+        // 1. Page 1 returns first 6 properties
+        $resPage1 = $this->get('/explore?page=1');
+        $resPage1->assertStatus(200);
+        $resPage1->assertSee('Halaman 1 dari 2');
+        $resPage1->assertSee('Total 9 properti terverifikasi');
+
+        // 2. Page 2 returns remaining 3 properties and differs from Page 1
+        $resPage2 = $this->get('/explore?page=2');
+        $resPage2->assertStatus(200);
+        $resPage2->assertSee('Halaman 2 dari 2');
+        $this->assertNotEquals($resPage1->getContent(), $resPage2->getContent());
+
+        // 3. Page out of range redirects to last valid page
+        $outOfRangeRes = $this->get('/explore?page=999');
+        $outOfRangeRes->assertRedirect('/explore?page=2');
+
+        // 4. Invalid sort parameter gracefully falls back to default without error
+        $invalidSortRes = $this->get('/explore?sort=unknown_param');
+        $invalidSortRes->assertStatus(200);
+        $invalidSortRes->assertSee('Eksplorasi Properti');
+
+        // 5. Sort by harga_rendah and harga_tinggi
+        $resHargaRendah = $this->get('/explore?sort=harga_rendah');
+        $resHargaRendah->assertStatus(200);
+        $resHargaTinggi = $this->get('/explore?sort=harga_tinggi');
+        $resHargaTinggi->assertStatus(200);
+
+        // 6. Filter parameters persist in pagination links when > 1 page
+        \App\Services\KumalaDataHub::addProperty([
+            'id' => '#KP-9999',
+            'title' => 'Extra Unit Jual',
+            'category' => 'Rumah Mewah',
+            'transaction_type' => 'Jual',
+            'price' => 20000000000,
+            'location_city' => 'Jakarta Selatan',
+            'location_area' => 'Kemang',
+        ]);
+
+        $resFiltered = $this->get('/explore?type=Jual&sort=harga_rendah&page=1');
+        $resFiltered->assertStatus(200);
+        $resFiltered->assertSee('type=Jual');
+        $resFiltered->assertSee('sort=harga_rendah');
+    }
+
+    /**
+     * Test Item 1.3: Admin property edit button, modal integration, and update flow
+     */
+    public function test_admin_properties_edit_button_modal_and_update_flow(): void
+    {
+        $this->seed(\Database\Seeders\PropertySeeder::class);
+        $admin = $this->getAdminUser();
+
+        // 1. Admin table renders Edit button with .btn-icon-subtle and openPropertyModal("edit", ...)
+        $tableRes = $this->actingAs($admin)->get('/admin/properti');
+        $tableRes->assertStatus(200);
+        $tableRes->assertSee('title="Edit Properti"', false);
+        $tableRes->assertSee('btn-icon-subtle');
+        $tableRes->assertSee('openPropertyModal("edit"', false);
+
+        // 2. Submit property update
+        $prop = \App\Models\Property::first();
+        $this->assertNotNull($prop);
+        $encodedId = rawurlencode($prop->id);
+
+        $updatePayload = [
+            'title' => 'Villa Horizon Uluwatu - Super Luxury Edition',
+            'category' => 'Villa Mewah & Tropis',
+            'transaction_type' => 'Jual',
+            'price' => 'Rp 55.000.000.000',
+            'price_notes' => 'Sertifikat Hak Milik On Hand',
+            'location_city' => 'Bali',
+            'location_area' => 'Uluwatu, Badung',
+            'location_address' => 'Jl. Pantai Suluban No. 10, Pecatu, Uluwatu',
+            'legal_status' => 'SHM (Hak Milik)',
+            'status' => 'ACTIVE',
+            'bedrooms' => 5,
+            'bathrooms' => 5,
+            'land_size' => 1200,
+            'building_size' => 850,
+            'description' => 'Edisi termewah dengan pemandangan tebing laut lepas.',
+        ];
+
+        $updateRes = $this->actingAs($admin)->post("/admin/properti/{$encodedId}/update", $updatePayload);
+        $updateRes->assertRedirect('/admin/properti');
+
+        // 3. Updated property appears on admin table
+        $afterTableRes = $this->actingAs($admin)->get('/admin/properti');
+        $afterTableRes->assertStatus(200);
+        $afterTableRes->assertSee('Villa Horizon Uluwatu - Super Luxury Edition');
+        $afterTableRes->assertSee('Rp 55.000.000.000');
+
+        // 4. Updated property appears on public explore catalog
+        $exploreRes = $this->get('/explore');
+        $exploreRes->assertStatus(200);
+        $exploreRes->assertSee('Villa Horizon Uluwatu - Super Luxury Edition');
+
+        // 5. Validation error prevents update when required field is empty
+        $invalidRes = $this->actingAs($admin)->post("/admin/properti/{$encodedId}/update", [
+            'title' => '',
+            'price' => '',
+        ]);
+        $invalidRes->assertSessionHasErrors(['title', 'price']);
+    }
 }
 
 

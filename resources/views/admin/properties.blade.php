@@ -215,6 +215,31 @@
                         </td>
                         <td style="padding: 14px 16px; text-align: right;">
                             <div style="display: inline-flex; gap: 6px; align-items: center;">
+                                @php
+                                    $editData = [
+                                        'id' => $prop['id'] ?? '',
+                                        'title' => $prop['title'] ?? '',
+                                        'category' => $prop['category'] ?? '',
+                                        'transaction_type' => $prop['transaction_type'] ?? 'Jual',
+                                        'price' => $prop['price'] ?? 0,
+                                        'price_formatted' => $prop['price_formatted'] ?? '',
+                                        'price_notes' => $prop['price_notes'] ?? '',
+                                        'location_city' => $prop['location_city'] ?? '',
+                                        'location_area' => $prop['location_area'] ?? '',
+                                        'location_address' => $prop['location_address'] ?? '',
+                                        'legal_status' => $prop['legal_status'] ?? 'SHM (Hak Milik)',
+                                        'status' => $prop['status'] ?? 'ACTIVE',
+                                        'bedrooms' => $prop['bedrooms'] ?? 0,
+                                        'bathrooms' => $prop['bathrooms'] ?? 0,
+                                        'land_size' => $prop['land_size'] ?? 0,
+                                        'building_size' => $prop['building_size'] ?? 0,
+                                        'image_main' => $prop['image_main'] ?? '',
+                                        'description' => $prop['description'] ?? '',
+                                    ];
+                                @endphp
+                                <button type="button" class="btn-icon-subtle" title="Edit Properti" onclick='openPropertyModal("edit", @js($editData))'>
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                                </button>
                                 <a href="{{ route('property.detail', $prop['slug']) }}" target="_blank" class="btn-icon-subtle" title="Buka Halaman Publik">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
                                 </a>
@@ -279,6 +304,17 @@
                 </div>
                 <button type="button" onclick="closePropertyModal()" style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #94A3B8;">&times;</button>
             </div>
+
+            @if($errors->any())
+            <div style="background: #FEF2F2; border: 1px solid #FCA5A5; color: #B91C1C; padding: 12px 16px; border-radius: 8px; font-size: 0.82rem; margin-bottom: 16px;">
+                <strong style="display: block; margin-bottom: 4px;">Terdapat kesalahan pada input formulir:</strong>
+                <ul style="margin: 0; padding-left: 18px;">
+                    @foreach($errors->all() as $err)
+                        <li>{{ $err }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
 
             <form id="propMainForm" action="{{ route('admin.properties.store') }}" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 16px;">
                 @csrf
@@ -514,6 +550,35 @@
     function closePropertyModal() {
         document.getElementById('modalPropertyForm').style.display = 'none';
     }
+
+    @if($errors->any() && old('id'))
+        document.addEventListener('DOMContentLoaded', () => {
+            openPropertyModal('edit', @js([
+                'id' => old('id'),
+                'title' => old('title'),
+                'category' => old('category'),
+                'transaction_type' => old('transaction_type'),
+                'price' => old('price'),
+                'price_formatted' => old('price'),
+                'price_notes' => old('price_notes'),
+                'location_city' => old('location_city'),
+                'location_area' => old('location_area'),
+                'location_address' => old('location_address'),
+                'legal_status' => old('legal_status'),
+                'status' => old('status'),
+                'bedrooms' => old('bedrooms'),
+                'bathrooms' => old('bathrooms'),
+                'land_size' => old('land_size'),
+                'building_size' => old('building_size'),
+                'image_main' => old('image_main'),
+                'description' => old('description'),
+            ]));
+        });
+    @elseif($errors->any())
+        document.addEventListener('DOMContentLoaded', () => {
+            openPropertyModal('create');
+        });
+    @endif
     </script>
 </div>
 

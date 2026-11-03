@@ -393,16 +393,55 @@
 <script>
 function handleContactSubmit(e) {
     e.preventDefault();
+    const form = e.target;
     const btn = document.getElementById('btn-submit-contact');
+    const originalBtnHtml = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<span>Mengirim pesan...</span>';
 
-    setTimeout(() => {
-        showToast('Pesan konsultasi Anda berhasil dikirim! Private Client Concierge kami akan menghubungi Anda segera (SLA < 15 menit).');
-        document.getElementById('contact-form').reset();
+    const formData = new FormData(form);
+
+    fetch('{{ route('inquiry.submit') }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        body: formData
+    })
+    .then(async res => {
+        const data = await res.json();
+        if (!res.ok) {
+            let errorMsg = data.message || 'Terjadi kesalahan pada data formulir.';
+            if (data.errors) {
+                const firstKey = Object.keys(data.errors)[0];
+                errorMsg = data.errors[firstKey][0];
+            }
+            throw new Error(errorMsg);
+        }
+        return data;
+    })
+    .then(data => {
+        if (data.success) {
+            showToast(data.message || 'Pesan konsultasi Anda berhasil dikirim! Private Client Concierge kami akan menghubungi Anda segera (SLA < 15 menit).', false);
+            form.reset();
+            btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><span>Pesan Berhasil Terkirim ✓</span>`;
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnHtml;
+            }, 5000);
+        } else {
+            showToast(data.message || 'Gagal mengirim pesan. Silakan periksa formulir Anda.', true);
+            btn.disabled = false;
+            btn.innerHTML = originalBtnHtml;
+        }
+    })
+    .catch(err => {
+        showToast(err.message || 'Gagal mengirim pesan konsultasi. Silakan periksa kembali formulir Anda.', true);
         btn.disabled = false;
-        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><span>Pesan Berhasil Terkirim ✓</span>`;
-    }, 800);
+        btn.innerHTML = originalBtnHtml;
+    });
 }
 </script>
 @endsection

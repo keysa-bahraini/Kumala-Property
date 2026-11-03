@@ -28,6 +28,7 @@
     <!-- Multi-Parameter Search Box -->
     <div style="background: var(--bg-surface); border-radius: var(--radius-lg); border: 1px solid var(--border-color); padding: 22px; box-shadow: var(--shadow-card); margin-bottom: 22px;">
         <form action="{{ route('explore') }}" method="GET" id="filter-form">
+            <input type="hidden" name="sort" value="{{ $sort }}">
             <div class="explore-filter-grid" style="margin-bottom: 18px;">
                 
                 <!-- Parameter 1: Jenis Transaksi -->
@@ -146,22 +147,34 @@
         @endif
 
         <div style="display: flex; align-items: center; gap: 12px; @if(empty($activeFilters) || count($activeFilters) === 0) margin-left: auto; @endif">
-            <div style="display: flex; align-items: center; gap: 6px;">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="m21 8-4-4-4 4"/><path d="M17 4v16"/></svg>
-                <select style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 6px 12px; font-size: 0.85rem; font-weight: 600; color: var(--primary-navy); cursor: pointer;">
-                    <option>Urutkan: Rekomendasi Terbaru</option>
-                    <option>Harga Terendah</option>
-                    <option>Harga Tertinggi</option>
-                    <option>Luas Bangunan</option>
-                </select>
-            </div>
+            <!-- Sort Form -->
+            <form method="GET" action="{{ route('explore') }}" id="sort-form" style="margin: 0; display: inline-flex;">
+                @foreach(request()->except(['sort', 'page']) as $k => $v)
+                    @if(is_array($v))
+                        @foreach($v as $subv)
+                            <input type="hidden" name="{{ $k }}[]" value="{{ $subv }}">
+                        @endforeach
+                    @else
+                        <input type="hidden" name="{{ $k }}" value="{{ $v }}">
+                    @endif
+                @endforeach
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="m21 8-4-4-4 4"/><path d="M17 4v16"/></svg>
+                    <select name="sort" onchange="this.form.submit()" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 6px 12px; font-size: 0.85rem; font-weight: 600; color: var(--primary-navy); cursor: pointer;">
+                        <option value="terbaru" {{ $sort === 'terbaru' ? 'selected' : '' }}>Urutkan: Rekomendasi Terbaru</option>
+                        <option value="harga_rendah" {{ $sort === 'harga_rendah' ? 'selected' : '' }}>Harga Terendah</option>
+                        <option value="harga_tinggi" {{ $sort === 'harga_tinggi' ? 'selected' : '' }}>Harga Tertinggi</option>
+                        <option value="luas_bangunan" {{ $sort === 'luas_bangunan' ? 'selected' : '' }}>Luas Bangunan</option>
+                    </select>
+                </div>
+            </form>
 
             <!-- View Switcher -->
             <div style="display: flex; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); overflow: hidden;">
-                <button type="button" style="padding: 6px 10px; background: #E2E8F0; color: var(--primary-navy);" title="Grid View">
+                <button type="button" id="btn-view-grid" onclick="setViewMode('grid')" style="padding: 6px 10px; background: #E2E8F0; color: var(--primary-navy);" title="Grid View">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
                 </button>
-                <button type="button" style="padding: 6px 10px; color: var(--text-light);" title="List View">
+                <button type="button" id="btn-view-list" onclick="setViewMode('list')" style="padding: 6px 10px; background: transparent; color: var(--text-light);" title="List View">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
                 </button>
             </div>
@@ -234,19 +247,33 @@
     </div>
 
     <!-- Pagination Bar -->
+    @if($properties->total() > 0 && $properties->lastPage() > 1)
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 50px; flex-wrap: wrap; gap: 14px;">
-        <span style="font-size: 0.85rem; color: var(--text-muted);">Halaman 1 dari 8 (Total 48 properti terverifikasi)</span>
+        <span style="font-size: 0.85rem; color: var(--text-muted);">Halaman {{ $properties->currentPage() }} dari {{ $properties->lastPage() }} (Total {{ $properties->total() }} properti terverifikasi)</span>
         
         <div style="display: flex; align-items: center; gap: 6px;">
-            <button type="button" class="btn-pagination-nav" disabled>&lt; Sebelumnya</button>
-            <button type="button" class="btn-pagination-num active">1</button>
-            <button type="button" class="btn-pagination-num">2</button>
-            <button type="button" class="btn-pagination-num">3</button>
-            <span style="padding: 0 4px; color: var(--text-light);">...</span>
-            <button type="button" class="btn-pagination-num">8</button>
-            <button type="button" class="btn-pagination-nav">Selanjutnya &gt;</button>
+            @if($properties->onFirstPage())
+                <button type="button" class="btn-pagination-nav" disabled>&lt; Sebelumnya</button>
+            @else
+                <a href="{{ $properties->previousPageUrl() }}" class="btn-pagination-nav">&lt; Sebelumnya</a>
+            @endif
+
+            @foreach($properties->getUrlRange(1, $properties->lastPage()) as $page => $url)
+                @if($page == $properties->currentPage())
+                    <button type="button" class="btn-pagination-num active">{{ $page }}</button>
+                @else
+                    <a href="{{ $url }}" class="btn-pagination-num">{{ $page }}</a>
+                @endif
+            @endforeach
+
+            @if($properties->hasMorePages())
+                <a href="{{ $properties->nextPageUrl() }}" class="btn-pagination-nav">Selanjutnya &gt;</a>
+            @else
+                <button type="button" class="btn-pagination-nav" disabled>Selanjutnya &gt;</button>
+            @endif
         </div>
     </div>
+    @endif
 
     <!-- Consultation Banner Card (Honest, clean layout) -->
     <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 32px 36px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
@@ -378,5 +405,49 @@ function setTypeFilter(val) {
     document.getElementById('input-type').value = val;
     document.getElementById('filter-form').submit();
 }
+
+function setViewMode(mode) {
+    const gridEl = document.querySelector('.property-grid-cards');
+    const btnGrid = document.getElementById('btn-view-grid');
+    const btnList = document.getElementById('btn-view-list');
+    if (!gridEl) return;
+
+    if (mode === 'list') {
+        gridEl.classList.add('list-view');
+        if (btnGrid) {
+            btnGrid.style.background = 'transparent';
+            btnGrid.style.color = 'var(--text-light)';
+        }
+        if (btnList) {
+            btnList.style.background = '#E2E8F0';
+            btnList.style.color = 'var(--primary-navy)';
+        }
+    } else {
+        gridEl.classList.remove('list-view');
+        if (btnGrid) {
+            btnGrid.style.background = '#E2E8F0';
+            btnGrid.style.color = 'var(--primary-navy)';
+        }
+        if (btnList) {
+            btnList.style.background = 'transparent';
+            btnList.style.color = 'var(--text-light)';
+        }
+    }
+
+    try {
+        localStorage.setItem('kumala_explore_view', mode);
+    } catch (e) {
+        // Safe failover if localStorage is unavailable
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        const savedView = localStorage.getItem('kumala_explore_view');
+        if (savedView === 'list') {
+            setViewMode('list');
+        }
+    } catch (e) {}
+});
 </script>
 @endsection

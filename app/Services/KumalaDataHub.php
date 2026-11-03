@@ -603,9 +603,11 @@ class KumalaDataHub
         $count = Lead::count();
         $id = '#IQ-' . ($count + 2210);
 
-        $propertyId = $input['property_id'] ?? '#KP-8821';
-        $propertyTitle = $input['property_title'] ?? 'Properti Terpilih Kumala';
-        $propertyPrice = $input['property_price'] ?? 'Rp 15 Miliar';
+        $hasExplicitPropertyId = array_key_exists('property_id', $input);
+        $propertyId = $hasExplicitPropertyId ? $input['property_id'] : '#KP-8821';
+        $defaultTitle = $propertyId ? 'Properti Terpilih Kumala' : 'Konsultasi Umum (Tentang Kami)';
+        $propertyTitle = $input['property_title'] ?? $defaultTitle;
+        $propertyPrice = $input['property_price'] ?? ($propertyId ? 'Rp 15 Miliar' : '-');
 
         if (!empty($input['property_slug'])) {
             $prop = self::findPropertyBySlug($input['property_slug']);
@@ -626,6 +628,8 @@ class KumalaDataHub
         if ($userNotes) $quoteParts[] = $userNotes;
         $finalQuote = !empty($quoteParts) ? implode(' | ', $quoteParts) : 'Menanyakan jadwal survei privat dan legalitas lengkap unit.';
 
+        $inquiryType = $input['inquiry_type'] ?? 'beli';
+
         $lead = Lead::create([
             'id' => $id,
             'property_id' => $propertyId,
@@ -636,6 +640,7 @@ class KumalaDataHub
             'client_email' => $input['email'] ?? 'klien@investor.id',
             'buyer_category' => $input['buyer_type'] ?? 'Calon Pembeli Eksklusif (HNWIs)',
             'buyer_type' => $input['buyer_type'] ?? 'Calon Pembeli Eksklusif (HNWIs)',
+            'inquiry_type' => $inquiryType,
             'quote' => $finalQuote,
             'message' => $finalQuote,
             'stage' => 'Baru',
@@ -660,7 +665,7 @@ class KumalaDataHub
             'btn_action_2' => 'Jadwalkan Survei',
         ]);
 
-        self::logAction("Inquiry Baru {$id} untuk properti {$propertyId} dari {$lead->client_name}", 'Portal Publik (User)', 'Lead Created');
+        self::logAction("Inquiry Baru {$id} untuk properti " . ($propertyId ?? 'Konsultasi Umum') . " dari {$lead->client_name}", 'Portal Publik (User)', 'Lead Created');
 
         return self::transformLead($lead);
     }

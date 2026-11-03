@@ -30,17 +30,32 @@ class PropertyController extends Controller
         $category = $request->query('category', 'Semua Tipe Properti');
         $location = $request->query('location', 'Semua Wilayah');
         $priceRange = $request->query('price_range', 'Semua Rentang Harga');
+        $sort = $request->query('sort', 'terbaru');
+        if (!in_array($sort, ['terbaru', 'harga_rendah', 'harga_tinggi', 'luas_bangunan'])) {
+            $sort = 'terbaru';
+        }
 
         $properties = KumalaDataHub::filterProperties($type, $category, $location, $priceRange);
         $settings = KumalaDataHub::getSettings();
         $categories = KumalaDataHub::getCategories();
         $regions = KumalaDataHub::getRegions();
 
-        // Active filters list (exclude default fallback values)
+        $searchKey = $request->query('q') ?? ($request->query('search') ?? $request->query('keyword'));
+        if (!empty($searchKey)) {
+            $properties = array_values(array_filter($properties, function ($item) use ($searchKey) {
+                return stripos($item['title'] ?? '', $searchKey) !== false
+                    || stripos($item['location_city'] ?? '', $searchKey) !== false
+                    || stripos($item['location_area'] ?? '', $searchKey) !== false
+                    || stripos($item['category'] ?? '', $searchKey) !== false
+                    || stripos($item['id'] ?? '', $searchKey) !== false;
+            }));
+        }
+
+        // Active filters list (exclude default fallback values, keep sort across filter removal)
         $activeFilters = [];
         if (!empty($type) && !in_array($type, ['Semua', 'all', ''])) {
             $queryWithout = $request->query();
-            unset($queryWithout['type']);
+            unset($queryWithout['type'], $queryWithout['page']);
             $activeFilters['type'] = [
                 'key' => 'type',
                 'label' => 'Tipe: ' . $type,
@@ -49,7 +64,7 @@ class PropertyController extends Controller
         }
         if (!empty($category) && !in_array($category, ['Semua Tipe Properti', 'Semua', 'all', ''])) {
             $queryWithout = $request->query();
-            unset($queryWithout['category']);
+            unset($queryWithout['category'], $queryWithout['page']);
             $activeFilters['category'] = [
                 'key' => 'category',
                 'label' => $category,
@@ -58,7 +73,7 @@ class PropertyController extends Controller
         }
         if (!empty($location) && !in_array($location, ['Semua Wilayah', 'Semua', 'all', ''])) {
             $queryWithout = $request->query();
-            unset($queryWithout['location']);
+            unset($queryWithout['location'], $queryWithout['page']);
             $activeFilters['location'] = [
                 'key' => 'location',
                 'label' => $location,
@@ -67,17 +82,16 @@ class PropertyController extends Controller
         }
         if (!empty($priceRange) && !in_array($priceRange, ['Semua Rentang Harga', 'Semua', 'all', ''])) {
             $queryWithout = $request->query();
-            unset($queryWithout['price_range']);
+            unset($queryWithout['price_range'], $queryWithout['page']);
             $activeFilters['price_range'] = [
                 'key' => 'price_range',
                 'label' => $priceRange,
                 'url' => route('explore', $queryWithout),
             ];
         }
-        $searchKey = $request->query('q') ?? ($request->query('search') ?? $request->query('keyword'));
         if (!empty($searchKey)) {
             $queryWithout = $request->query();
-            unset($queryWithout['q'], $queryWithout['search'], $queryWithout['keyword']);
+            unset($queryWithout['q'], $queryWithout['search'], $queryWithout['keyword'], $queryWithout['page']);
             $activeFilters['q'] = [
                 'key' => 'q',
                 'label' => 'Kata kunci: "' . $searchKey . '"',
@@ -85,7 +99,55 @@ class PropertyController extends Controller
             ];
         }
 
-        return view('pages.explore', compact('properties', 'type', 'category', 'location', 'priceRange', 'settings', 'categories', 'regions', 'activeFilters'));
+        // Sort items according to requested sort criteria
+        $collection = collect($properties);
+        switch ($sort) {
+            case 'harga_rendah':
+                $sorted = $collection->sortBy('price', SORT_REGULAR, false)->values();
+                break;
+            case 'harga_tinggi':
+                $sorted = $collection->sortBy('price', SORT_REGULAR, true)->values();
+                break;
+            case 'luas_bangunan':
+                $sorted = $collection->sortBy('building_size', SORT_REGULAR, true)->values();
+                break;
+            case 'terbaru':
+            default:
+                $sorted = $collection->sortByDesc(function ($item) {
+                    return $item['created_at'] ?? $item['id'] ?? '';
+                })->values();
+                break;
+        }
+
+        // LengthAwarePaginator (perPage: 6) with fallback support
+        $perPage = 6;
+        $total = $sorted->count();
+        $lastPage = max(1, (int)ceil($total / $perPage));
+        $page = (int)$request->query('page', 1);
+
+        if ($page < 1) {
+            $page = 1;
+        }
+        if ($total > 0 && $page > $lastPage) {
+            return redirect()->to($request->fullUrlWithQuery(['page' => $lastPage]));
+        }
+
+        $currentItems = $sorted->slice(($page - 1) * $perPage, $perPage)->values();
+
+        $paginatedProperties = new \Illuminate\Pagination\LengthAwarePaginator(
+            $currentItems,
+            $total,
+            $perPage,
+            $page,
+            [
+                'path' => $request->url(),
+                'query' => $request->query(),
+            ]
+        );
+
+        $properties = $paginatedProperties;
+
+        return view('pages.explore', compact('properties', 'type', 'category', 'location', 'priceRange', 'sort', 'settings', 'categories', 'regions', 'activeFilters'));
     }
 
     /**
@@ -178,16 +240,49 @@ class PropertyController extends Controller
     }
 
     /**
-     * Submit Inquiry Form (Minat Beli / Sewa dari User)
+     * Submit Inquiry Form (Minat Beli / Sewa dari User / Konsultasi Umum)
      * Langsung tersambung ke Admin Lead Pipeline CRM & Dashboard!
      */
     public function submitInquiry(InquiryRequest $request)
     {
-        $inquiry = KumalaDataHub::createInquiry($request->all());
+        $data = $request->all();
+
+        $isConsultation = $request->filled('subject') && !isset($data['notes']);
+        if ($isConsultation) {
+            $subject = $request->input('subject');
+            $message = $request->input('message', '');
+            $data['notes'] = "[Topik: {$subject}] {$message}";
+
+            if (stripos($subject, 'Sewa') !== false) {
+                $data['inquiry_type'] = 'sewa';
+            } elseif (stripos($subject, 'Titip') !== false) {
+                $data['inquiry_type'] = 'titip';
+            } elseif (stripos($subject, 'Kemitraan') !== false) {
+                $data['inquiry_type'] = 'kemitraan';
+            } else {
+                $data['inquiry_type'] = 'beli';
+            }
+
+            if (!isset($data['property_id'])) {
+                $data['property_id'] = null;
+            }
+            if (!isset($data['property_title'])) {
+                $data['property_title'] = 'Konsultasi Umum (Tentang Kami)';
+            }
+            if (!isset($data['property_price'])) {
+                $data['property_price'] = '-';
+            }
+        }
+
+        $inquiry = KumalaDataHub::createInquiry($data);
+
+        $responseMsg = $isConsultation
+            ? 'Pesan konsultasi Anda berhasil dikirim! Private Client Concierge kami akan menghubungi Anda segera (SLA < 15 menit).'
+            : 'Permohonan minat beli & jadwal survei Anda berhasil dikirim! Private Client Concierge kami akan menghubungi Anda segera via WhatsApp resmi Kumala Property (SLA < 15 menit).';
 
         return response()->json([
             'success' => true,
-            'message' => 'Permohonan minat beli & jadwal survei Anda berhasil dikirim! Private Client Concierge kami akan menghubungi Anda segera via WhatsApp resmi Kumala Property (SLA < 15 menit).',
+            'message' => $responseMsg,
             'lead_id' => $inquiry['id'],
             'client_name' => $inquiry['client_name'],
             'property_title' => $inquiry['property_title'],

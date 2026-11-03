@@ -128,8 +128,10 @@
                         <div style="min-width: 0;">
                             <strong style="font-size: 0.85rem; color: #0E1E2E; display: block; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $inq['property_title'] ?? 'Listing Terpilih' }}</strong>
                             <div style="font-size: 0.72rem; color: #64748B; margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                <span>{{ $inq['property_id'] ?? '#KP-8821' }}</span>
-                                <strong style="color: #00838F;">{{ $inq['property_price'] ?? 'Rp 15 Miliar' }}</strong>
+                                <span>{{ !empty($inq['property_id']) ? $inq['property_id'] : 'Konsultasi Umum' }}</span>
+                                @if(!empty($inq['property_price']) && $inq['property_price'] !== '-')
+                                    <strong style="color: #00838F;">{{ $inq['property_price'] }}</strong>
+                                @endif
                             </div>
                         </div>
                     </div>

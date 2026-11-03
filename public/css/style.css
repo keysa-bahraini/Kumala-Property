@@ -994,6 +994,26 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   gap: 24px;
 }
 
+@media (min-width: 769px) {
+  .property-grid-cards.list-view {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .property-grid-cards.list-view .property-card {
+    flex-direction: row;
+  }
+  .property-grid-cards.list-view .card-media-wrapper {
+    width: 320px;
+    height: 100%;
+    min-height: 220px;
+    flex-shrink: 0;
+  }
+  .property-grid-cards.list-view .card-content {
+    flex: 1;
+    justify-content: space-between;
+  }
+}
+
 .detail-main-layout {
   display: grid;
   grid-template-columns: 1fr 380px;

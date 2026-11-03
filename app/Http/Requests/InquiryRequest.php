@@ -29,6 +29,8 @@ class InquiryRequest extends FormRequest
             'inquiry_type' => 'nullable|string',
             'payment_scheme' => 'nullable|string',
             'survey_date' => 'nullable|date',
+            'subject' => 'nullable|string|max:255',
+            'message' => 'nullable|string|max:1000',
             'notes' => 'nullable|string|max:1000',
         ];
     }
