@@ -57,10 +57,11 @@
             <table style="width: 100%; min-width: 820px; border-collapse: collapse; text-align: left; font-size: 0.82rem;">
                 <thead>
                     <tr style="background: #F8FAFC; border-bottom: 1px solid #E2E8F0; color: #475569; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase;">
-                        <th style="padding: 12px 24px; width: 220px;">NO. TRANSAKSI &amp; TANGGAL</th>
+                        <th style="padding: 12px 24px; width: 200px;">NO. TRANSAKSI &amp; TANGGAL</th>
                         <th style="padding: 12px 24px;">UNIT PROPERTI &amp; ID</th>
-                        <th style="padding: 12px 24px; width: 240px;">JENIS TRANSAKSI</th>
-                        <th style="padding: 12px 24px; text-align: right; width: 220px;">HARGA LISTING VS DEAL</th>
+                        <th style="padding: 12px 24px; width: 220px;">JENIS TRANSAKSI</th>
+                        <th style="padding: 12px 24px; text-align: right; width: 200px;">HARGA LISTING VS DEAL</th>
+                        <th style="padding: 12px 24px; text-align: center; width: 120px;">AKSI</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -101,10 +102,43 @@
                                 <strong style="color: #059669; margin-left: 4px;">{{ $tx['diff_pct'] ?? ($tx['diff_percent'] ?? 'Deal') }}</strong>
                             </div>
                         </td>
+                        <td style="padding: 16px 24px; text-align: center;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                @php
+                                    $editTxData = [
+                                        'id' => $tx['id'],
+                                        'property_id' => $tx['property_id'] ?? '',
+                                        'property_title' => $tx['property_title'] ?? ($tx['title'] ?? ''),
+                                        'trx_type' => $tx['trx_type'] ?? 'TERJUAL - JUAL BELI',
+                                        'deal_price' => $tx['deal_price'] ?? ($tx['price_deal'] ?? ''),
+                                        'parties' => $tx['parties'] ?? '',
+                                        'notary' => $tx['notary'] ?? '',
+                                    ];
+                                    $publicPropUrl = !empty($tx['property_slug']) 
+                                        ? route('property.detail', $tx['property_slug']) 
+                                        : (!empty($tx['property_id']) ? route('explore', ['q' => $tx['property_id']]) : route('explore'));
+                                @endphp
+                                <button type="button" class="btn-icon-subtle" title="Edit Transaksi" onclick='openClosingModal("edit", @js($editTxData))'>
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                                </button>
+                                <a href="{{ $publicPropUrl }}" target="_blank" rel="noopener noreferrer" class="btn-icon-subtle" title="Buka Halaman Publik">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
+                                </a>
+                                @if(auth()->user() && auth()->user()->role === 'super_admin')
+                                <form action="{{ route('admin.transactions.delete', rawurlencode($tx['id'])) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus transaksi closing {{ $tx['id'] }}? Tindakan ini tidak dapat dibatalkan dan status unit properti akan dikembalikan.')" style="margin: 0; display: inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn-icon-subtle" title="Hapus Transaksi" style="color: #DC2626;">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                    </button>
+                                </form>
+                                @endif
+                            </div>
+                        </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="4" style="padding: 24px; text-align: center; color: #64748B;">
+                        <td colspan="5" style="padding: 24px; text-align: center; color: #64748B;">
                             Belum ada riwayat closing transaksi tersimpan.
                         </td>
                     </tr>
@@ -118,14 +152,14 @@
     <div id="modalClosing" style="display: none; position: fixed; inset: 0; background: rgba(14, 34, 56, 0.7); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
         <div style="background: #FFFFFF; border-radius: 14px; max-width: 520px; width: 100%; padding: 28px; box-shadow: var(--shadow-lg); border: 1px solid var(--border-color);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="font-size: 1.25rem; color: var(--primary-navy); font-weight: 700;">Catat Closing Transaksi</h3>
+                <h3 id="modalClosingTitle" style="font-size: 1.25rem; color: var(--primary-navy); font-weight: 700;">Catat Closing Transaksi</h3>
                 <button type="button" onclick="closeClosingModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: #94A3B8;">&times;</button>
             </div>
-            <form action="{{ route('admin.transactions.store') }}" method="POST" style="display: flex; flex-direction: column; gap: 14px;">
+            <form id="formClosing" action="{{ route('admin.transactions.store') }}" method="POST" style="display: flex; flex-direction: column; gap: 14px;">
                 @csrf
-                <div>
+                <div id="closingPropSelectGroup">
                     <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Pilih Properti Aktif</label>
-                    <select name="property_id" required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    <select name="property_id" id="closingPropertySelect" required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
                         @if(!empty($activeProperties))
                             @foreach($activeProperties as $prop)
                                 <option value="{{ $prop->id }}">{{ $prop->id }} - {{ $prop->title }} ({{ $prop->price_formatted }})</option>
@@ -135,10 +169,14 @@
                         @endif
                     </select>
                 </div>
+                <div id="closingPropDisplayGroup" style="display: none;">
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Unit Properti Terkait</label>
+                    <input type="text" id="closingPropertyDisplay" readonly style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F1F5F9; color: #475569;">
+                </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div>
                         <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Jenis Transaksi</label>
-                        <select name="trx_type" required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                        <select name="trx_type" id="closingTrxType" required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
                             <option value="TERJUAL - JUAL BELI">TERJUAL - JUAL BELI</option>
                             <option value="TERSEWA - 2 TAHUN">TERSEWA - 2 TAHUN</option>
                             <option value="TERSEWA - 1 TAHUN">TERSEWA - 1 TAHUN</option>
@@ -146,20 +184,20 @@
                     </div>
                     <div>
                         <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Harga Deal Final</label>
-                        <input type="text" name="deal_price" placeholder="Contoh: Rp 40.000.000.000" required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem;">
+                        <input type="text" name="deal_price" id="closingDealPrice" placeholder="Contoh: Rp 40.000.000.000" required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem;">
                     </div>
                 </div>
                 <div>
                     <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Pihak Transaksi</label>
-                    <input type="text" name="parties" placeholder="Penjual: Bpk. Tanu / Pembeli: Konsorsium Artha" required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem;">
+                    <input type="text" name="parties" id="closingParties" placeholder="Penjual: Bpk. Tanu / Pembeli: Konsorsium Artha" required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem;">
                 </div>
                 <div>
                     <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Notaris Rekanan</label>
-                    <input type="text" name="notary" value="Dra. Sri Wahyuni, S.H., M.Kn." required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem;">
+                    <input type="text" name="notary" id="closingNotary" value="Dra. Sri Wahyuni, S.H., M.Kn." required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem;">
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
                     <button type="button" class="btn-fav-tool" onclick="closeClosingModal()">Batal</button>
-                    <button type="submit" class="btn-teal">Simpan & Bukukan Closing</button>
+                    <button type="submit" id="btnSubmitClosing" class="btn-teal">Simpan & Bukukan Closing</button>
                 </div>
             </form>
         </div>
@@ -214,14 +252,72 @@
 .tx-table-row:hover {
     background: #F8FAFC;
 }
+
+.btn-icon-subtle {
+    background: none;
+    border: none;
+    color: #64748B;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    text-decoration: none;
+}
+.btn-icon-subtle:hover {
+    background: #F1F5F9;
+    color: #00838F;
+}
 </style>
 @endsection
 
 @section('scripts')
 <script>
-function openClosingModal() {
+function openClosingModal(mode = 'create', data = null) {
     const modal = document.getElementById('modalClosing');
-    if (modal) modal.style.display = 'flex';
+    const form = document.getElementById('formClosing');
+    const title = document.getElementById('modalClosingTitle');
+    const submitBtn = document.getElementById('btnSubmitClosing');
+    const selectGroup = document.getElementById('closingPropSelectGroup');
+    const displayGroup = document.getElementById('closingPropDisplayGroup');
+    const propSelect = document.getElementById('closingPropertySelect');
+    const propDisplay = document.getElementById('closingPropertyDisplay');
+    const trxType = document.getElementById('closingTrxType');
+    const dealPrice = document.getElementById('closingDealPrice');
+    const parties = document.getElementById('closingParties');
+    const notary = document.getElementById('closingNotary');
+
+    if (!modal) return;
+
+    if (mode === 'create') {
+        if (title) title.textContent = 'Catat Closing Transaksi';
+        if (submitBtn) submitBtn.textContent = 'Simpan & Bukukan Closing';
+        if (form) {
+            form.action = "{{ route('admin.transactions.store') }}";
+            form.reset();
+        }
+        if (selectGroup) selectGroup.style.display = 'block';
+        if (displayGroup) displayGroup.style.display = 'none';
+        if (propSelect) propSelect.required = true;
+    } else if (mode === 'edit' && data) {
+        if (title) title.textContent = 'Edit Closing ' + (data.id || '');
+        if (submitBtn) submitBtn.textContent = 'Simpan Perubahan';
+        if (form) {
+            form.action = "/admin/riwayat-transaksi/" + encodeURIComponent(data.id) + "/update";
+        }
+        if (selectGroup) selectGroup.style.display = 'none';
+        if (displayGroup) displayGroup.style.display = 'block';
+        if (propSelect) propSelect.required = false;
+        if (propDisplay) propDisplay.value = (data.property_id ? data.property_id + ' - ' : '') + (data.property_title || '');
+        if (trxType) trxType.value = data.trx_type || 'TERJUAL - JUAL BELI';
+        if (dealPrice) dealPrice.value = data.deal_price || '';
+        if (parties) parties.value = data.parties || '';
+        if (notary) notary.value = data.notary || 'Dra. Sri Wahyuni, S.H., M.Kn.';
+    }
+
+    modal.style.display = 'flex';
 }
 
 function closeClosingModal() {

@@ -307,6 +307,26 @@
             border-radius: 50%;
             border: 1.5px solid #FFFFFF;
         }
+        .notification-badge-count {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: #EF4444;
+            color: #FFFFFF;
+            font-size: 0.65rem;
+            font-weight: 800;
+            line-height: 1;
+            min-width: 17px;
+            height: 17px;
+            padding: 0 4px;
+            border-radius: 10px;
+            border: 1.5px solid #FFFFFF;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            pointer-events: none;
+        }
 
         .admin-notification-dropdown {
             position: absolute;
@@ -642,9 +662,13 @@
                 </a>
 
                 <div class="admin-notification-wrapper">
-                    <button type="button" class="admin-notification-btn" id="btn-admin-bell" title="Notifikasi Operasional" aria-expanded="false" aria-haspopup="true" onclick="toggleAdminNotificationDropdown(event)">
+                    @php
+                        $bellTotal = (int)($adminNotificationCount ?? 0);
+                        $bellDisplay = $bellTotal > 99 ? '99+' : $bellTotal;
+                    @endphp
+                    <button type="button" class="admin-notification-btn" id="btn-admin-bell" title="Notifikasi Operasional" aria-label="Notifikasi Operasional, {{ $bellTotal > 0 ? $bellTotal . ' tugas baru' : 'tidak ada tugas baru' }}" aria-expanded="false" aria-haspopup="true" onclick="toggleAdminNotificationDropdown(event)">
                         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                        <span class="notification-badge-dot" id="bell-badge-dot" style="display: {{ ($adminNotificationCount ?? 0) > 0 ? 'block' : 'none' }};"></span>
+                        <span class="notification-badge-count" id="bell-badge-count" style="display: {{ $bellTotal > 0 ? 'inline-flex' : 'none' }};">{{ $bellDisplay }}</span>
                     </button>
 
                     <!-- Dropdown Notifikasi Operasional -->
@@ -783,6 +807,19 @@
         (function() {
             let pollingInterval = null;
             let isPollingStopped = false;
+            const originalDocTitle = document.title.replace(/^\(\d+\+?\)\s*/, '');
+
+            function updateTabTitle(total) {
+                if (total > 0) {
+                    const badge = total > 99 ? '99+' : total;
+                    document.title = `(${badge}) ${originalDocTitle}`;
+                } else {
+                    document.title = originalDocTitle;
+                }
+            }
+
+            // Initial tab title sync
+            updateTabTitle({{ (int)($adminNotificationCount ?? 0) }});
 
             async function fetchNotificationCounts() {
                 if (isPollingStopped || document.hidden) return;
@@ -814,16 +851,28 @@
             function updateNotificationUI(data) {
                 if (!data || typeof data.total === 'undefined') return;
 
-                // Red dot
-                const dot = document.getElementById('bell-badge-dot');
-                if (dot) {
-                    dot.style.display = data.total > 0 ? 'block' : 'none';
+                const total = Number(data.total) || 0;
+
+                // Bell number badge
+                const countBadge = document.getElementById('bell-badge-count');
+                if (countBadge) {
+                    countBadge.textContent = total > 99 ? '99+' : total;
+                    countBadge.style.display = total > 0 ? 'inline-flex' : 'none';
                 }
+
+                // Bell button aria-label
+                const btnBell = document.getElementById('btn-admin-bell');
+                if (btnBell) {
+                    btnBell.setAttribute('aria-label', total > 0 ? `Notifikasi Operasional, ${total} tugas baru` : 'Notifikasi Operasional, tidak ada tugas baru');
+                }
+
+                // Browser tab title
+                updateTabTitle(total);
 
                 // Header total badge
                 const totalBadge = document.getElementById('notif-total-badge');
                 if (totalBadge) {
-                    totalBadge.textContent = `${data.total} Total`;
+                    totalBadge.textContent = `${total} Total`;
                 }
 
                 // Dropdown badges

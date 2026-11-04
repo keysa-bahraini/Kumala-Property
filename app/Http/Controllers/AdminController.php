@@ -362,8 +362,13 @@ class AdminController extends Controller
                 ];
             }
 
+            $prop = $sub->property_id ? Property::find($sub->property_id) : null;
+            $propSlug = $sub->property_slug ?: ($prop ? $prop->slug : null);
+
             return [
                 'id' => $sub->id,
+                'property_id' => $sub->property_id,
+                'property_slug' => $propSlug,
                 'title' => $sub->title,
                 'owner' => $sub->owner_name,
                 'phone' => $sub->owner_phone,
@@ -373,6 +378,8 @@ class AdminController extends Controller
                 'valuation_range' => $sub->valuation_range ?: ($sub->asking_val ? ('Rp ' . number_format($sub->asking_val * 0.95, 0, ',', '.') . ' - ' . number_format($sub->asking_val * 1.05, 0, ',', '.')) : 'Dalam Estimasi'),
                 'trx_type' => $sub->trx_type,
                 'category' => $sub->category,
+                'city_region' => $sub->city_region,
+                'specific_area' => $sub->specific_area,
                 'location' => $sub->location,
                 'address' => $sub->address,
                 'land_size' => (int) $sub->land_size,
@@ -448,12 +455,15 @@ class AdminController extends Controller
         ];
 
         $transactions = Transaction::latest()->get()->map(function ($t) {
+            $prop = $t->property_id ? Property::find($t->property_id) : null;
+            $propSlug = $prop ? $prop->slug : null;
             return [
                 'id' => $t->id,
                 'date' => $t->date,
                 'property_id' => $t->property_id,
                 'property_title' => $t->property_title,
                 'property_image' => $t->property_image,
+                'property_slug' => $propSlug,
                 'location' => $t->location,
                 'trx_type' => $t->trx_type,
                 'asking_price' => $t->asking_price,
@@ -833,21 +843,52 @@ class AdminController extends Controller
     }
 
     /**
-     * Fase 5: Update Submission Standard Data
+     * Update Submission Data (Pending, Revision, Rejected only)
      */
     public function updateSubmissionData(Request $request, $id)
     {
-        $sub = Submission::findOrFail($id);
+        $sub = Submission::find($id);
+        if (!$sub) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data pengajuan contoh (fallback) tidak dapat diedit.',
+                ], 404);
+            }
+            return redirect()->route('admin.submissions')
+                ->with('error', 'Data pengajuan contoh (fallback) tidak dapat diedit.');
+        }
+
+        if ($sub->status === 'approved') {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pengajuan sudah disetujui dan tayang di katalog. Perubahan data harus dilakukan melalui menu Manajemen Properti.',
+                ], 422);
+            }
+            return redirect()->route('admin.submissions', ['selected' => $id])
+                ->with('error', 'Pengajuan sudah disetujui dan tayang di katalog. Perubahan data harus dilakukan melalui menu Manajemen Properti.');
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'asking_price' => 'nullable|string',
+            'trx_type' => 'nullable|string|max:50',
+            'category' => 'nullable|string|max:100',
+            'city_region' => 'nullable|string|max:100',
+            'specific_area' => 'nullable|string|max:100',
+            'address' => 'nullable|string',
+            'asking_price' => 'nullable|string|max:100',
             'land_size' => 'nullable|integer',
             'building_size' => 'nullable|integer',
-            'bedrooms' => 'nullable|string',
-            'bathrooms' => 'nullable|string',
-            'electricity' => 'nullable|string',
-            'legal' => 'nullable|string',
-            'address' => 'nullable|string',
+            'bedrooms' => 'nullable|string|max:50',
+            'bathrooms' => 'nullable|string|max:50',
+            'electricity' => 'nullable|string|max:50',
+            'legal' => 'nullable|string|max:100',
+            'owner_name' => 'nullable|string|max:255',
+            'owner_phone' => 'nullable|string|max:50',
+            'owner_email' => 'nullable|email|max:255',
+            'owner_status' => 'nullable|string|max:100',
+            'notes' => 'nullable|string',
         ]);
 
         if (!empty($validated['asking_price'])) {
@@ -855,24 +896,85 @@ class AdminController extends Controller
             $validated['asking_val'] = $val;
         }
 
+        // Ensure status is never changed through edit form
+        unset($validated['status']);
+
+        // Synchronize general location field
+        $city = $validated['city_region'] ?? $sub->city_region;
+        $area = $validated['specific_area'] ?? $sub->specific_area;
+        if ($city || $area) {
+            $validated['location'] = trim(($area ? $area . ', ' : '') . ($city ?: ''), ', ');
+        }
+
         $sub->update($validated);
 
         AuditLog::create([
             'timestamp_display' => now()->format('H:i') . ' WIB',
-            'action' => "Penyesuaian Data Standar Listing {$id}",
+            'action' => "Penyesuaian Data Listing {$id} ({$sub->title})",
             'user' => auth()->user() ? auth()->user()->name : 'Curator',
             'status' => 'Updated',
-            'details' => ['submission_id' => $id],
+            'details' => ['submission_id' => $id, 'title' => $sub->title],
         ]);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => "Data teknis listing {$id} berhasil diperbarui!",
+                'message' => "Data pengajuan {$id} berhasil diperbarui!",
             ]);
         }
 
-        return redirect()->route('admin.submissions')->with('success', "Data teknis {$id} berhasil disimpan.");
+        return redirect()->route('admin.submissions', ['selected' => $id])
+            ->with('success', "Data pengajuan {$id} berhasil disimpan.");
+    }
+
+    /**
+     * Delete Submission
+     */
+    public function deleteSubmission(Request $request, $id)
+    {
+        $sub = Submission::find($id);
+        if (!$sub) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data pengajuan contoh (fallback) tidak dapat dihapus.',
+                ], 404);
+            }
+            return redirect()->route('admin.submissions')
+                ->with('error', 'Data pengajuan contoh (fallback) tidak dapat dihapus.');
+        }
+
+        if ($sub->status === 'approved' || !empty($sub->property_id)) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pengajuan ini telah disetujui dan unit telah aktif di katalog. Harap arsipkan/hapus unit melalui menu Manajemen Properti terlebih dahulu.',
+                ], 422);
+            }
+            return redirect()->route('admin.submissions', ['selected' => $id])
+                ->with('error', 'Pengajuan ini telah disetujui dan unit telah aktif di katalog. Harap arsipkan/hapus unit melalui menu Manajemen Properti terlebih dahulu.');
+        }
+
+        $subTitle = $sub->title;
+        $sub->delete();
+
+        AuditLog::create([
+            'timestamp_display' => now()->format('H:i') . ' WIB',
+            'action' => "Hapus Pengajuan Listing {$id} ({$subTitle})",
+            'user' => auth()->user() ? auth()->user()->name : 'Super Admin',
+            'status' => 'Deleted',
+            'details' => ['submission_id' => $id, 'title' => $subTitle],
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Pengajuan {$id} berhasil dihapus dari antrean.",
+            ]);
+        }
+
+        return redirect()->route('admin.submissions')
+            ->with('success', "Pengajuan {$id} berhasil dihapus dari antrean.");
     }
 
     /**
@@ -1121,6 +1223,158 @@ class AdminController extends Controller
         }
 
         return redirect()->route('admin.transactions')->with('success', "Transaksi {$newId} berhasil dicatat & unit properti telah diarsipkan!");
+    }
+
+    /**
+     * Update Closing Transaction
+     */
+    public function updateTransaction(Request $request, $id)
+    {
+        $trx = Transaction::find($id);
+        if (!$trx) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data transaksi contoh (fallback) tidak dapat diedit.',
+                ], 404);
+            }
+            return redirect()->route('admin.transactions')
+                ->with('error', 'Data transaksi contoh (fallback) tidak dapat diedit.');
+        }
+
+        $validated = $request->validate([
+            'trx_type' => 'required|string|max:100',
+            'deal_price' => 'required|string|max:100',
+            'parties' => 'required|string|max:255',
+            'notary' => 'required|string|max:255',
+            'status_doc' => 'nullable|string|max:100',
+        ]);
+
+        $dealVal = (int) preg_replace('/[^0-9]/', '', $validated['deal_price']);
+        $askingVal = (int) preg_replace('/[^0-9]/', '', (string)$trx->asking_price);
+
+        $diffPct = $trx->diff_pct;
+        if ($askingVal > 0 && $dealVal > 0) {
+            $diff = (($dealVal - $askingVal) / $askingVal) * 100;
+            $diffPct = ($diff >= 0 ? '+' : '') . round($diff, 1) . '%';
+        }
+
+        $trx->trx_type = $validated['trx_type'];
+        $trx->deal_price = $validated['deal_price'];
+        $trx->deal_val = $dealVal;
+        $trx->diff_pct = $diffPct;
+        $trx->parties = $validated['parties'];
+        $trx->notary = $validated['notary'];
+        if (!empty($validated['status_doc'])) {
+            $trx->status_doc = $validated['status_doc'];
+        }
+
+        // Sinkronkan status properti jika jenis transaksi disesuaikan
+        if ($trx->property_id) {
+            $prop = Property::find($trx->property_id);
+            if ($prop && in_array($prop->status, ['ACTIVE', 'SOLD', 'RENTED'])) {
+                if (stripos($validated['trx_type'], 'SEWA') !== false) {
+                    $prop->status = 'RENTED';
+                } else {
+                    $prop->status = 'SOLD';
+                }
+                $prop->save();
+            }
+        }
+
+        $trx->save();
+
+        AuditLog::create([
+            'timestamp_display' => now()->format('H:i') . ' WIB',
+            'action' => "Edit Transaksi {$id} ({$trx->property_id})",
+            'user' => auth()->user() ? auth()->user()->name : 'Super Admin',
+            'status' => 'Updated',
+            'details' => [
+                'transaction_id' => $id,
+                'property_id' => $trx->property_id,
+                'trx_type' => $trx->trx_type,
+                'deal_price' => $trx->deal_price,
+            ],
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Data transaksi {$id} berhasil diperbarui!",
+            ]);
+        }
+
+        return redirect()->route('admin.transactions')->with('success', "Data transaksi {$id} berhasil diperbarui!");
+    }
+
+    /**
+     * Delete Closing Transaction (Super Admin only)
+     */
+    public function deleteTransaction(Request $request, $id)
+    {
+        if (auth()->user()->role !== 'super_admin') {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akses ditolak: Hanya Super Admin yang berwenang menghapus riwayat transaksi closing.',
+                ], 403);
+            }
+            abort(403, 'Akses ditolak: Hanya Super Admin yang berwenang menghapus riwayat transaksi closing.');
+        }
+
+        $trx = Transaction::find($id);
+        if (!$trx) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data transaksi contoh (fallback) tidak dapat dihapus.',
+                ], 404);
+            }
+            return redirect()->route('admin.transactions')
+                ->with('error', 'Data transaksi contoh (fallback) tidak dapat dihapus.');
+        }
+
+        $propertyId = $trx->property_id;
+
+        // Pemulihan status properti: kembalikan ke ACTIVE HANYA bila status properti saat ini SOLD atau RENTED
+        // dan tidak ada transaksi lain untuk properti itu.
+        if ($propertyId) {
+            $prop = Property::find($propertyId);
+            $hasOtherTransactions = Transaction::where('property_id', $propertyId)
+                ->where('id', '!=', $id)
+                ->exists();
+            if ($prop && in_array($prop->status, ['SOLD', 'RENTED']) && !$hasOtherTransactions) {
+                $prop->status = 'ACTIVE';
+                $prop->save();
+            }
+        }
+
+        AuditLog::create([
+            'timestamp_display' => now()->format('H:i') . ' WIB',
+            'action' => "Hapus Transaksi {$id} ({$propertyId})",
+            'user' => auth()->user() ? auth()->user()->name : 'Super Admin',
+            'status' => 'Deleted',
+            'details' => [
+                'transaction_id' => $id,
+                'property_id' => $propertyId,
+                'property_title' => $trx->property_title,
+                'trx_type' => $trx->trx_type,
+                'deal_price' => $trx->deal_price,
+                'parties' => $trx->parties,
+                'notary' => $trx->notary,
+            ],
+        ]);
+
+        $trx->delete();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Data transaksi {$id} berhasil dihapus & status properti telah disinkronkan!",
+            ]);
+        }
+
+        return redirect()->route('admin.transactions')->with('success', "Data transaksi {$id} berhasil dihapus & status properti telah disinkronkan!");
     }
 
     /**
@@ -1923,6 +2177,7 @@ class AdminController extends Controller
                 'property_id' => '#KP-8822',
                 'property_title' => 'Menteng Heritage Colonial Mansion',
                 'property_image' => 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80',
+                'property_slug' => 'menteng-heritage-colonial-mansion',
                 'location' => 'Menteng, Jakarta Pusat',
                 'trx_type' => 'TERJUAL - JUAL BELI',
                 'asking_price' => 'Rp 88.000.000.000',

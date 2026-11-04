@@ -66,15 +66,23 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
     Route::post('/listing-masuk/{id}/approve', [AdminController::class, 'approveSubmission']);
     Route::post('/listing-masuk/{id}/reject', [AdminController::class, 'rejectSubmission']);
     Route::post('/listing-masuk/{id}/status', [AdminController::class, 'updateSubmissionStatus'])->name('admin.submissions.status');
+    Route::post('/listing-masuk/{id}/update', [AdminController::class, 'updateSubmissionData']);
+    Route::delete('/listing-masuk/{id}', [AdminController::class, 'deleteSubmission'])->name('admin.submissions.delete');
+    Route::post('/listing-masuk/{id}/delete', [AdminController::class, 'deleteSubmission']);
     Route::post('/submissions/{id}/approve', [AdminController::class, 'approveSubmission'])->name('admin.submissions.approve');
     Route::post('/submissions/{id}/reject', [AdminController::class, 'rejectSubmission'])->name('admin.submissions.reject');
     Route::post('/submissions/{id}/revision', [AdminController::class, 'revisionSubmission'])->name('admin.submissions.revision');
     Route::post('/submissions/{id}/checklist', [AdminController::class, 'updateSubmissionChecklist'])->name('admin.submissions.checklist');
     Route::post('/submissions/{id}/update', [AdminController::class, 'updateSubmissionData'])->name('admin.submissions.update');
+    Route::delete('/submissions/{id}', [AdminController::class, 'deleteSubmission']);
+    Route::post('/submissions/{id}/delete', [AdminController::class, 'deleteSubmission']);
 
     // Halaman 11: Riwayat Terjual & Tersewa (Closing Archive)
     Route::get('/riwayat-transaksi', [AdminController::class, 'transactions'])->name('admin.transactions');
     Route::post('/riwayat-transaksi', [AdminController::class, 'storeTransaction'])->name('admin.transactions.store');
+    Route::post('/riwayat-transaksi/{id}/update', [AdminController::class, 'updateTransaction'])->name('admin.transactions.update');
+    Route::delete('/riwayat-transaksi/{id}', [AdminController::class, 'deleteTransaction'])->name('admin.transactions.delete');
+    Route::post('/riwayat-transaksi/{id}/delete', [AdminController::class, 'deleteTransaction']);
 
     // Halaman 12: Manajemen Data Inquiry (Lead Pipeline CRM)
     Route::get('/inquiry', [AdminController::class, 'inquiries'])->name('admin.inquiries');

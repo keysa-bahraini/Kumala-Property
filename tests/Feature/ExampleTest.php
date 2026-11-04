@@ -3,7 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\AuditLog;
+use App\Models\Lead;
+use App\Models\Property;
 use App\Models\Submission;
+use App\Models\Survey;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -20,6 +24,19 @@ class ExampleTest extends TestCase
                 'password' => bcrypt('@adminkumala'),
                 'role' => 'super_admin',
                 'avatar' => 'AP',
+            ]
+        );
+    }
+
+    private function getCuratorUser(): User
+    {
+        return User::firstOrCreate(
+            ['email' => 'curator@kumalaproperty.com'],
+            [
+                'name' => 'Budi Kurator',
+                'password' => bcrypt('@adminkumala'),
+                'role' => 'curator',
+                'avatar' => 'BK',
             ]
         );
     }
@@ -1904,6 +1921,339 @@ class ExampleTest extends TestCase
             $this->assertEquals('Catatan tetap tersimpan meskipun nomor invalid.', $sub->notes);
         }
     }
+
+    /**
+     * Test Submission: Edit and Delete flow with security, validation, approved protection, and audit logs
+     */
+    public function test_submission_edit_and_delete_flow_and_security(): void
+    {
+        $admin = $this->getAdminUser();
+
+        // 1. Create a pending submission
+        $sub = Submission::create([
+            'id' => '#TP-TEST-' . rand(100, 999),
+            'title' => 'Pending Luxury Villa for Edit',
+            'owner_name' => 'Bpk. Rahadian',
+            'owner_phone' => '081234567890',
+            'owner_email' => 'rahadian@example.com',
+            'owner_status' => 'Pemilik Langsung',
+            'trx_type' => 'Jual',
+            'category' => 'Villa Mewah',
+            'city_region' => 'Bali',
+            'specific_area' => 'Canggu',
+            'location' => 'Canggu, Bali',
+            'address' => 'Jl. Batu Bolong No. 10',
+            'asking_price' => 'Rp 5.000.000.000',
+            'asking_val' => 5000000000,
+            'land_size' => 300,
+            'building_size' => 250,
+            'bedrooms' => '3 KT',
+            'bathrooms' => '3 KM',
+            'electricity' => '5500 VA',
+            'legal' => 'SHM (Hak Milik)',
+            'status' => 'pending',
+            'notes' => 'Catatan awal kurasi.',
+        ]);
+
+        // 2. Guest cannot edit or delete
+        $guestEdit = $this->post('/admin/listing-masuk/' . rawurlencode($sub->id) . '/update', [
+            'title' => 'Hacked Title',
+        ]);
+        $guestEdit->assertRedirect(route('admin.login'));
+
+        $guestDel = $this->delete('/admin/listing-masuk/' . rawurlencode($sub->id));
+        $guestDel->assertRedirect(route('admin.login'));
+
+        // 3. Admin edits submission with valid data (attempting to alter status should be ignored)
+        $editRes = $this->actingAs($admin)->post('/admin/listing-masuk/' . rawurlencode($sub->id) . '/update', [
+            'title' => 'Updated Modern Villa Canggu',
+            'trx_type' => 'Jual',
+            'category' => 'Villa Mewah & Tropis',
+            'asking_price' => 'Rp 5.500.000.000',
+            'legal' => 'SHM',
+            'city_region' => 'Bali',
+            'specific_area' => 'Pererenan',
+            'address' => 'Jl. Pantai Pererenan No. 12',
+            'land_size' => 350,
+            'building_size' => 280,
+            'bedrooms' => '4 KT',
+            'bathrooms' => '4 KM',
+            'electricity' => '7700 VA',
+            'owner_name' => 'Bpk. Rahadian Pratama',
+            'owner_phone' => '081299998888',
+            'owner_email' => 'rahadian.pratama@example.com',
+            'owner_status' => 'Kuasa Jual',
+            'notes' => 'Catatan kurasi telah diperbarui.',
+            'status' => 'approved', // Status injection attempt should be ignored!
+        ]);
+
+        $editRes->assertRedirect(route('admin.submissions', ['selected' => $sub->id]));
+        $sub->refresh();
+        $this->assertEquals('Updated Modern Villa Canggu', $sub->title);
+        $this->assertEquals('Pererenan, Bali', $sub->location);
+        $this->assertEquals(5500000000, $sub->asking_val);
+        $this->assertEquals('pending', $sub->status); // Status must remain pending!
+
+        // Audit log must NOT contain phone or email
+        $editAudit = AuditLog::where('action', 'like', "%{$sub->id}%")->latest()->first();
+        $this->assertNotNull($editAudit);
+        $this->assertArrayNotHasKey('phone', $editAudit->details ?? []);
+        $this->assertArrayNotHasKey('owner_phone', $editAudit->details ?? []);
+        $this->assertArrayNotHasKey('owner_email', $editAudit->details ?? []);
+        $this->assertArrayNotHasKey('email', $editAudit->details ?? []);
+
+        // 4. Create an approved submission linked to an active property
+        $approvedSub = Submission::create([
+            'id' => '#TP-APP-' . rand(100, 999),
+            'property_id' => '#KP-TEST-99',
+            'title' => 'Already Approved Villa',
+            'owner_name' => 'Ibu Melinda',
+            'owner_phone' => '081122334455',
+            'owner_email' => 'melinda@example.com',
+            'status' => 'approved',
+            'asking_price' => 'Rp 10.000.000.000',
+        ]);
+
+        // 4a. Edit approved submission must be rejected
+        $editApprovedRes = $this->actingAs($admin)->postJson('/admin/listing-masuk/' . rawurlencode($approvedSub->id) . '/update', [
+            'title' => 'New Title for Approved',
+        ]);
+        $editApprovedRes->assertStatus(422);
+        $editApprovedRes->assertJson([
+            'success' => false,
+            'message' => 'Pengajuan sudah disetujui dan tayang di katalog. Perubahan data harus dilakukan melalui menu Manajemen Properti.',
+        ]);
+
+        // 4b. Delete approved submission must be rejected
+        $delApprovedRes = $this->actingAs($admin)->deleteJson('/admin/listing-masuk/' . rawurlencode($approvedSub->id));
+        $delApprovedRes->assertStatus(422);
+        $delApprovedRes->assertJson([
+            'success' => false,
+            'message' => 'Pengajuan ini telah disetujui dan unit telah aktif di katalog. Harap arsipkan/hapus unit melalui menu Manajemen Properti terlebih dahulu.',
+        ]);
+
+        // 5. Delete pending submission must succeed
+        $delRes = $this->actingAs($admin)->delete('/admin/listing-masuk/' . rawurlencode($sub->id));
+        $delRes->assertRedirect(route('admin.submissions'));
+
+        $this->assertDatabaseMissing('submissions', [
+            'id' => $sub->id,
+        ]);
+
+        // Deletion audit log must contain ID and title only, no phone/email
+        $delAudit = AuditLog::where('action', 'like', "%Hapus Pengajuan Listing {$sub->id}%")->first();
+        $this->assertNotNull($delAudit);
+        $this->assertArrayNotHasKey('owner_phone', $delAudit->details ?? []);
+        $this->assertArrayNotHasKey('owner_email', $delAudit->details ?? []);
+    }
+
+    /**
+     * Test Transactions: Edit, Delete, Property Status Restoration, and Role Authorization
+     */
+    public function test_transaction_edit_delete_flow_property_restoration_and_super_admin_role(): void
+    {
+        $superAdmin = $this->getAdminUser();
+        $curator = $this->getCuratorUser();
+
+        $prop = Property::create([
+            'id' => '#KP-TX-' . rand(100, 999),
+            'slug' => 'villa-closing-test-' . uniqid(),
+            'title' => 'Villa Closing Test',
+            'category' => 'Villa Mewah',
+            'transaction_type' => 'Jual',
+            'price' => 40000000000,
+            'price_formatted' => 'Rp 40.000.000.000',
+            'location_city' => 'Bali',
+            'location_area' => 'Seminyak',
+            'location_address' => 'Jl. Kayu Aya No. 9',
+            'legal_status' => 'SHM',
+            'status' => 'ACTIVE',
+            'bedrooms' => 4,
+            'bathrooms' => 4,
+            'land_size' => 600,
+            'building_size' => 450,
+            'specs_tags' => ['4 KT', '4 KM'],
+            'image_main' => 'https://example.com/tx.jpg',
+            'description' => 'Test description for tx',
+        ]);
+
+        // 1. Create first closing transaction (JUAL)
+        $tx1Id = '#CLS-TX1-' . rand(100, 999);
+        $tx1 = Transaction::create([
+            'id' => $tx1Id,
+            'date' => now()->format('d M Y'),
+            'property_id' => $prop->id,
+            'property_title' => $prop->title,
+            'location' => 'Bali - Seminyak',
+            'trx_type' => 'TERJUAL - JUAL BELI',
+            'asking_price' => 'Rp 40.000.000.000',
+            'deal_price' => 'Rp 38.000.000.000',
+            'deal_val' => 38000000000,
+            'diff_pct' => '-5%',
+            'parties' => 'Penjual: Bpk. Dani / Pembeli: Ibu Siska',
+            'notary' => 'Dra. Sri Wahyuni, S.H.',
+        ]);
+
+        // Simulate property status set to SOLD
+        $prop->status = 'SOLD';
+        $prop->save();
+
+        // 2. Guest cannot edit or delete transaction
+        $guestEdit = $this->post('/admin/riwayat-transaksi/' . rawurlencode($tx1->id) . '/update', [
+            'trx_type' => 'TERSEWA - 2 TAHUN',
+            'deal_price' => 'Rp 39.000.000.000',
+            'parties' => 'Penjual: Bpk. Dani / Pembeli: Ibu Siska',
+            'notary' => 'Dra. Sri Wahyuni, S.H.',
+        ]);
+        $guestEdit->assertRedirect(route('admin.login'));
+
+        $guestDel = $this->delete('/admin/riwayat-transaksi/' . rawurlencode($tx1->id));
+        $guestDel->assertRedirect(route('admin.login'));
+
+        // 3. Non-super_admin (curator) can edit transaction, and property status syncs to RENTED
+        $curatorEdit = $this->actingAs($curator)->post('/admin/riwayat-transaksi/' . rawurlencode($tx1->id) . '/update', [
+            'trx_type' => 'TERSEWA - 2 TAHUN',
+            'deal_price' => 'Rp 39.000.000.000',
+            'parties' => 'Pemilik: Bpk. Dani / Penyewa: Mr. John',
+            'notary' => 'Dra. Sri Wahyuni, S.H., M.Kn.',
+        ]);
+        $curatorEdit->assertRedirect(route('admin.transactions'));
+
+        $tx1->refresh();
+        $this->assertEquals('TERSEWA - 2 TAHUN', $tx1->trx_type);
+        $this->assertEquals('Rp 39.000.000.000', $tx1->deal_price);
+
+        $prop->refresh();
+        $this->assertEquals('RENTED', $prop->status); // Synced to RENTED!
+
+        // 4. Non-super_admin (curator) is FORBIDDEN (403) from deleting transaction
+        $curatorDel = $this->actingAs($curator)->deleteJson('/admin/riwayat-transaksi/' . rawurlencode($tx1->id));
+        $curatorDel->assertStatus(403);
+        $curatorDel->assertJson([
+            'success' => false,
+            'message' => 'Akses ditolak: Hanya Super Admin yang berwenang menghapus riwayat transaksi closing.',
+        ]);
+
+        // 5. Create a second transaction for the same property
+        $tx2Id = '#CLS-TX2-' . rand(100, 999);
+        $tx2 = Transaction::create([
+            'id' => $tx2Id,
+            'date' => now()->format('d M Y'),
+            'property_id' => $prop->id,
+            'property_title' => $prop->title,
+            'location' => 'Bali - Seminyak',
+            'trx_type' => 'TERSEWA - 1 TAHUN',
+            'asking_price' => 'Rp 2.000.000.000',
+            'deal_price' => 'Rp 2.000.000.000',
+            'deal_val' => 2000000000,
+            'diff_pct' => '0%',
+            'parties' => 'Pemilik: Bpk. Dani / Penyewa: PT Global',
+            'notary' => 'Dra. Sri Wahyuni, S.H.',
+        ]);
+
+        // 6. Super Admin deletes transaction 2 -> Since transaction 1 still exists, property status remains RENTED
+        $superDelTx2 = $this->actingAs($superAdmin)->delete('/admin/riwayat-transaksi/' . rawurlencode($tx2->id));
+        $superDelTx2->assertRedirect(route('admin.transactions'));
+
+        $this->assertDatabaseMissing('transactions', ['id' => $tx2->id]);
+        $prop->refresh();
+        $this->assertEquals('RENTED', $prop->status); // Status must NOT be restored to ACTIVE yet!
+
+        // 7. Super Admin deletes transaction 1 -> No other transaction exists, property status restored to ACTIVE!
+        $superDelTx1 = $this->actingAs($superAdmin)->delete('/admin/riwayat-transaksi/' . rawurlencode($tx1->id));
+        $superDelTx1->assertRedirect(route('admin.transactions'));
+
+        $this->assertDatabaseMissing('transactions', ['id' => $tx1->id]);
+        $prop->refresh();
+        $this->assertEquals('ACTIVE', $prop->status); // Now restored to ACTIVE!
+
+        // 8. Verify audit log contains transaction summary (ID, property, type, price, parties, notary)
+        $txAudit = AuditLog::where('action', 'like', "%Hapus Transaksi {$tx1->id}%")->first();
+        $this->assertNotNull($txAudit);
+        $this->assertEquals($tx1->id, $txAudit->details['transaction_id'] ?? null);
+        $this->assertEquals($prop->id, $txAudit->details['property_id'] ?? null);
+        $this->assertEquals('TERSEWA - 2 TAHUN', $txAudit->details['trx_type'] ?? null);
+        $this->assertEquals('Rp 39.000.000.000', $txAudit->details['deal_price'] ?? null);
+        $this->assertNotNull($txAudit->details['parties'] ?? null);
+        $this->assertNotNull($txAudit->details['notary'] ?? null);
+    }
+
+    /**
+     * Test Admin Notification Bell Badge: 0 (hidden), Normal (display exact number), and >99 (displays 99+)
+     */
+    public function test_admin_notification_bell_badge_display_and_tab_title(): void
+    {
+        $admin = $this->getAdminUser();
+
+        // 1. Case: Total is 0
+        Submission::query()->delete();
+        Lead::query()->delete();
+        Survey::query()->delete();
+
+        $page0 = $this->actingAs($admin)->get('/admin/dashboard');
+        $page0->assertStatus(200);
+        // Badge is hidden
+        $page0->assertSee('id="bell-badge-count" style="display: none;"', false);
+        $page0->assertSee('aria-label="Notifikasi Operasional, tidak ada tugas baru"', false);
+
+        // 2. Case: Total is normal (e.g. 3)
+        Submission::create([
+            'id' => '#TP-BELL-1',
+            'title' => 'Pending Villa 1',
+            'owner_name' => 'Owner 1',
+            'owner_phone' => '0812345678',
+            'owner_email' => 'owner1@example.com',
+            'status' => 'pending',
+        ]);
+        Submission::create([
+            'id' => '#TP-BELL-2',
+            'title' => 'Pending Villa 2',
+            'owner_name' => 'Owner 2',
+            'owner_phone' => '0812345679',
+            'owner_email' => 'owner2@example.com',
+            'status' => 'pending',
+        ]);
+        Lead::create([
+            'id' => '#LD-BELL-1',
+            'client_name' => 'Client 1',
+            'client_phone' => '0812345680',
+            'client_email' => 'client1@example.com',
+            'stage' => 'Baru',
+        ]);
+
+        $pageNorm = $this->actingAs($admin)->get('/admin/dashboard');
+        $pageNorm->assertStatus(200);
+        $pageNorm->assertSee('id="bell-badge-count" style="display: inline-flex;"', false);
+        $pageNorm->assertSee('>3</span>', false);
+        $pageNorm->assertSee('aria-label="Notifikasi Operasional, 3 tugas baru"', false);
+
+        // 3. Case: Total > 99 (e.g. 100)
+        // Insert 97 additional pending submissions
+        for ($i = 3; $i <= 99; $i++) {
+            Submission::create([
+                'id' => '#TP-BELL-' . $i,
+                'title' => 'Pending Villa ' . $i,
+                'owner_name' => 'Owner ' . $i,
+                'owner_phone' => '08123456' . $i,
+                'owner_email' => 'owner' . $i . '@example.com',
+                'status' => 'pending',
+            ]);
+        }
+        // Total is now 97 + 2 + 1 = 100 (> 99)
+        $pageOver99 = $this->actingAs($admin)->get('/admin/dashboard');
+        $pageOver99->assertStatus(200);
+        $pageOver99->assertSee('id="bell-badge-count" style="display: inline-flex;"', false);
+        $pageOver99->assertSee('>99+</span>', false);
+        $pageOver99->assertSee('aria-label="Notifikasi Operasional, 100 tugas baru"', false);
+
+        // Check JSON count endpoint as well
+        $apiRes = $this->actingAs($admin)->getJson('/admin/notifications/count');
+        $apiRes->assertStatus(200);
+        $apiRes->assertJson([
+            'total' => 100,
+        ]);
+    }
 }
+
 
 

@@ -139,6 +139,43 @@
                 <span id="deck-status-pill" style="background: #FEF3C7; color: #D97706; font-size: 0.74rem; font-weight: 800; padding: 4px 10px; border-radius: 6px; white-space: nowrap;">
                     &bull; {{ ucfirst($initSub['status'] ?? 'pending') }}
                 </span>
+
+                <!-- Action Toolbar: Edit, Lihat Halaman, Hapus -->
+                <div style="display: inline-flex; align-items: center; gap: 4px; padding-left: 6px; border-left: 1px solid #E2E8F0;" id="deck-action-buttons">
+                    @php
+                        $isApproved = ($initSub['status'] ?? '') === 'approved';
+                        $pubSlug = $initSub['property_slug'] ?? null;
+                        $pubUrl = $pubSlug ? route('property.detail', $pubSlug) : (!empty($initSub['property_id']) ? route('explore', ['q' => $initSub['property_id']]) : '#');
+                    @endphp
+
+                    <!-- 1. Edit Button (Nonaktif jika approved) -->
+                    <button type="button" class="btn-icon-subtle" id="deck-action-edit-btn" 
+                            title="{{ $isApproved ? 'Pengajuan sudah tayang. Ubah data melalui Manajemen Properti' : 'Edit Pengajuan' }}" 
+                            {{ $isApproved ? 'disabled style=opacity:0.4;cursor:not-allowed;' : '' }}
+                            onclick="openSubmissionEditModal()">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                    </button>
+
+                    <!-- 2. Lihat Halaman Publik Button (Nonaktif jika belum approved) -->
+                    <a href="{{ $isApproved ? $pubUrl : 'javascript:void(0)' }}" 
+                       target="{{ $isApproved ? '_blank' : '_self' }}" 
+                       rel="noopener noreferrer" 
+                       class="btn-icon-subtle" 
+                       id="deck-action-public-link" 
+                       title="{{ $isApproved ? 'Buka Halaman Publik' : 'Pengajuan belum disetujui untuk tayang di web publik' }}" 
+                       {{ $isApproved ? '' : 'disabled style=opacity:0.4;cursor:not-allowed;' }}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
+                    </a>
+
+                    <!-- 3. Hapus Pengajuan Button -->
+                    <form id="deck-action-delete-form" action="{{ route('admin.submissions.delete', rawurlencode($initSub['id'] ?? '')) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus berkas pengajuan ini? Tindakan ini tidak dapat dibatalkan.')" style="margin: 0; display: inline;">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn-icon-subtle" id="deck-action-delete-btn" title="Hapus Pengajuan" style="color: #DC2626;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
 
@@ -325,6 +362,122 @@
         </div>
         <h3 style="font-size: 1.1rem; color: #0E1E2E; font-weight: 700; margin: 0 0 6px 0;">Semua Berkas Telah Diverifikasi</h3>
         <p style="font-size: 0.85rem; margin: 0;">Tidak ada pengajuan yang sedang menunggu tindakan di antrean ini.</p>
+    </div>
+
+    <!-- Modal Edit Pengajuan Listing Masuk -->
+    <div id="modalSubmissionEdit" style="display: none; position: fixed; inset: 0; background: rgba(14, 34, 56, 0.7); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: #FFFFFF; border-radius: 14px; max-width: 640px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 28px; box-shadow: var(--shadow-lg); border: 1px solid var(--border-color);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 id="modalEditSubTitle" style="font-size: 1.25rem; color: var(--primary-navy); font-weight: 700;">Edit Pengajuan Listing</h3>
+                <button type="button" onclick="closeSubmissionEditModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: #94A3B8;">&times;</button>
+            </div>
+            <form id="formEditSubmission" action="" method="POST" style="display: flex; flex-direction: column; gap: 14px;">
+                @csrf
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Judul Pengajuan *</label>
+                    <input type="text" name="title" id="editSubTitle" required placeholder="Contoh: Modern Tropical Villa Canggu" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Tipe Transaksi</label>
+                        <select name="trx_type" id="editSubTrxType" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                            <option value="Jual">Jual</option>
+                            <option value="Sewa">Sewa</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Kategori Unit</label>
+                        <input type="text" name="category" id="editSubCategory" placeholder="Contoh: Villa Mewah, Rumah Tapak" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Harga Pengajuan</label>
+                        <input type="text" name="asking_price" id="editSubPrice" placeholder="Contoh: Rp 2.850.000.000" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Legalitas / Sertifikat</label>
+                        <input type="text" name="legal" id="editSubLegal" placeholder="Contoh: SHM (Hak Milik)" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Kota / Wilayah</label>
+                        <input type="text" name="city_region" id="editSubCity" placeholder="Contoh: Bali, Jakarta Selatan" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Area Spesifik</label>
+                        <input type="text" name="specific_area" id="editSubArea" placeholder="Contoh: Canggu, Badung" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Alamat Lengkap Unit</label>
+                    <textarea name="address" id="editSubAddress" rows="2" placeholder="Alamat lengkap properti..." style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC; resize: vertical;"></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Luas Tanah (m²)</label>
+                        <input type="number" name="land_size" id="editSubLand" placeholder="0" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Luas Bangunan (m²)</label>
+                        <input type="number" name="building_size" id="editSubBuilding" placeholder="0" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Daya Listrik</label>
+                        <input type="text" name="electricity" id="editSubElectricity" placeholder="3500 VA" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Kamar Tidur</label>
+                        <input type="text" name="bedrooms" id="editSubBedrooms" placeholder="3 KT" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Kamar Mandi</label>
+                        <input type="text" name="bathrooms" id="editSubBathrooms" placeholder="2 KM" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Nama Pemilik</label>
+                        <input type="text" name="owner_name" id="editSubOwnerName" placeholder="Nama lengkap pemilik" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Kontak WhatsApp</label>
+                        <input type="text" name="owner_phone" id="editSubOwnerPhone" placeholder="08xxxxxxxxxx" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Email Pemilik</label>
+                        <input type="email" name="owner_email" id="editSubOwnerEmail" placeholder="pemilik@example.com" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Status Kepemilikan</label>
+                        <input type="text" name="owner_status" id="editSubOwnerStatus" placeholder="Pemilik Langsung / Kuasa Jual" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Catatan Kurator / Pemohon</label>
+                    <textarea name="notes" id="editSubNotes" rows="2" placeholder="Catatan internal..." style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC; resize: vertical;"></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                    <button type="button" class="btn-fav-tool" onclick="closeSubmissionEditModal()">Batal</button>
+                    <button type="submit" class="btn-teal">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
     </div>
 
 </div>
@@ -624,6 +777,24 @@
         grid-template-columns: 1fr !important;
     }
 }
+
+.btn-icon-subtle {
+    background: none;
+    border: none;
+    color: #64748B;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    text-decoration: none;
+}
+.btn-icon-subtle:hover {
+    background: #F1F5F9;
+    color: #00838F;
+}
 </style>
 @endsection
 
@@ -762,6 +933,100 @@ function selectSubmission(sub, el) {
             if (secActions) secActions.style.display = 'flex';
         }
     }
+
+    // Update toolbar actions (Edit, Lihat Halaman, Hapus)
+    const isApproved = sub.status === 'approved';
+    const editBtn = document.getElementById('deck-action-edit-btn');
+    if (editBtn) {
+        if (isApproved) {
+            editBtn.disabled = true;
+            editBtn.style.opacity = '0.4';
+            editBtn.style.cursor = 'not-allowed';
+            editBtn.title = 'Pengajuan sudah tayang. Ubah data melalui Manajemen Properti';
+        } else {
+            editBtn.disabled = false;
+            editBtn.style.opacity = '1';
+            editBtn.style.cursor = 'pointer';
+            editBtn.title = 'Edit Pengajuan';
+        }
+    }
+
+    const publicLink = document.getElementById('deck-action-public-link');
+    if (publicLink) {
+        if (isApproved) {
+            const slug = sub.property_slug || '';
+            const propId = sub.property_id || '';
+            const url = slug ? `/properti/${encodeURIComponent(slug)}` : (propId ? `/explore?q=${encodeURIComponent(propId)}` : '/explore');
+            publicLink.href = url;
+            publicLink.target = '_blank';
+            publicLink.removeAttribute('disabled');
+            publicLink.style.opacity = '1';
+            publicLink.style.cursor = 'pointer';
+            publicLink.title = 'Buka Halaman Publik';
+        } else {
+            publicLink.href = 'javascript:void(0)';
+            publicLink.target = '_self';
+            publicLink.setAttribute('disabled', 'disabled');
+            publicLink.style.opacity = '0.4';
+            publicLink.style.cursor = 'not-allowed';
+            publicLink.title = 'Pengajuan belum disetujui untuk tayang di web publik';
+        }
+    }
+
+    const deleteForm = document.getElementById('deck-action-delete-form');
+    if (deleteForm) {
+        deleteForm.action = `/admin/listing-masuk/${encodeURIComponent(sub.id)}/delete`;
+    }
+}
+
+function openSubmissionEditModal() {
+    if (!activeSubData || !activeSubData.id) {
+        showToast('Pilih berkas pengajuan terlebih dahulu.');
+        return;
+    }
+
+    if (activeSubData.status === 'approved') {
+        alert('Pengajuan sudah tayang di katalog. Perubahan data harus dilakukan melalui menu Manajemen Properti.');
+        return;
+    }
+
+    const modal = document.getElementById('modalSubmissionEdit');
+    const form = document.getElementById('formEditSubmission');
+    const title = document.getElementById('modalEditSubTitle');
+
+    if (title) title.textContent = 'Edit Pengajuan ' + activeSubData.id;
+    if (form) form.action = '/admin/listing-masuk/' + encodeURIComponent(activeSubData.id) + '/update';
+
+    const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val !== null && typeof val !== 'undefined' ? val : '';
+    };
+
+    setVal('editSubTitle', activeSubData.title);
+    setVal('editSubTrxType', activeSubData.trx_type || 'Jual');
+    setVal('editSubCategory', activeSubData.category);
+    setVal('editSubPrice', activeSubData.price);
+    setVal('editSubLegal', activeSubData.legal);
+    setVal('editSubCity', activeSubData.city_region || activeSubData.location);
+    setVal('editSubArea', activeSubData.specific_area);
+    setVal('editSubAddress', activeSubData.address);
+    setVal('editSubLand', activeSubData.land_size || '');
+    setVal('editSubBuilding', activeSubData.building_size || '');
+    setVal('editSubElectricity', activeSubData.electricity);
+    setVal('editSubBedrooms', activeSubData.bedrooms);
+    setVal('editSubBathrooms', activeSubData.bathrooms);
+    setVal('editSubOwnerName', activeSubData.owner);
+    setVal('editSubOwnerPhone', activeSubData.phone);
+    setVal('editSubOwnerEmail', activeSubData.email);
+    setVal('editSubOwnerStatus', activeSubData.ownership || activeSubData.owner_status || 'Pemilik Langsung');
+    setVal('editSubNotes', activeSubData.notes);
+
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeSubmissionEditModal() {
+    const modal = document.getElementById('modalSubmissionEdit');
+    if (modal) modal.style.display = 'none';
 }
 
 function handleApproveSubmission() {
