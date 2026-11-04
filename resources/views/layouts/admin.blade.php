@@ -332,7 +332,8 @@
             position: absolute;
             top: calc(100% + 8px);
             right: 0;
-            width: 310px;
+            width: 360px;
+            max-width: calc(100vw - 32px);
             background: #FFFFFF;
             border: 1px solid #E2E8F0;
             border-radius: 12px;
@@ -355,6 +356,40 @@
             padding: 12px 16px;
             background: #F8FAFC;
             border-bottom: 1px solid #E2E8F0;
+        }
+        .admin-notif-list-container {
+            max-height: 380px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+        .admin-notif-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 16px;
+            border-bottom: 1px solid #F1F5F9;
+            text-decoration: none;
+            color: #1E293B;
+            cursor: pointer;
+            transition: background 0.15s;
+            position: relative;
+        }
+        .admin-notif-item:hover {
+            background: #F8FAFC;
+        }
+        .admin-notif-item.unread {
+            background: #F0F9FF;
+        }
+        .admin-notif-item.unread:hover {
+            background: #E0F2FE;
+        }
+        .notif-unread-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #0284C7;
+            flex-shrink: 0;
+            margin-top: 6px;
         }
         .dropdown-item-row {
             display: flex;
@@ -666,7 +701,7 @@
                         $bellTotal = (int)($adminNotificationCount ?? 0);
                         $bellDisplay = $bellTotal > 99 ? '99+' : $bellTotal;
                     @endphp
-                    <button type="button" class="admin-notification-btn" id="btn-admin-bell" title="Notifikasi Operasional" aria-label="Notifikasi Operasional, {{ $bellTotal > 0 ? $bellTotal . ' tugas baru' : 'tidak ada tugas baru' }}" aria-expanded="false" aria-haspopup="true" onclick="toggleAdminNotificationDropdown(event)">
+                    <button type="button" class="admin-notification-btn" id="btn-admin-bell" title="Notifikasi Operasional" aria-label="Notifikasi Operasional, {{ $bellTotal > 0 ? $bellTotal . ' notifikasi baru' : 'tidak ada notifikasi baru' }}" aria-expanded="false" aria-haspopup="true" onclick="toggleAdminNotificationDropdown(event)">
                         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                         <span class="notification-badge-count" id="bell-badge-count" style="display: {{ $bellTotal > 0 ? 'inline-flex' : 'none' }};">{{ $bellDisplay }}</span>
                     </button>
@@ -676,50 +711,50 @@
                         <div class="dropdown-header-box">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <strong style="font-size: 0.88rem; color: #0E1E2E;">Notifikasi Operasional</strong>
-                                <span id="notif-total-badge" class="dropdown-item-badge" style="background: #E0F2FE; color: #0284C7;">{{ $adminNotificationCount ?? 0 }} Total</span>
+                                <span id="notif-unread-badge" class="dropdown-item-badge" style="background: #E0F2FE; color: #0284C7;">{{ $bellTotal }} Baru</span>
                             </div>
-                            <span style="font-size: 0.74rem; color: #64748B;">Ringkasan tugas yang memerlukan perhatian admin</span>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                                <span style="font-size: 0.72rem; color: #64748B;">Pemberitahuan terkini yang memerlukan perhatian</span>
+                                <button type="button" id="btn-mark-all-read" style="background: none; border: none; font-size: 0.72rem; font-weight: 600; color: #0284C7; cursor: pointer; padding: 2px 4px; border-radius: 4px; text-decoration: underline;" onclick="markAllNotificationsRead(event)">Tandai semua dibaca</button>
+                            </div>
                         </div>
 
-                        <div style="display: flex; flex-direction: column;">
-                            <a href="{{ route('admin.submissions') }}" class="dropdown-item-row" onclick="closeAdminNotificationDropdown()">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div style="width: 30px; height: 30px; border-radius: 6px; background: #E0F2FE; color: #0284C7; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        <div id="admin-notif-list" class="admin-notif-list-container">
+                            @forelse($adminLatestNotifications ?? [] as $notif)
+                                @php
+                                    $isRead = !empty($notif['is_read']);
+                                    $targetUrl = $notif['target_url'] ?? '/admin/dashboard';
+                                    if (!str_starts_with($targetUrl, '/admin/')) {
+                                        $targetUrl = '/admin/dashboard';
+                                    }
+                                    $type = $notif['type'] ?? 'listing';
+                                @endphp
+                                <div class="admin-notif-item {{ $isRead ? '' : 'unread' }}" onclick="handleNotificationClick(event, {{ (int)$notif['id'] }}, '{{ $targetUrl }}')">
+                                    <div class="notif-icon-box {{ $type }}" style="width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: {{ $type === 'listing' ? '#E0F2FE' : ($type === 'survey' ? '#FEF3C7' : '#E6FBF5') }}; color: {{ $type === 'listing' ? '#0284C7' : ($type === 'survey' ? '#D97706' : '#059669') }};">
+                                        @if($type === 'listing')
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                        @elseif($type === 'survey')
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                                        @else
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                        @endif
                                     </div>
-                                    <div>
-                                        <div style="font-size: 0.82rem; font-weight: 700; color: #0E1E2E;">Listing Masuk</div>
-                                        <div style="font-size: 0.72rem; color: #64748B;">Pengajuan pending kurasi</div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="font-size: 0.82rem; font-weight: 700; color: #0E1E2E; line-height: 1.25;">{{ $notif['title'] ?? '' }}</div>
+                                        <div style="font-size: 0.74rem; color: #64748B; margin-top: 2px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $notif['message'] ?? '' }}</div>
+                                        <div style="font-size: 0.68rem; color: #94A3B8; margin-top: 4px;">{{ $notif['time_ago'] ?? 'Baru saja' }}</div>
                                     </div>
+                                    @if(!$isRead)
+                                        <div class="notif-unread-dot" style="width: 7px; height: 7px; border-radius: 50%; background: #0284C7; flex-shrink: 0; margin-top: 6px;"></div>
+                                    @endif
                                 </div>
-                                <span id="notif-submissions-badge" class="dropdown-item-badge" style="background: #E0F2FE; color: #0284C7;">{{ $pendingSubmissionsCount ?? 0 }}</span>
-                            </a>
-
-                            <a href="{{ route('admin.inquiries') }}" class="dropdown-item-row" onclick="closeAdminNotificationDropdown()">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div style="width: 30px; height: 30px; border-radius: 6px; background: #E6FBF5; color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                                    </div>
-                                    <div>
-                                        <div style="font-size: 0.82rem; font-weight: 700; color: #0E1E2E;">Data Inquiry</div>
-                                        <div style="font-size: 0.72rem; color: #64748B;">Inquiry baru belum direspons</div>
-                                    </div>
+                            @empty
+                                <div class="notif-empty-state" style="text-align: center; padding: 32px 16px; color: #64748B;">
+                                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.75" style="margin: 0 auto 8px auto; display: block;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                                    <div style="font-size: 0.84rem; font-weight: 600; color: #0E1E2E;">Belum ada notifikasi baru</div>
+                                    <div style="font-size: 0.74rem; color: #94A3B8; margin-top: 2px;">Pemberitahuan operasional terkini akan muncul di sini.</div>
                                 </div>
-                                <span id="notif-inquiries-badge" class="dropdown-item-badge" style="background: #E6FBF5; color: #059669;">{{ $newInquiriesCount ?? 0 }}</span>
-                            </a>
-
-                            <a href="{{ route('admin.inquiries') }}" class="dropdown-item-row" onclick="closeAdminNotificationDropdown()">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div style="width: 30px; height: 30px; border-radius: 6px; background: #FEF3C7; color: #D97706; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-                                    </div>
-                                    <div>
-                                        <div style="font-size: 0.82rem; font-weight: 700; color: #0E1E2E;">Jadwal Survei</div>
-                                        <div style="font-size: 0.72rem; color: #64748B;">Agenda survei fisik</div>
-                                    </div>
-                                </div>
-                                <span id="notif-surveys-badge" class="dropdown-item-badge" style="background: #FEF3C7; color: #D97706;">{{ $upcomingSurveysCount ?? 0 }}</span>
-                            </a>
+                            @endforelse
                         </div>
 
                         <div class="dropdown-footer-box">
@@ -803,6 +838,62 @@
             }
         });
 
+        // Global handlers for admin operational notifications
+        async function handleNotificationClick(event, id, targetUrl) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            let validTarget = (targetUrl && String(targetUrl).startsWith('/admin/')) ? targetUrl : '/admin/dashboard';
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            try {
+                await fetch(`/admin/notifications/${encodeURIComponent(id)}/read`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken || '',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+            } catch (err) {
+                // Silently ignore network failure and continue navigation
+            }
+            window.location.href = validTarget;
+        }
+
+        async function markAllNotificationsRead(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            try {
+                const response = await fetch("{{ route('admin.notifications.mark_all_read') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken || '',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                if (response.ok) {
+                    if (window.adminNotificationHelpers && typeof window.adminNotificationHelpers.updateBadges === 'function') {
+                        window.adminNotificationHelpers.updateBadges(0);
+                    }
+                    document.querySelectorAll('.admin-notif-item.unread').forEach(el => {
+                        el.classList.remove('unread');
+                        const dot = el.querySelector('.notif-unread-dot');
+                        if (dot) dot.remove();
+                    });
+                }
+            } catch (err) {
+                // Silently ignore network failure
+            }
+        }
+
         // Background polling for admin operational notifications
         (function() {
             let pollingInterval = null;
@@ -818,8 +909,121 @@
                 }
             }
 
+            function updateBadges(unread) {
+                const total = Number(unread) || 0;
+
+                // Bell badge
+                const countBadge = document.getElementById('bell-badge-count');
+                if (countBadge) {
+                    countBadge.textContent = total > 99 ? '99+' : total;
+                    countBadge.style.display = total > 0 ? 'inline-flex' : 'none';
+                }
+
+                // Bell button aria-label
+                const btnBell = document.getElementById('btn-admin-bell');
+                if (btnBell) {
+                    btnBell.setAttribute('aria-label', total > 0 ? `Notifikasi Operasional, ${total} notifikasi baru` : 'Notifikasi Operasional, tidak ada notifikasi baru');
+                }
+
+                // Browser tab title
+                updateTabTitle(total);
+
+                // Header unread badge
+                const unreadBadge = document.getElementById('notif-unread-badge');
+                if (unreadBadge) {
+                    unreadBadge.textContent = `${total} Baru`;
+                }
+            }
+
+            window.adminNotificationHelpers = {
+                updateBadges: updateBadges,
+                updateTabTitle: updateTabTitle
+            };
+
             // Initial tab title sync
             updateTabTitle({{ (int)($adminNotificationCount ?? 0) }});
+
+            function renderNotificationList(items) {
+                const container = document.getElementById('admin-notif-list');
+                if (!container) return;
+
+                container.replaceChildren();
+
+                if (!items || items.length === 0) {
+                    const emptyBox = document.createElement('div');
+                    emptyBox.className = 'notif-empty-state';
+                    emptyBox.style.cssText = 'text-align: center; padding: 32px 16px; color: #64748B;';
+                    
+                    const svgWrapper = document.createElement('div');
+                    svgWrapper.innerHTML = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.75" style="margin: 0 auto 8px auto; display: block;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>';
+                    emptyBox.appendChild(svgWrapper);
+
+                    const emptyTitle = document.createElement('div');
+                    emptyTitle.style.cssText = 'font-size: 0.84rem; font-weight: 600; color: #0E1E2E;';
+                    emptyTitle.textContent = 'Belum ada notifikasi baru';
+
+                    const emptyDesc = document.createElement('div');
+                    emptyDesc.style.cssText = 'font-size: 0.74rem; color: #94A3B8; margin-top: 2px;';
+                    emptyDesc.textContent = 'Pemberitahuan operasional terkini akan muncul di sini.';
+
+                    emptyBox.appendChild(emptyTitle);
+                    emptyBox.appendChild(emptyDesc);
+                    container.appendChild(emptyBox);
+                    return;
+                }
+
+                items.forEach(item => {
+                    const row = document.createElement('div');
+                    row.className = 'admin-notif-item' + (!item.is_read ? ' unread' : '');
+                    row.addEventListener('click', (e) => handleNotificationClick(e, item.id, item.target_url));
+
+                    // Icon box
+                    const iconBox = document.createElement('div');
+                    iconBox.className = 'notif-icon-box ' + (item.type || 'listing');
+                    if (item.type === 'listing') {
+                        iconBox.style.cssText = 'width: 32px; height: 32px; border-radius: 8px; background: #E0F2FE; color: #0284C7; display: flex; align-items: center; justify-content: center; flex-shrink: 0;';
+                        iconBox.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+                    } else if (item.type === 'survey') {
+                        iconBox.style.cssText = 'width: 32px; height: 32px; border-radius: 8px; background: #FEF3C7; color: #D97706; display: flex; align-items: center; justify-content: center; flex-shrink: 0;';
+                        iconBox.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>';
+                    } else {
+                        iconBox.style.cssText = 'width: 32px; height: 32px; border-radius: 8px; background: #E6FBF5; color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;';
+                        iconBox.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+                    }
+
+                    // Content
+                    const bodyBox = document.createElement('div');
+                    bodyBox.style.cssText = 'flex: 1; min-width: 0;';
+
+                    const titleEl = document.createElement('div');
+                    titleEl.style.cssText = 'font-size: 0.82rem; font-weight: 700; color: #0E1E2E; line-height: 1.25;';
+                    titleEl.textContent = item.title || ''; // STRICT textContent
+
+                    const msgEl = document.createElement('div');
+                    msgEl.style.cssText = 'font-size: 0.74rem; color: #64748B; margin-top: 2px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;';
+                    msgEl.textContent = item.message || ''; // STRICT textContent
+
+                    const timeEl = document.createElement('div');
+                    timeEl.style.cssText = 'font-size: 0.68rem; color: #94A3B8; margin-top: 4px;';
+                    timeEl.textContent = item.time_ago || 'Baru saja'; // STRICT textContent
+
+                    bodyBox.appendChild(titleEl);
+                    bodyBox.appendChild(msgEl);
+                    bodyBox.appendChild(timeEl);
+
+                    row.appendChild(iconBox);
+                    row.appendChild(bodyBox);
+
+                    if (!item.is_read) {
+                        const dot = document.createElement('div');
+                        dot.className = 'notif-unread-dot';
+                        dot.style.cssText = 'width: 7px; height: 7px; border-radius: 50%; background: #0284C7; flex-shrink: 0; margin-top: 6px;';
+                        row.appendChild(dot);
+                    }
+
+                    container.appendChild(row);
+                });
+            }
 
             async function fetchNotificationCounts() {
                 if (isPollingStopped || document.hidden) return;
@@ -849,57 +1053,25 @@
             }
 
             function updateNotificationUI(data) {
-                if (!data || typeof data.total === 'undefined') return;
+                if (!data) return;
 
-                const total = Number(data.total) || 0;
-
-                // Bell number badge
-                const countBadge = document.getElementById('bell-badge-count');
-                if (countBadge) {
-                    countBadge.textContent = total > 99 ? '99+' : total;
-                    countBadge.style.display = total > 0 ? 'inline-flex' : 'none';
-                }
-
-                // Bell button aria-label
-                const btnBell = document.getElementById('btn-admin-bell');
-                if (btnBell) {
-                    btnBell.setAttribute('aria-label', total > 0 ? `Notifikasi Operasional, ${total} tugas baru` : 'Notifikasi Operasional, tidak ada tugas baru');
-                }
-
-                // Browser tab title
-                updateTabTitle(total);
-
-                // Header total badge
-                const totalBadge = document.getElementById('notif-total-badge');
-                if (totalBadge) {
-                    totalBadge.textContent = `${total} Total`;
-                }
-
-                // Dropdown badges
-                const subBadge = document.getElementById('notif-submissions-badge');
-                if (subBadge) {
-                    subBadge.textContent = data.pending_submissions;
-                }
-
-                const inqBadge = document.getElementById('notif-inquiries-badge');
-                if (inqBadge) {
-                    inqBadge.textContent = data.new_inquiries;
-                }
-
-                const survBadge = document.getElementById('notif-surveys-badge');
-                if (survBadge) {
-                    survBadge.textContent = data.upcoming_surveys;
-                }
+                const unread = Number(typeof data.unread_count !== 'undefined' ? data.unread_count : data.total) || 0;
+                updateBadges(unread);
 
                 // Sidebar badges
                 const sideSub = document.getElementById('sidebar-submissions-badge');
-                if (sideSub) {
+                if (sideSub && typeof data.pending_submissions !== 'undefined') {
                     sideSub.textContent = data.pending_submissions;
                 }
 
                 const sideInq = document.getElementById('sidebar-inquiries-badge');
-                if (sideInq) {
+                if (sideInq && typeof data.new_inquiries !== 'undefined') {
                     sideInq.textContent = data.new_inquiries;
+                }
+
+                // Notifications list in dropdown
+                if (Array.isArray(data.notifications)) {
+                    renderNotificationList(data.notifications);
                 }
             }
 

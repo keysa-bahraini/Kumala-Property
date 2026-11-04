@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\AdminNotification;
 use App\Models\AuditLog;
 use App\Models\Lead;
 use App\Models\Property;
@@ -872,6 +873,7 @@ class ExampleTest extends TestCase
         ]);
 
         // After approve, listing disappears from active queue in /admin/listing-masuk
+        AdminNotification::query()->delete();
         $listingAfterRes = $this->actingAs($admin)->get('/admin/listing-masuk');
         $listingAfterRes->assertStatus(200);
         $listingAfterRes->assertDontSee('Mansion Mewah Pondok Indah Unit Uji');
@@ -998,6 +1000,7 @@ class ExampleTest extends TestCase
         $approveRes->assertJson(['success' => true]);
 
         // 3. After approval: item disappears from active queue in /admin/listing-masuk
+        AdminNotification::query()->delete();
         $queueAfter = $this->actingAs($admin)->get('/admin/listing-masuk');
         $queueAfter->assertStatus(200);
         $queueAfter->assertDontSee('Villa Sanur Sunrise Eksklusif Unit Uji');
@@ -1148,7 +1151,7 @@ class ExampleTest extends TestCase
         // 2. Initial state (empty database before test data)
         $authRes = $this->actingAs($admin)->getJson('/admin/notifications/count');
         $authRes->assertStatus(200);
-        $authRes->assertExactJson([
+        $authRes->assertJson([
             'pending_submissions' => 0,
             'new_inquiries' => 0,
             'upcoming_surveys' => 0,
@@ -1226,7 +1229,7 @@ class ExampleTest extends TestCase
         // Check metrics: pending_submissions=1, new_inquiries=1, upcoming_surveys=1, total=3
         $checkRes = $this->actingAs($admin)->getJson('/admin/notifications/count');
         $checkRes->assertStatus(200);
-        $checkRes->assertExactJson([
+        $checkRes->assertJson([
             'pending_submissions' => 1,
             'new_inquiries' => 1,
             'upcoming_surveys' => 1,
@@ -1239,7 +1242,7 @@ class ExampleTest extends TestCase
 
         $afterRes = $this->actingAs($admin)->getJson('/admin/notifications/count');
         $afterRes->assertStatus(200);
-        $afterRes->assertExactJson([
+        $afterRes->assertJson([
             'pending_submissions' => 0,
             'new_inquiries' => 0,
             'upcoming_surveys' => 1,
@@ -2185,7 +2188,8 @@ class ExampleTest extends TestCase
     {
         $admin = $this->getAdminUser();
 
-        // 1. Case: Total is 0
+        // 1. Case: Unread is 0
+        AdminNotification::query()->delete();
         Submission::query()->delete();
         Lead::query()->delete();
         Survey::query()->delete();
@@ -2194,9 +2198,10 @@ class ExampleTest extends TestCase
         $page0->assertStatus(200);
         // Badge is hidden
         $page0->assertSee('id="bell-badge-count" style="display: none;"', false);
-        $page0->assertSee('aria-label="Notifikasi Operasional, tidak ada tugas baru"', false);
+        $page0->assertSee('aria-label="Notifikasi Operasional, tidak ada notifikasi baru"', false);
+        $page0->assertSee('id="notif-unread-badge" class="dropdown-item-badge" style="background: #E0F2FE; color: #0284C7;">0 Baru</span>', false);
 
-        // 2. Case: Total is normal (e.g. 3)
+        // 2. Case: 3 unread notifications, while queue has 2 pending submissions and 1 new inquiry
         Submission::create([
             'id' => '#TP-BELL-1',
             'title' => 'Pending Villa 1',
@@ -2221,37 +2226,399 @@ class ExampleTest extends TestCase
             'stage' => 'Baru',
         ]);
 
+        AdminNotification::create([
+            'type' => 'listing',
+            'title' => 'Pengajuan Listing Baru',
+            'message' => 'Pending Villa 1 (#TP-BELL-1) menunggu kurasi & verifikasi berkas.',
+            'target_url' => '/admin/listing-masuk?id=TP-BELL-1',
+            'reference_id' => 'TP-BELL-1',
+            'read_at' => null,
+        ]);
+        AdminNotification::create([
+            'type' => 'listing',
+            'title' => 'Pengajuan Listing Baru',
+            'message' => 'Pending Villa 2 (#TP-BELL-2) menunggu kurasi & verifikasi berkas.',
+            'target_url' => '/admin/listing-masuk?id=TP-BELL-2',
+            'reference_id' => 'TP-BELL-2',
+            'read_at' => null,
+        ]);
+        AdminNotification::create([
+            'type' => 'inquiry',
+            'title' => 'Inquiry Baru',
+            'message' => 'Client 1 menanyakan Pending Villa 1.',
+            'target_url' => '/admin/inquiry',
+            'reference_id' => 'LD-BELL-1',
+            'read_at' => null,
+        ]);
+
         $pageNorm = $this->actingAs($admin)->get('/admin/dashboard');
         $pageNorm->assertStatus(200);
         $pageNorm->assertSee('id="bell-badge-count" style="display: inline-flex;"', false);
         $pageNorm->assertSee('>3</span>', false);
-        $pageNorm->assertSee('aria-label="Notifikasi Operasional, 3 tugas baru"', false);
+        $pageNorm->assertSee('aria-label="Notifikasi Operasional, 3 notifikasi baru"', false);
+        $pageNorm->assertSee('id="notif-unread-badge" class="dropdown-item-badge" style="background: #E0F2FE; color: #0284C7;">3 Baru</span>', false);
 
-        // 3. Case: Total > 99 (e.g. 100)
-        // Insert 97 additional pending submissions
-        for ($i = 3; $i <= 99; $i++) {
-            Submission::create([
-                'id' => '#TP-BELL-' . $i,
-                'title' => 'Pending Villa ' . $i,
-                'owner_name' => 'Owner ' . $i,
-                'owner_phone' => '08123456' . $i,
-                'owner_email' => 'owner' . $i . '@example.com',
-                'status' => 'pending',
+        // Sidebar queue badges must continue reflecting real database queue (2 submissions, 1 inquiry)
+        $pageNorm->assertSee('id="sidebar-submissions-badge">2</span>', false);
+        $pageNorm->assertSee('id="sidebar-inquiries-badge">1</span>', false);
+
+        // 3. Case: Total unread > 99 (e.g. 100)
+        for ($i = 4; $i <= 100; $i++) {
+            AdminNotification::create([
+                'type' => 'listing',
+                'title' => 'Pengajuan Listing Baru',
+                'message' => "Unit {$i} menunggu kurasi.",
+                'target_url' => '/admin/listing-masuk?id=' . $i,
+                'reference_id' => (string)$i,
+                'read_at' => null,
             ]);
         }
-        // Total is now 97 + 2 + 1 = 100 (> 99)
+
         $pageOver99 = $this->actingAs($admin)->get('/admin/dashboard');
         $pageOver99->assertStatus(200);
         $pageOver99->assertSee('id="bell-badge-count" style="display: inline-flex;"', false);
         $pageOver99->assertSee('>99+</span>', false);
-        $pageOver99->assertSee('aria-label="Notifikasi Operasional, 100 tugas baru"', false);
+        $pageOver99->assertSee('aria-label="Notifikasi Operasional, 100 notifikasi baru"', false);
+        $pageOver99->assertSee('id="notif-unread-badge" class="dropdown-item-badge" style="background: #E0F2FE; color: #0284C7;">100 Baru</span>', false);
 
         // Check JSON count endpoint as well
         $apiRes = $this->actingAs($admin)->getJson('/admin/notifications/count');
         $apiRes->assertStatus(200);
         $apiRes->assertJson([
-            'total' => 100,
+            'unread_count' => 100,
+            'total' => 3,
+            'pending_submissions' => 2,
+            'new_inquiries' => 1,
         ]);
+        $this->assertCount(15, $apiRes->json('notifications'));
+    }
+
+    /**
+     * Test Event-Based Notification Creation for Web and API Routes (Single Point Creation)
+     */
+    public function test_event_based_admin_notifications_creation_for_web_and_api(): void
+    {
+        $admin = $this->getAdminUser();
+        AdminNotification::query()->delete();
+
+        // 1. Web submission (/titip-properti) -> creates exactly 1 notification
+        $webSubCountBefore = AdminNotification::count();
+        $subPayload = [
+            'owner_name' => 'Bpk. Surya Wijaya',
+            'owner_phone' => '081299887766',
+            'owner_email' => 'surya@example.com',
+            'ownership_status' => 'owner_direct',
+            'property_category' => 'Rumah Mewah',
+            'transaction_type' => 'Jual',
+            'property_title' => 'Mansion Pondok Indah Asri',
+            'city_region' => 'Jakarta Selatan',
+            'specific_area' => 'Pondok Indah',
+            'full_address' => 'Jl. Metro Pondok Indah No. 10',
+            'asking_price' => '25000000000',
+            'land_size' => 500,
+            'building_size' => 400,
+            'bedrooms' => '5 KT',
+            'bathrooms' => '5 KM',
+            'facilities' => ['pool', 'shm'],
+            'description' => 'Mansion mewah dengan fasilitas lengkap.',
+            'legal_consent' => '1',
+        ];
+        $webSubRes = $this->postJson('/titip-properti', $subPayload);
+        $webSubRes->assertStatus(200);
+        $this->assertEquals($webSubCountBefore + 1, AdminNotification::count());
+
+        $webNotif = AdminNotification::latest('id')->first();
+        $this->assertEquals('listing', $webNotif->type);
+        $this->assertEquals('Pengajuan Listing Baru', $webNotif->title);
+        $this->assertStringContainsString('Mansion Pondok Indah Asri', $webNotif->message);
+        $this->assertStringContainsString('/admin/listing-masuk?id=', $webNotif->target_url);
+        $this->assertStringNotContainsString('#', parse_url($webNotif->target_url, PHP_URL_QUERY));
+        $this->assertNull($webNotif->read_at);
+
+        // 2. API consignment submission (/api/v1/titip-properti) -> creates exactly 1 notification
+        $apiSubCountBefore = AdminNotification::count();
+        $apiSubRes = $this->postJson('/api/v1/titip-properti', [
+            'owner_name' => 'Ibu Maria Ulfah',
+            'owner_phone' => '081344556677',
+            'property_title' => 'Penthouse Senopati Suites',
+            'property_category' => 'Apartemen Mewah',
+            'city_region' => 'Jakarta Selatan',
+            'asking_price' => '18000000000',
+        ]);
+        $apiSubRes->assertStatus(201);
+        $this->assertEquals($apiSubCountBefore + 1, AdminNotification::count());
+
+        $apiNotif = AdminNotification::latest('id')->first();
+        $this->assertEquals('listing', $apiNotif->type);
+        $this->assertStringContainsString('Penthouse Senopati Suites', $apiNotif->message);
+
+        // 3. Web inquiry (/inquiry from detail page) -> creates exactly 1 notification
+        $webInqCountBefore = AdminNotification::count();
+        $inqPayload = [
+            'name' => 'Dr. Robert Tan',
+            'phone' => '081122334455',
+            'email' => 'robert@investor.com',
+            'property_id' => '#KP-9911',
+            'property_title' => 'Villa Cliffside Horizon Uluwatu',
+            'property_price' => 'Rp 42 Miliar',
+            'payment_scheme' => 'Cash Keras',
+            'message' => 'Mohon info legalitas dan jadwal survei.',
+        ];
+        $webInqRes = $this->postJson('/inquiry', $inqPayload);
+        $webInqRes->assertStatus(200);
+        $this->assertEquals($webInqCountBefore + 1, AdminNotification::count());
+
+        $webInqNotif = AdminNotification::latest('id')->first();
+        $this->assertEquals('inquiry', $webInqNotif->type);
+        $this->assertEquals('Inquiry Baru', $webInqNotif->title);
+        $this->assertStringContainsString('Dr. Robert Tan', $webInqNotif->message);
+        $this->assertStringContainsString('Villa Cliffside Horizon Uluwatu', $webInqNotif->message);
+        $this->assertEquals('/admin/inquiry', $webInqNotif->target_url);
+
+        // 4. API inquiry (/api/v1/inquiry) -> creates exactly 1 notification
+        $apiInqCountBefore = AdminNotification::count();
+        $apiInqRes = $this->postJson('/api/v1/inquiry', [
+            'name' => 'Bpk. Ahmad Fauzi',
+            'phone' => '081277665544',
+            'property_title' => 'Modern Minimalist BSD City',
+        ]);
+        $apiInqRes->assertStatus(201);
+        $this->assertEquals($apiInqCountBefore + 1, AdminNotification::count());
+
+        // 5. Web contact form inquiry (/inquiry from tentang-kami with is_consultation = 1)
+        $aboutInqCountBefore = AdminNotification::count();
+        $aboutInqRes = $this->postJson('/inquiry', [
+            'name' => 'Ibu Felicia Lim',
+            'phone' => '081999888777',
+            'email' => 'felicia@consulting.id',
+            'subject' => 'Konsultasi Portfolio Investasi',
+            'message' => 'Ingin konsultasi unit komersial prime.',
+            'is_consultation' => 1,
+        ]);
+        $aboutInqRes->assertStatus(200);
+        $this->assertEquals($aboutInqCountBefore + 1, AdminNotification::count());
+
+        $aboutNotif = AdminNotification::latest('id')->first();
+        $this->assertEquals('inquiry', $aboutNotif->type);
+        $this->assertStringContainsString('Ibu Felicia Lim', $aboutNotif->message);
+        $this->assertStringContainsString('Konsultasi Umum (Tentang Kami)', $aboutNotif->message);
+
+        // 6. Schedule survey -> creates exactly 1 survey notification
+        $lead = Lead::first();
+        $encodedLeadId = rawurlencode($lead->id);
+        $survCountBefore = AdminNotification::count();
+        $survRes = $this->actingAs($admin)->postJson("/admin/inquiry/{$encodedLeadId}/survey", [
+            'survey_date' => '2026-11-20',
+            'survey_time' => '14:30 WIB',
+            'client_name' => 'Klien VIP Pratama',
+            'property_title' => 'Villa Cliffside Horizon Uluwatu',
+        ]);
+        $survRes->assertStatus(200);
+        $this->assertEquals($survCountBefore + 1, AdminNotification::count());
+
+        $survNotif = AdminNotification::latest('id')->first();
+        $this->assertEquals('survey', $survNotif->type);
+        $this->assertEquals('Jadwal Survei Baru', $survNotif->title);
+        $this->assertStringContainsString('2026-11-20', $survNotif->message);
+        $this->assertStringContainsString('14:30 WIB', $survNotif->message);
+        $this->assertStringContainsString('Klien VIP Pratama', $survNotif->message);
+        $this->assertEquals('/admin/inquiry', $survNotif->target_url);
+
+        // 7. Rescheduling / Stage advancement of lead does NOT create another notification
+        $stageCountBefore = AdminNotification::count();
+        $stageRes = $this->actingAs($admin)->postJson("/admin/inquiry/{$encodedLeadId}/stage", [
+            'stage' => 'Follow-Up',
+        ]);
+        $stageRes->assertStatus(200);
+        $this->assertEquals($stageCountBefore, AdminNotification::count());
+
+        // 8. Direct survey submission from modal (/admin/inquiry/survey) without route parameter
+        $directSurvCountBefore = AdminNotification::count();
+        $directSurvRes = $this->actingAs($admin)->post('/admin/inquiry/survey', [
+            'client' => 'Bpk. Handoko VIP',
+            'property' => 'Penthouse Sudirman Suites',
+            'time' => '15:00 WIB',
+            'agent' => 'Tim Concierge Kumala',
+            'lead_id' => '',
+        ]);
+        $directSurvRes->assertRedirect(route('admin.inquiries'));
+        $this->assertEquals($directSurvCountBefore + 1, AdminNotification::count());
+
+        $directSurvNotif = AdminNotification::latest('id')->first();
+        $this->assertEquals('survey', $directSurvNotif->type);
+        $this->assertStringContainsString('Bpk. Handoko VIP', $directSurvNotif->message);
+        $this->assertStringContainsString('Penthouse Sudirman Suites', $directSurvNotif->message);
+    }
+
+    /**
+     * Test Mark Notification as Read and Mark All Read Endpoints
+     */
+    public function test_mark_notification_as_read_and_mark_all_read_endpoints(): void
+    {
+        $admin = $this->getAdminUser();
+        AdminNotification::query()->delete();
+
+        $n1 = AdminNotification::create([
+            'type' => 'listing',
+            'title' => 'Pengajuan 1',
+            'message' => 'Pesan 1',
+            'target_url' => '/admin/listing-masuk?id=1',
+            'reference_id' => '1',
+            'read_at' => null,
+        ]);
+        $n2 = AdminNotification::create([
+            'type' => 'inquiry',
+            'title' => 'Inquiry 2',
+            'message' => 'Pesan 2',
+            'target_url' => '/admin/inquiry',
+            'reference_id' => '2',
+            'read_at' => null,
+        ]);
+
+        $this->assertEquals(2, AdminNotification::whereNull('read_at')->count());
+
+        // 1. Guest access must be rejected
+        $guestReadRes = $this->postJson("/admin/notifications/{$n1->id}/read");
+        $guestReadRes->assertRedirect(route('admin.login'));
+
+        $guestAllRes = $this->postJson('/admin/notifications/mark-all-read');
+        $guestAllRes->assertRedirect(route('admin.login'));
+
+        // 2. GET requests to read/mark-all-read must be rejected (Method Not Allowed)
+        $getReadRes = $this->actingAs($admin)->get("/admin/notifications/{$n1->id}/read");
+        $getReadRes->assertStatus(405);
+
+        $getAllRes = $this->actingAs($admin)->get('/admin/notifications/mark-all-read');
+        $getAllRes->assertStatus(405);
+
+        // 3. Admin marks single notification as read
+        $readRes = $this->actingAs($admin)->postJson("/admin/notifications/{$n1->id}/read");
+        $readRes->assertStatus(200);
+        $readRes->assertJson([
+            'success' => true,
+            'unread_count' => 1,
+        ]);
+
+        $this->assertNotNull($n1->fresh()->read_at);
+        $this->assertNull($n2->fresh()->read_at);
+        $this->assertEquals(1, AdminNotification::whereNull('read_at')->count());
+
+        // 4. Admin marks all as read
+        $markAllRes = $this->actingAs($admin)->postJson('/admin/notifications/mark-all-read');
+        $markAllRes->assertStatus(200);
+        $markAllRes->assertJson([
+            'success' => true,
+            'unread_count' => 0,
+        ]);
+
+        $this->assertNotNull($n2->fresh()->read_at);
+        $this->assertEquals(0, AdminNotification::whereNull('read_at')->count());
+    }
+
+    /**
+     * Test Notification Security, Privacy (No PII), Target URL Validation, and HTML Escaping
+     */
+    public function test_admin_notifications_security_and_target_url_validation(): void
+    {
+        $admin = $this->getAdminUser();
+        AdminNotification::query()->delete();
+
+        // 1. Privacy test: creating submission and inquiry must NOT store phone numbers, emails, or notes in notification
+        \App\Services\KumalaDataHub::createSubmission([
+            'owner_name' => 'Bpk. Hendra Gunawan',
+            'owner_phone' => '081299998888',
+            'owner_email' => 'secret_hendra@bank.com',
+            'title' => 'Penthouse Permata Hijau',
+            'description' => 'Rahasia keluarga: unit mau dijual buru-buru.',
+        ]);
+
+        $notif = AdminNotification::latest('id')->first();
+        $this->assertNotNull($notif);
+        $this->assertStringNotContainsString('081299998888', $notif->message);
+        $this->assertStringNotContainsString('secret_hendra@bank.com', $notif->message);
+        $this->assertStringNotContainsString('Rahasia keluarga', $notif->message);
+
+        // 2. Target URL validation: external or unsafe URLs must be sanitized to /admin/dashboard
+        $unsafeNotif = \App\Services\AdminNotificationService::createNotification(
+            'listing',
+            'Judul Tes',
+            'Pesan Tes',
+            'https://evil.com/phishing',
+            '999'
+        );
+        $this->assertEquals('/admin/dashboard', $unsafeNotif->target_url);
+
+        $jsNotif = \App\Services\AdminNotificationService::createNotification(
+            'listing',
+            'Judul Tes 2',
+            'Pesan Tes 2',
+            'javascript:alert(1)',
+            '998'
+        );
+        $this->assertEquals('/admin/dashboard', $jsNotif->target_url);
+
+        // 3. HTML characters in input must NOT be executed as HTML (must be escaped in view)
+        AdminNotification::create([
+            'type' => 'inquiry',
+            'title' => '<script>alert("xss-title")</script>',
+            'message' => '<img src=x onerror=alert("xss-msg")>',
+            'target_url' => '/admin/inquiry',
+            'reference_id' => 'XSS-1',
+            'read_at' => null,
+        ]);
+
+        $page = $this->actingAs($admin)->get('/admin/dashboard');
+        $page->assertStatus(200);
+        // Script and onerror tags must be HTML entity escaped by Blade {{ }}
+        $page->assertDontSee('<script>alert("xss-title")</script>', false);
+        $page->assertSee('&lt;script&gt;alert(&quot;xss-title&quot;)&lt;/script&gt;', false);
+        $page->assertDontSee('<img src=x onerror=alert("xss-msg")>', false);
+        $page->assertSee('&lt;img src=x onerror=alert(&quot;xss-msg&quot;)&gt;', false);
+
+        // 4. Listing Masuk page parameter handling: ?id=TP-xxx
+        $sub = Submission::first();
+        $cleanSubId = ltrim($sub->id, '#');
+        $listingPage = $this->actingAs($admin)->get('/admin/listing-masuk?id=' . rawurlencode($cleanSubId));
+        $listingPage->assertStatus(200);
+        $listingPage->assertSee($sub->title, false);
+    }
+
+    /**
+     * Test Graceful Fallback when admin_notifications Table or Database is Absent
+     */
+    public function test_admin_notifications_graceful_fallback_when_table_is_absent(): void
+    {
+        // Drop the table temporarily to test resilience
+        \Illuminate\Support\Facades\Schema::dropIfExists('admin_notifications');
+
+        // Service methods must return 0 or empty without throwing any exception
+        $this->assertEquals(0, \App\Services\AdminNotificationService::getUnreadCount());
+        $this->assertEquals([], \App\Services\AdminNotificationService::getLatest());
+        $this->assertNull(\App\Services\AdminNotificationService::notifyListing(['id' => '#TP-FALLBACK', 'title' => 'Fallback']));
+        $this->assertNull(\App\Services\AdminNotificationService::notifyInquiry(['id' => '#IQ-FALLBACK', 'client_name' => 'Fallback']));
+        $this->assertNull(\App\Services\AdminNotificationService::notifySurvey(['id' => 1, 'property_title' => 'Fallback']));
+        $this->assertFalse(\App\Services\AdminNotificationService::markAsRead(1));
+        $this->assertEquals(0, \App\Services\AdminNotificationService::markAllAsRead());
+
+        // createSubmission and createInquiry must still succeed smoothly
+        $sub = \App\Services\KumalaDataHub::createSubmission([
+            'owner_name' => 'Bpk. Fallback Test',
+            'owner_phone' => '081211112222',
+            'title' => 'Villa Fallback',
+        ]);
+        $this->assertNotNull($sub);
+        $this->assertEquals('Villa Fallback', $sub['title']);
+
+        $inq = \App\Services\KumalaDataHub::createInquiry([
+            'name' => 'Ibu Fallback Inquiry',
+            'phone' => '081233334444',
+        ]);
+        $this->assertNotNull($inq);
+        $this->assertEquals('Ibu Fallback Inquiry', $inq['client_name']);
+
+        // Recreate the table so subsequent tests/teardown stay clean
+        $migration = require database_path('migrations/2026_11_04_000002_create_admin_notifications_table.php');
+        $migration->up();
     }
 }
 

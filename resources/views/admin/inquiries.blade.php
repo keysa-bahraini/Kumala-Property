@@ -161,7 +161,7 @@
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                         <span>WhatsApp Klien</span>
                     </a>
-                    <button type="button" class="btn-lead-action btn-schedule" onclick="openScheduleModal('{{ $inq['client_name'] }}', '{{ $inq['property_title'] ?? 'Unit Properti' }}')">
+                    <button type="button" class="btn-lead-action btn-schedule" onclick="openScheduleModal('{{ $inq['client_name'] }}', '{{ $inq['property_title'] ?? 'Unit Properti' }}', '{{ $inq['id'] }}')">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
                         <span>Atur Jadwal Survei</span>
                     </button>
@@ -284,6 +284,7 @@
         </div>
         <form action="{{ route('admin.inquiries.survey') }}" method="POST">
             @csrf
+            <input type="hidden" name="lead_id" id="modal-lead-id" value="">
             <div style="margin-bottom: 12px;">
                 <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Nama Klien</label>
                 <input type="text" name="client" id="modal-client-name" class="form-input-field" required style="width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px;">
@@ -706,12 +707,14 @@ function updateLeadStage(id, stage, selectEl) {
     });
 }
 
-function openScheduleModal(clientName, propertyTitle) {
+function openScheduleModal(clientName, propertyTitle, leadId) {
     const modal = document.getElementById('surveyModal');
     if (modal) {
         modal.style.display = 'flex';
         document.getElementById('modal-client-name').value = clientName || '';
         document.getElementById('modal-property-title').value = propertyTitle || '';
+        const leadEl = document.getElementById('modal-lead-id');
+        if (leadEl) leadEl.value = leadId || '';
     }
 }
 

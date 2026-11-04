@@ -403,11 +403,13 @@ class AdminController extends Controller
             $submissions = self::getDefaultSubmissions();
         }
 
-        $selectedId = $request->query('selected');
+        $selectedId = $request->query('id') ?: $request->query('selected');
         $selectedSubmission = null;
         if ($selectedId) {
+            $cleanSelectedId = ltrim((string)$selectedId, '#');
             foreach ($submissions as $item) {
-                if ($item['id'] === $selectedId) {
+                $itemCleanId = ltrim((string)($item['id'] ?? ''), '#');
+                if (($item['id'] ?? '') === $selectedId || $itemCleanId === $cleanSelectedId) {
                     $selectedSubmission = $item;
                     break;
                 }
@@ -1028,9 +1030,30 @@ class AdminController extends Controller
     /**
      * Fase 5: Schedule Survey
      */
-    public function scheduleSurvey(Request $request, $id)
+    public function scheduleSurvey(Request $request, $id = 'direct')
     {
-        $lead = Lead::find($id);
+        $leadId = ($id && $id !== 'direct') ? $id : $request->input('lead_id', 'direct');
+        $lead = ($leadId && $leadId !== 'direct') ? Lead::find($leadId) : null;
+
+        // Normalisasi input dari modal form (client, property, time, agent) atau request API
+        $input = $request->all();
+        if (!isset($input['survey_time']) && isset($input['time'])) {
+            $input['survey_time'] = $input['time'];
+        }
+        if (empty($input['survey_date'])) {
+            $input['survey_date'] = $request->input('date', now()->toDateString());
+        }
+        if (!isset($input['client_name']) && isset($input['client'])) {
+            $input['client_name'] = $input['client'];
+        }
+        if (!isset($input['property_title']) && isset($input['property'])) {
+            $input['property_title'] = $input['property'];
+        }
+        if (!isset($input['agent_name']) && isset($input['agent'])) {
+            $input['agent_name'] = $input['agent'];
+        }
+        $request->merge($input);
+
         $validated = $request->validate([
             'survey_date' => 'required|string',
             'survey_time' => 'required|string',
@@ -1045,7 +1068,7 @@ class AdminController extends Controller
         $agentName = $validated['agent_name'] ?? ($lead ? $lead->assigned_agent : 'Gusti Ayu');
 
         $survey = Survey::create([
-            'lead_id' => $id !== 'direct' ? $id : null,
+            'lead_id' => ($leadId && $leadId !== 'direct') ? $leadId : null,
             'property_id' => $validated['property_id'] ?? ($lead ? $lead->property_id : null),
             'property_title' => $propertyTitle,
             'client_name' => $clientName,
@@ -1067,6 +1090,8 @@ class AdminController extends Controller
             'status' => 'Scheduled',
             'details' => ['survey_id' => $survey->id, 'client' => $clientName],
         ]);
+
+        \App\Services\AdminNotificationService::notifySurvey($survey);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -2271,12 +2296,46 @@ class AdminController extends Controller
     public function notificationCount()
     {
         $metrics = \App\Services\KumalaDataHub::getAdminNotificationMetrics();
+        $unreadCount = \App\Services\AdminNotificationService::getUnreadCount();
+        $latestNotifs = \App\Services\AdminNotificationService::getLatest(15);
 
         return response()->json([
+            'unread_count' => $unreadCount,
+            'notifications' => $latestNotifs,
             'pending_submissions' => $metrics['pending_submissions'],
             'new_inquiries' => $metrics['new_inquiries'],
             'upcoming_surveys' => $metrics['upcoming_surveys'],
             'total' => $metrics['total'],
+        ]);
+    }
+
+    /**
+     * Tandai satu notifikasi sebagai dibaca
+     * POST /admin/notifications/{id}/read
+     */
+    public function markNotificationAsRead(Request $request, $id)
+    {
+        \App\Services\AdminNotificationService::markAsRead($id);
+        $unreadCount = \App\Services\AdminNotificationService::getUnreadCount();
+
+        return response()->json([
+            'success' => true,
+            'unread_count' => $unreadCount,
+        ]);
+    }
+
+    /**
+     * Tandai semua notifikasi belum dibaca sebagai sudah dibaca
+     * POST /admin/notifications/mark-all-read
+     */
+    public function markAllNotificationsAsRead(Request $request)
+    {
+        $affected = \App\Services\AdminNotificationService::markAllAsRead();
+
+        return response()->json([
+            'success' => true,
+            'affected' => $affected,
+            'unread_count' => 0,
         ]);
     }
 }

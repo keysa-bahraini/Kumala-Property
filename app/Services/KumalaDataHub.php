@@ -514,6 +514,8 @@ class KumalaDataHub
 
         self::logAction("Pengajuan Titip Properti Baru {$id} ({$newProp['id']}) dari {$subModel->owner_name}", 'Portal Publik (User)', 'Pending Review');
 
+        \App\Services\AdminNotificationService::notifyListing($subModel);
+
         return self::transformSubmission($subModel);
     }
 
@@ -667,6 +669,8 @@ class KumalaDataHub
 
         self::logAction("Inquiry Baru {$id} untuk properti " . ($propertyId ?? 'Konsultasi Umum') . " dari {$lead->client_name}", 'Portal Publik (User)', 'Lead Created');
 
+        \App\Services\AdminNotificationService::notifyInquiry($lead);
+
         return self::transformLead($lead);
     }
 
@@ -718,6 +722,8 @@ class KumalaDataHub
                 'survey_date' => now()->toDateString(),
                 'status' => 'Terkonfirmasi',
             ]);
+
+            \App\Services\AdminNotificationService::notifySurvey($item);
 
             return [
                 'time' => $item->survey_time,

@@ -107,8 +107,10 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
     Route::get('/export/daily-report', [AdminController::class, 'exportDailyReportCsv'])->name('admin.export.daily');
     Route::get('/export/transactions', [AdminController::class, 'exportTransactionsPdf'])->name('admin.export.transactions');
 
-    // Operational Notifications Count API (JSON Polling)
+    // Operational Notifications API
     Route::get('/notifications/count', [AdminController::class, 'notificationCount'])->name('admin.notifications.count');
+    Route::post('/notifications/{id}/read', [AdminController::class, 'markNotificationAsRead'])->name('admin.notifications.read');
+    Route::post('/notifications/mark-all-read', [AdminController::class, 'markAllNotificationsAsRead'])->name('admin.notifications.mark_all_read');
 });
 
 Route::get('/admin', function() {

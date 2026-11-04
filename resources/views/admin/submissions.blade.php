@@ -804,11 +804,33 @@ const submissionsData = @json($submissions ?? []);
 let activeSubData = @json($initSub ?? null);
 
 function selectSubmissionById(id, el) {
-    const found = submissionsData.find(s => String(s.id) === String(id));
+    const cleanId = String(id).replace(/^#/, '');
+    const found = submissionsData.find(s => String(s.id).replace(/^#/, '') === cleanId);
     if (found) {
         selectSubmission(found, el);
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const targetId = params.get('id') || params.get('selected');
+    if (targetId) {
+        const cleanTargetId = targetId.replace(/^#/, '');
+        const found = submissionsData.find(s => String(s.id || '').replace(/^#/, '') === cleanTargetId);
+        if (found) {
+            const cardEl = Array.from(document.querySelectorAll('.queue-card')).find(c => {
+                const subId = c.getAttribute('data-submission-id') || c.getAttribute('onclick') || '';
+                return subId.replace(/^#/, '').includes(cleanTargetId);
+            });
+            selectSubmission(found, cardEl);
+            if (cardEl) {
+                cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        } else {
+            showToast('Data sudah tidak tersedia atau telah dihapus.', 'warning');
+        }
+    }
+});
 
 function selectSubmission(sub, el) {
     activeSubData = sub;
