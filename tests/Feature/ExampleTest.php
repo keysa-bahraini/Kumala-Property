@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\AuditLog;
+use App\Models\Submission;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -1696,6 +1698,211 @@ class ExampleTest extends TestCase
         $homeRes->assertStatus(200);
         $homeRes->assertSee('href="' . route('privacy-terms') . '"', false);
         $homeRes->assertDontSee('<a href="#">Privasi & Syarat</a>', false);
+    }
+
+    /**
+     * Test Fase 4.1: Guest cannot request revision
+     */
+    public function test_phase_4_guest_cannot_request_revision(): void
+    {
+        $response = $this->post('/admin/listing-masuk/TP-999/status', [
+            'status' => 'revision',
+            'notes' => 'Tolong lengkapi foto',
+        ]);
+        $response->assertRedirect('/admin/login');
+    }
+
+    /**
+     * Test Fase 4.1: Validation on empty or whitespace notes and max length
+     */
+    public function test_phase_4_revision_submission_validation(): void
+    {
+        $admin = $this->getAdminUser();
+
+        $sub = Submission::create([
+            'id' => '#TP-VAL-' . rand(100, 999),
+            'title' => 'Test Unit Validation',
+            'owner_name' => 'Budi Santoso',
+            'owner_phone' => '081234567890',
+            'owner_email' => 'budi@example.com',
+            'status' => 'pending',
+            'notes' => 'Catatan awal',
+        ]);
+
+        // 1. Empty notes -> 422
+        $resEmpty = $this->actingAs($admin)->postJson('/admin/listing-masuk/' . rawurlencode($sub->id) . '/status', [
+            'status' => 'revision',
+            'notes' => '',
+        ]);
+        $resEmpty->assertStatus(422);
+
+        // 2. Whitespace only notes -> 422
+        $resSpaces = $this->actingAs($admin)->postJson('/admin/listing-masuk/' . rawurlencode($sub->id) . '/status', [
+            'status' => 'revision',
+            'notes' => '    ',
+        ]);
+        $resSpaces->assertStatus(422);
+
+        // Status should NOT change
+        $sub->refresh();
+        $this->assertEquals('pending', $sub->status);
+        $this->assertEquals('Catatan awal', $sub->notes);
+
+        // 3. Notes > 1000 characters -> 422
+        $resTooLong = $this->actingAs($admin)->postJson('/admin/listing-masuk/' . rawurlencode($sub->id) . '/status', [
+            'status' => 'revision',
+            'notes' => str_repeat('A', 1001),
+        ]);
+        $resTooLong->assertStatus(422);
+    }
+
+    /**
+     * Test Fase 4.1: WhatsApp link generation, truncation at 500 chars, audit log, and DB persistence
+     */
+    public function test_phase_4_revision_submission_whatsapp_link_and_truncation(): void
+    {
+        $admin = $this->getAdminUser();
+
+        $subId = '#TP-TEST-' . rand(100, 999);
+        $sub = Submission::create([
+            'id' => $subId,
+            'title' => 'Villa Cliffside Uluwatu & Resort',
+            'owner_name' => 'Maya Indah',
+            'owner_phone' => '087712345678',
+            'owner_email' => 'maya@example.com',
+            'status' => 'pending',
+            'asking_price' => 'Rp 15.000.000.000',
+        ]);
+
+        // A. Valid revision with special characters and quotes
+        $notesWithChars = 'Mohon unggah ulang foto sertifikat SHM (hal. 2 & 3) dengan resolusi > 1080p, dan bukti PBB 2024!';
+        $res = $this->actingAs($admin)->postJson('/admin/listing-masuk/' . rawurlencode($subId) . '/status', [
+            'status' => 'revision',
+            'notes' => $notesWithChars,
+        ]);
+
+        $res->assertStatus(200);
+        $res->assertJson([
+            'success' => true,
+            'wa_valid' => true,
+            'message' => 'Permintaan revisi dicatat. Lanjutkan kirim lewat WhatsApp.',
+        ]);
+
+        $waUrl = $res->json('wa_url');
+        $this->assertNotNull($waUrl);
+        $this->assertStringStartsWith('https://wa.me/6287712345678?text=', $waUrl);
+
+        // Parse and decode query text
+        $parsedUrl = parse_url($waUrl);
+        parse_str($parsedUrl['query'] ?? '', $query);
+        $decodedText = $query['text'] ?? '';
+
+        $this->assertStringContainsString('Maya Indah', $decodedText);
+        $this->assertStringContainsString($subId, $decodedText);
+        $this->assertStringContainsString('Villa Cliffside Uluwatu & Resort', $decodedText);
+        $this->assertStringContainsString($notesWithChars, $decodedText);
+        $this->assertStringContainsString('Tim Kurator Kumala Property', $decodedText);
+
+        // Assert database persistence
+        $sub->refresh();
+        $this->assertEquals('revision', $sub->status);
+        $this->assertEquals($notesWithChars, $sub->notes);
+
+        // Assert audit log recorded without sensitive phone data
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => "Permintaan Revisi Pengajuan Listing {$subId}",
+            'status' => 'Revision',
+        ]);
+
+        // B. Notes > 500 characters: full saved in DB, but truncated in WhatsApp URL
+        $longNotes = str_repeat('Koreksi dokumen fisik wajib diperbarui. ', 20); // ~800 chars
+        $resLong = $this->actingAs($admin)->postJson('/admin/listing-masuk/' . rawurlencode($subId) . '/status', [
+            'status' => 'revision',
+            'notes' => $longNotes,
+        ]);
+        $resLong->assertStatus(200);
+
+        $sub->refresh();
+        $this->assertEquals(trim($longNotes), $sub->notes); // Full 800 chars in database!
+
+        $longWaUrl = $resLong->json('wa_url');
+        parse_str(parse_url($longWaUrl)['query'] ?? '', $queryLong);
+        $decodedLongText = $queryLong['text'] ?? '';
+        $this->assertStringContainsString('...', $decodedLongText); // Truncated in URL
+    }
+
+    /**
+     * Test Fase 4.1: Phone normalization formats (0877..., +62 877..., 62877...)
+     */
+    public function test_phase_4_phone_normalization_formats(): void
+    {
+        $admin = $this->getAdminUser();
+
+        $formats = [
+            '087712345678' => '6287712345678',
+            '+62 877-1234-5678' => '6287712345678',
+            '6287712345678' => '6287712345678',
+            '+62 812-8899-2345' => '6281288992345',
+        ];
+
+        foreach ($formats as $inputPhone => $expectedDigits) {
+            $sub = Submission::create([
+                'id' => '#TP-PH-' . rand(1000, 9999),
+                'title' => 'Test Phone Unit',
+                'owner_name' => 'Owner Test',
+                'owner_phone' => $inputPhone,
+                'owner_email' => 'owner' . rand(100, 999) . '@example.com',
+                'status' => 'pending',
+            ]);
+
+            $res = $this->actingAs($admin)->postJson('/admin/listing-masuk/' . rawurlencode($sub->id) . '/status', [
+                'status' => 'revision',
+                'notes' => 'Catatan revisi format telepon.',
+            ]);
+
+            $res->assertStatus(200);
+            $this->assertTrue($res->json('wa_valid'));
+            $this->assertStringStartsWith("https://wa.me/{$expectedDigits}?text=", $res->json('wa_url'));
+        }
+    }
+
+    /**
+     * Test Fase 4.1: Invalid or empty phone does not fail saving notes
+     */
+    public function test_phase_4_invalid_or_empty_phone_handling(): void
+    {
+        $admin = $this->getAdminUser();
+
+        $invalidPhones = ['', '12345', '081', 'abc'];
+
+        foreach ($invalidPhones as $idx => $invPhone) {
+            $sub = Submission::create([
+                'id' => '#TP-INV-' . $idx . '-' . rand(100, 999),
+                'title' => 'Unit Tanpa Telepon Valid',
+                'owner_name' => 'Tanpa Nomor',
+                'owner_phone' => $invPhone,
+                'owner_email' => 'inv' . $idx . '@example.com',
+                'status' => 'pending',
+            ]);
+
+            $res = $this->actingAs($admin)->postJson('/admin/listing-masuk/' . rawurlencode($sub->id) . '/status', [
+                'status' => 'revision',
+                'notes' => 'Catatan tetap tersimpan meskipun nomor invalid.',
+            ]);
+
+            $res->assertStatus(200);
+            $res->assertJson([
+                'success' => true,
+                'wa_valid' => false,
+                'wa_url' => null,
+                'message' => 'Catatan revisi tersimpan, namun nomor WhatsApp pemilik tidak valid sehingga chat tidak dapat dibuka.',
+            ]);
+
+            // Database should still be updated to revision with notes!
+            $sub->refresh();
+            $this->assertEquals('revision', $sub->status);
+            $this->assertEquals('Catatan tetap tersimpan meskipun nomor invalid.', $sub->notes);
+        }
     }
 }
 

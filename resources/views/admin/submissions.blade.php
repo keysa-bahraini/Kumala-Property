@@ -877,14 +877,31 @@ function handleRejectSubmission() {
 }
 
 function handleRevisionSubmission() {
-    if (!activeSubData || !activeSubData.id) return;
-    const notes = prompt('Masukkan catatan revisi untuk pemilik properti:', 'Mohon unggah foto sertifikat BPN dengan resolusi lebih tajam.');
-    if (notes === null) return;
+    if (!activeSubData || !activeSubData.id) {
+        showToast('Pilih berkas pengajuan terlebih dahulu.', true);
+        return;
+    }
+    const rawNotes = prompt('Masukkan catatan revisi untuk pemilik properti:', 'Mohon unggah foto sertifikat BPN dengan resolusi lebih tajam.');
+    if (rawNotes === null) return; // Batal ditekan, jangan lakukan apa-apa
 
-    updateStatusDirect(activeSubData.id, 'revision', notes);
+    const notes = rawNotes.trim();
+    if (!notes) {
+        showToast('Catatan revisi tidak boleh kosong.', true);
+        return; // Jangan kirim request dan jangan buka tab!
+    }
+
+    // Opsi A: Buka tab sinkron TANPA noopener (agar waTab tidak null dan bisa diarahkan kemudian)
+    let waTab = null;
+    try {
+        waTab = window.open('about:blank', '_blank');
+    } catch (e) {
+        waTab = null;
+    }
+
+    updateStatusDirect(activeSubData.id, 'revision', notes, waTab);
 }
 
-function updateStatusDirect(id, status, notes) {
+function updateStatusDirect(id, status, notes, waTab = null) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '{{ csrf_token() }}';
 
     fetch('/admin/listing-masuk/' + encodeURIComponent(id) + '/status', {
@@ -899,16 +916,58 @@ function updateStatusDirect(id, status, notes) {
             notes: notes
         })
     })
-    .then(res => res.json())
+    .then(async res => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            const errorMsg = data.message || (data.errors && data.errors.notes ? data.errors.notes[0] : 'Terjadi kesalahan validasi.');
+            throw new Error(errorMsg);
+        }
+        return data;
+    })
     .then(data => {
-        showToast(`Status pengajuan ${id} berhasil diperbarui menjadi ${status.toUpperCase()}.`);
-        setTimeout(() => {
-            window.location.reload();
-        }, 1000);
+        if (status === 'revision') {
+            if (data.wa_valid && data.wa_url) {
+                if (waTab && !waTab.closed) {
+                    try {
+                        waTab.opener = null; // Putuskan relasi opener untuk keamanan
+                    } catch (e) {}
+                    waTab.location.href = data.wa_url;
+                    showToast(data.message || 'Permintaan revisi dicatat. Lanjutkan kirim lewat WhatsApp.');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1200);
+                } else {
+                    // Popup diblokir oleh peramban (misal di Safari/iOS)
+                    showToast(data.message || 'Permintaan revisi dicatat.', false, data.wa_url, '[Kirim via WhatsApp]');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 8000);
+                }
+            } else {
+                // Nomor WhatsApp tidak valid atau kosong
+                if (waTab && !waTab.closed) {
+                    waTab.close();
+                }
+                showToast(data.message || 'Catatan revisi tersimpan, namun nomor WhatsApp pemilik tidak valid sehingga chat tidak dapat dibuka.', true);
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            }
+        } else {
+            if (waTab && !waTab.closed) {
+                waTab.close();
+            }
+            showToast(`Status pengajuan ${id} berhasil diperbarui menjadi ${status.toUpperCase()}.`);
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
     })
     .catch(err => {
-        console.error(err);
-        showToast('Terjadi kesalahan.');
+        if (waTab && !waTab.closed) {
+            waTab.close();
+        }
+        showToast(err.message || 'Terjadi kesalahan.', true);
     });
 }
 </script>

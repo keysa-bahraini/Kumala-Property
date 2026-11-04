@@ -884,12 +884,28 @@
             startPolling();
         })();
 
-        function showToast(msg, isError = false) {
+        function showToast(msg, isError = false, linkUrl = null, linkText = null) {
             const toast = document.getElementById('toast-notification');
             const messageEl = document.getElementById('toast-message');
             const iconSvg = document.getElementById('toast-icon');
             if (toast && messageEl) {
                 messageEl.textContent = msg;
+
+                let hasValidLink = false;
+                if (typeof linkUrl === 'string' && linkUrl.startsWith('https://wa.me/')) {
+                    hasValidLink = true;
+                    const linkEl = document.createElement('a');
+                    linkEl.setAttribute('href', linkUrl);
+                    linkEl.target = '_blank';
+                    linkEl.rel = 'noopener noreferrer';
+                    linkEl.textContent = (typeof linkText === 'string' && linkText.trim()) ? linkText : '[Kirim via WhatsApp]';
+                    linkEl.style.color = '#00838F';
+                    linkEl.style.textDecoration = 'underline';
+                    linkEl.style.fontWeight = '700';
+                    linkEl.style.marginLeft = '6px';
+                    messageEl.appendChild(linkEl);
+                }
+
                 if (isError) {
                     toast.style.borderLeftColor = '#EF4444';
                     if (iconSvg) {
@@ -905,9 +921,10 @@
                 }
                 toast.style.display = 'flex';
                 clearTimeout(window.adminToastTimer);
+                const toastDuration = hasValidLink ? 8000 : 3500;
                 window.adminToastTimer = setTimeout(() => {
                     toast.style.display = 'none';
-                }, 3500);
+                }, toastDuration);
             }
         }
 

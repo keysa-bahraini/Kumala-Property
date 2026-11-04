@@ -14,6 +14,7 @@ use App\Models\Submission;
 use App\Models\SubmissionChecklist;
 use App\Models\Survey;
 use App\Models\Transaction;
+use App\Services\KumalaDataHub;
 use App\Services\PropertyDataService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -731,11 +732,26 @@ class AdminController extends Controller
      */
     public function revisionSubmission(Request $request, $id)
     {
+        $validated = $request->validate([
+            'notes' => 'required|string|max:1000',
+        ], [
+            'notes.required' => 'Catatan revisi wajib diisi.',
+            'notes.string' => 'Catatan revisi harus berupa teks.',
+            'notes.max' => 'Catatan revisi tidak boleh melebihi 1000 karakter.',
+        ]);
+
+        $trimmedNotes = trim($validated['notes']);
+        if ($trimmedNotes === '') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Catatan revisi tidak boleh kosong.',
+                'errors' => ['notes' => ['Catatan revisi wajib diisi.']],
+            ], 422);
+        }
+
         $sub = Submission::findOrFail($id);
         $sub->status = 'revision';
-        if ($request->filled('notes')) {
-            $sub->notes = $request->notes;
-        }
+        $sub->notes = $trimmedNotes;
         $sub->save();
 
         AuditLog::create([
@@ -746,14 +762,42 @@ class AdminController extends Controller
             'details' => ['submission_id' => $id],
         ]);
 
+        // Baca data pemilik (mendukung database kolom owner_name & owner_phone maupun fallback owner & phone)
+        $ownerName = !empty($sub->owner_name) ? $sub->owner_name : (!empty($sub->owner) ? $sub->owner : 'Pemilik');
+        $rawPhone = !empty($sub->owner_phone) ? $sub->owner_phone : (!empty($sub->phone) ? $sub->phone : null);
+        $unitTitle = !empty($sub->title) ? $sub->title : 'Unit Properti';
+
+        $normalizedPhone = KumalaDataHub::normalizePhone($rawPhone, '');
+        $waValid = (strlen($normalizedPhone) >= 9 && str_starts_with($normalizedPhone, '62'));
+
+        $waUrl = null;
+        if ($waValid) {
+            $truncatedNotes = mb_strlen($trimmedNotes) > 500 ? (mb_substr($trimmedNotes, 0, 500) . '...') : $trimmedNotes;
+
+            $message = "Halo Bpk/Ibu {$ownerName}, terima kasih telah mengajukan listing properti di Kumala Property.\n\n"
+                . "Mengenai pengajuan Anda untuk unit \"{$unitTitle}\" (No. Ref: {$id}), tim kurator kami telah melakukan pemeriksaan awal dan memerlukan perbaikan berkas dengan catatan berikut:\n\n"
+                . "\"{$truncatedNotes}\"\n\n"
+                . "Mohon dapat mengirimkan kelengkapan/perbaikan berkas tersebut dengan membalas pesan WhatsApp ini agar proses kurasi dapat segera kami lanjutkan.\n\n"
+                . "Terima kasih atas kerja sama Anda.\n"
+                . "Tim Kurator Kumala Property";
+
+            $waUrl = "https://wa.me/{$normalizedPhone}?text=" . rawurlencode($message);
+        }
+
+        $successMsg = $waValid
+            ? "Permintaan revisi dicatat. Lanjutkan kirim lewat WhatsApp."
+            : "Catatan revisi tersimpan, namun nomor WhatsApp pemilik tidak valid sehingga chat tidak dapat dibuka.";
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => "Permintaan revisi berkas {$id} telah dicatat dan terkirim ke pemilik.",
+                'message' => $successMsg,
+                'wa_url' => $waUrl,
+                'wa_valid' => $waValid,
             ]);
         }
 
-        return redirect()->route('admin.submissions')->with('success', "Status pengajuan {$id} berhasil diubah ke Perlu Revisi.");
+        return redirect()->route('admin.submissions')->with('success', $successMsg);
     }
 
     /**

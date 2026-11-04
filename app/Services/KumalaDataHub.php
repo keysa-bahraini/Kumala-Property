@@ -838,10 +838,10 @@ class KumalaDataHub
     /**
      * Normalisasi nomor telepon/WhatsApp menjadi format digit murni dengan kode negara (62).
      */
-    public static function normalizePhone(?string $phone): string
+    public static function normalizePhone(?string $phone, ?string $default = '6281199887711'): string
     {
         if (empty($phone)) {
-            return '6281199887711';
+            return (string)$default;
         }
 
         $digits = preg_replace('/[^0-9]/', '', (string)$phone);
@@ -849,7 +849,7 @@ class KumalaDataHub
             $digits = '62' . substr($digits, 1);
         }
 
-        return !empty($digits) ? $digits : '6281199887711';
+        return !empty($digits) ? $digits : (string)$default;
     }
 
     public static function getSettings(): array
