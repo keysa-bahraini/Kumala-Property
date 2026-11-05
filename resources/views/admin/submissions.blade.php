@@ -39,15 +39,15 @@
         <a href="{{ route('admin.submissions') }}" class="sub-tab-btn {{ (!request()->filled('status') || request('status') === 'active' || request('status') === 'all') ? 'active' : '' }}" style="text-decoration: none;">
             Semua Antrean Aktif <span id="badge-all" style="background: rgba(255,255,255,0.2); padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['all'] ?? 0 }}</span>
         </a>
-        <a href="{{ route('admin.submissions', ['status' => 'approved']) }}" class="sub-tab-btn {{ request('status') === 'approved' ? 'active' : '' }}" style="text-decoration: none;">
-            Disetujui &amp; Diterbitkan <span id="badge-approved" style="background: #E6FBF5; color: #059669; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['approved'] ?? 0 }}</span>
+        <a href="{{ route('admin.submissions', ['status' => 'pending']) }}" class="sub-tab-btn {{ request('status') === 'pending' ? 'active' : '' }}" style="text-decoration: none;">
+            <span style="width: 6px; height: 6px; border-radius: 50%; background: #D97706; display: inline-block; margin-right: 6px;"></span>
+            Menunggu Review <span id="badge-pending" style="background: #FEF3C7; color: #D97706; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['pending'] ?? 0 }}</span>
         </a>
         <a href="{{ route('admin.submissions', ['status' => 'revision']) }}" class="sub-tab-btn {{ request('status') === 'revision' ? 'active' : '' }}" style="text-decoration: none;">
             Perlu Revisi Pemilik <span id="badge-revision" style="background: #F1F5F9; color: #64748B; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['revision'] ?? 0 }}</span>
         </a>
-        <a href="{{ route('admin.submissions', ['status' => 'pending']) }}" class="sub-tab-btn {{ request('status') === 'pending' ? 'active' : '' }}" style="text-decoration: none;">
-            <span style="width: 6px; height: 6px; border-radius: 50%; background: #D97706; display: inline-block; margin-right: 6px;"></span>
-            Menunggu Review <span id="badge-pending" style="background: #FEF3C7; color: #D97706; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['pending'] ?? 0 }}</span>
+        <a href="{{ route('admin.submissions', ['status' => 'approved']) }}" class="sub-tab-btn {{ request('status') === 'approved' ? 'active' : '' }}" style="text-decoration: none;">
+            Disetujui &amp; Diterbitkan <span id="badge-approved" style="background: #E6FBF5; color: #059669; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['approved'] ?? 0 }}</span>
         </a>
         <a href="{{ route('admin.submissions', ['status' => 'rejected']) }}" class="sub-tab-btn {{ request('status') === 'rejected' ? 'active' : '' }}" style="text-decoration: none;">
             Ditolak <span id="badge-rejected" style="background: #F1F5F9; color: #64748B; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['rejected'] ?? 0 }}</span>

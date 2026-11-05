@@ -755,6 +755,7 @@ class ExampleTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('REKAPITULASI CLOSING TRANSAKSI');
         $response->assertSee('Kumala Property Group');
+        $response->assertSee('Pihak Transaksi');
 
         // Verify Audit Log
         $this->assertDatabaseHas('audit_logs', [

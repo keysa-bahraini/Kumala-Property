@@ -90,15 +90,15 @@
         th {
             background: #0E2238;
             color: #FFFFFF;
-            padding: 10px 14px;
+            padding: 10px 10px;
             text-align: left;
             font-weight: 600;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         td {
-            padding: 12px 14px;
+            padding: 10px 10px;
             border-bottom: 1px solid #E2E8F0;
         }
         tr:nth-child(even) td {
@@ -209,6 +209,7 @@
                     <th>No. Transaksi</th>
                     <th>Tanggal</th>
                     <th>Unit Properti</th>
+                    <th>Pihak Transaksi</th>
                     <th>Skema</th>
                     <th>Harga Listing</th>
                     <th>Harga Deal Final</th>
@@ -224,6 +225,17 @@
                     <td>
                         <strong>{{ $t->property_title }}</strong><br>
                         <span style="font-size: 0.72rem; color: #64748B;">{{ $t->property_id }} • {{ $t->location }}</span>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.74rem; color: #1E293B; line-height: 1.35;">
+                            @if(!empty($t->parties))
+                                @foreach(explode(' / ', $t->parties) as $part)
+                                    <span style="display: block;">{{ trim($part) }}</span>
+                                @endforeach
+                            @else
+                                <span style="color: #94A3B8;">-</span>
+                            @endif
+                        </div>
                     </td>
                     <td>
                         <span style="font-size: 0.72rem; font-weight: 600; padding: 2px 6px; border-radius: 4px; background: #E2E8F0; color: #1E293B;">
