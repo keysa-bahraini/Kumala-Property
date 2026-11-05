@@ -21,7 +21,7 @@ Route::get('/properti/{slug}', [PropertyController::class, 'detail'])->name('pro
 
 // Halaman 4: Titip Properti (Consignment Submission Form)
 Route::get('/titip-properti', [PropertyController::class, 'titipProperti'])->name('titip-properti');
-Route::post('/titip-properti', [PropertyController::class, 'submitTitipProperti'])->name('titip-properti.submit');
+Route::post('/titip-properti', [PropertyController::class, 'submitTitipProperti'])->middleware('throttle:10,1')->name('titip-properti.submit');
 
 
 // Halaman 6: Tentang Kami & Kontak
@@ -32,7 +32,7 @@ Route::redirect('/about', '/tentang-kami');
 Route::get('/privasi-syarat', [PropertyController::class, 'privacyTerms'])->name('privacy-terms');
 
 // Inquiry API for Detail Page Concierge
-Route::post('/inquiry', [PropertyController::class, 'submitInquiry'])->name('inquiry.submit');
+Route::post('/inquiry', [PropertyController::class, 'submitInquiry'])->middleware('throttle:10,1')->name('inquiry.submit');
 
 /*
 |--------------------------------------------------------------------------
@@ -58,8 +58,8 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
     Route::post('/properti/batch', [AdminController::class, 'batchPropertyAction'])->name('admin.properties.batch');
     Route::post('/properti/{id}/update', [AdminController::class, 'updateProperty'])->name('admin.properties.update');
     Route::post('/properti/{id}/status', [AdminController::class, 'togglePropertyStatus'])->name('admin.properties.status');
-    Route::delete('/properti/{id}', [AdminController::class, 'deleteProperty'])->name('admin.properties.delete');
-    Route::post('/properti/{id}/delete', [AdminController::class, 'deleteProperty']);
+    Route::match(['delete', 'post'], '/properti/{id}', [AdminController::class, 'deleteProperty'])->name('admin.properties.delete');
+    Route::match(['delete', 'post'], '/properti/{id}/delete', [AdminController::class, 'deleteProperty']);
 
     // Halaman 10: Manajemen Listing Masuk (Gatekeeper Verification)
     Route::get('/listing-masuk', [AdminController::class, 'submissions'])->name('admin.submissions');
@@ -67,22 +67,31 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
     Route::post('/listing-masuk/{id}/reject', [AdminController::class, 'rejectSubmission']);
     Route::post('/listing-masuk/{id}/status', [AdminController::class, 'updateSubmissionStatus'])->name('admin.submissions.status');
     Route::post('/listing-masuk/{id}/update', [AdminController::class, 'updateSubmissionData']);
-    Route::delete('/listing-masuk/{id}', [AdminController::class, 'deleteSubmission'])->name('admin.submissions.delete');
-    Route::post('/listing-masuk/{id}/delete', [AdminController::class, 'deleteSubmission']);
+    Route::match(['delete', 'post'], '/listing-masuk/{id}', [AdminController::class, 'deleteSubmission'])->name('admin.submissions.delete');
+    Route::match(['delete', 'post'], '/listing-masuk/{id}/delete', [AdminController::class, 'deleteSubmission']);
     Route::post('/submissions/{id}/approve', [AdminController::class, 'approveSubmission'])->name('admin.submissions.approve');
     Route::post('/submissions/{id}/reject', [AdminController::class, 'rejectSubmission'])->name('admin.submissions.reject');
     Route::post('/submissions/{id}/revision', [AdminController::class, 'revisionSubmission'])->name('admin.submissions.revision');
     Route::post('/submissions/{id}/checklist', [AdminController::class, 'updateSubmissionChecklist'])->name('admin.submissions.checklist');
     Route::post('/submissions/{id}/update', [AdminController::class, 'updateSubmissionData'])->name('admin.submissions.update');
-    Route::delete('/submissions/{id}', [AdminController::class, 'deleteSubmission']);
-    Route::post('/submissions/{id}/delete', [AdminController::class, 'deleteSubmission']);
+    Route::match(['delete', 'post'], '/submissions/{id}', [AdminController::class, 'deleteSubmission']);
+    Route::match(['delete', 'post'], '/submissions/{id}/delete', [AdminController::class, 'deleteSubmission']);
 
     // Halaman 11: Riwayat Terjual & Tersewa (Closing Archive)
     Route::get('/riwayat-transaksi', [AdminController::class, 'transactions'])->name('admin.transactions');
     Route::post('/riwayat-transaksi', [AdminController::class, 'storeTransaction'])->name('admin.transactions.store');
-    Route::post('/riwayat-transaksi/{id}/update', [AdminController::class, 'updateTransaction'])->name('admin.transactions.update');
+    Route::match(['put', 'patch'], '/riwayat-transaksi/{id}', [AdminController::class, 'updateTransaction'])->name('admin.transactions.update');
+    Route::match(['put', 'patch', 'post'], '/riwayat-transaksi/{id}/update', [AdminController::class, 'updateTransaction']);
     Route::delete('/riwayat-transaksi/{id}', [AdminController::class, 'deleteTransaction'])->name('admin.transactions.delete');
-    Route::post('/riwayat-transaksi/{id}/delete', [AdminController::class, 'deleteTransaction']);
+    Route::match(['delete', 'post'], '/riwayat-transaksi/{id}/delete', [AdminController::class, 'deleteTransaction']);
+
+    // Alias URL /admin/transaksi
+    Route::get('/transaksi', [AdminController::class, 'transactions']);
+    Route::post('/transaksi', [AdminController::class, 'storeTransaction']);
+    Route::match(['put', 'patch'], '/transaksi/{id}', [AdminController::class, 'updateTransaction']);
+    Route::match(['put', 'patch', 'post'], '/transaksi/{id}/update', [AdminController::class, 'updateTransaction']);
+    Route::delete('/transaksi/{id}', [AdminController::class, 'deleteTransaction']);
+    Route::match(['delete', 'post'], '/transaksi/{id}/delete', [AdminController::class, 'deleteTransaction']);
 
     // Halaman 12: Manajemen Data Inquiry (Lead Pipeline CRM)
     Route::get('/inquiry', [AdminController::class, 'inquiries'])->name('admin.inquiries');

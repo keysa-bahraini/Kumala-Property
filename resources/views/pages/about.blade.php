@@ -411,6 +411,9 @@ function handleContactSubmit(e) {
         body: formData
     })
     .then(async res => {
+        if (res.status === 429) {
+            throw new Error('Terlalu banyak permintaan, coba lagi sebentar lagi.');
+        }
         const data = await res.json();
         if (!res.ok) {
             let errorMsg = data.message || 'Terjadi kesalahan pada data formulir.';

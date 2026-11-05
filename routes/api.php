@@ -15,10 +15,10 @@ Route::prefix('v1')->group(function () {
     Route::get('/properties/{slug}', [ApiController::class, 'propertyDetail']);
 
     // 2. Submissions (Titip Properti)
-    Route::post('/titip-properti', [ApiController::class, 'submitTitipProperti']);
+    Route::post('/titip-properti', [ApiController::class, 'submitTitipProperti'])->middleware('throttle:10,1');
 
     // 3. Leads (Inquiries & Surveys)
-    Route::post('/inquiry', [ApiController::class, 'submitInquiry']);
+    Route::post('/inquiry', [ApiController::class, 'submitInquiry'])->middleware('throttle:10,1');
 
     // 4. Master Data
     Route::get('/categories', [ApiController::class, 'categories']);

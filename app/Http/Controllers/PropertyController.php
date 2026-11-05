@@ -113,9 +113,10 @@ class PropertyController extends Controller
                 break;
             case 'terbaru':
             default:
-                $sorted = $collection->sortByDesc(function ($item) {
-                    return $item['created_at'] ?? $item['id'] ?? '';
-                })->values();
+                $sorted = $collection->sortBy([
+                    ['created_at', 'desc'],
+                    ['id', 'desc'],
+                ])->values();
                 break;
         }
 

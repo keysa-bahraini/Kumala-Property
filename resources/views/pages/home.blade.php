@@ -47,17 +47,17 @@
     <div class="container" style="position: relative; z-index: 2;">
         <!-- Hero Header -->
         <div style="max-width: 860px; margin: 0 auto 36px; text-align: center;">
-            <h1 style="font-size: clamp(2.3rem, 4.8vw, 3.6rem); font-weight: 800; line-height: 1.15; color: {{ $hasHeroBg ? '#FFFFFF' : '#0E1E2E' }}; {{ $hasHeroBg ? 'text-shadow: 0 2px 18px rgba(0,0,0,0.45);' : '' }} margin-bottom: 18px; letter-spacing: -0.02em;">
+            <h1 class="hero-fade-1" style="font-size: clamp(2.3rem, 4.8vw, 3.6rem); font-weight: 800; line-height: 1.15; color: {{ $hasHeroBg ? '#FFFFFF' : '#0E1E2E' }}; {{ $hasHeroBg ? 'text-shadow: 0 2px 18px rgba(0,0,0,0.45);' : '' }} margin-bottom: 18px; letter-spacing: -0.02em;">
                 {{ $globalSettings['home_hero_title'] ?? 'Temukan Hunian Eksklusif & Aset Bernilai Abadi di Indonesia' }}
             </h1>
 
-            <p style="font-size: 1.05rem; color: {{ $hasHeroBg ? 'rgba(255, 255, 255, 0.92)' : '#526071' }}; {{ $hasHeroBg ? 'text-shadow: 0 1px 8px rgba(0,0,0,0.35);' : '' }} line-height: 1.65; max-width: 700px; margin: 0 auto;">
+            <p class="hero-fade-2" style="font-size: 1.05rem; color: {{ $hasHeroBg ? 'rgba(255, 255, 255, 0.92)' : '#526071' }}; {{ $hasHeroBg ? 'text-shadow: 0 1px 8px rgba(0,0,0,0.35);' : '' }} line-height: 1.65; max-width: 700px; margin: 0 auto;">
                 {{ $globalSettings['home_hero_desc'] ?? 'Menghubungkan pemilik properti bernilai tinggi dengan investor & pembeli eksklusif. Setiap unit diaudit dengan verifikasi dokumen legalitas notarial dan kurasi arsitektural menyeluruh.' }}
             </p>
         </div>
 
         <!-- 4-Parameter Search Card (Matching Explore Mockup Exactly) -->
-        <div style="background-color: #FFFFFF; border-radius: 14px; padding: 22px 24px; {{ $hasHeroBg ? 'box-shadow: 0 16px 45px rgba(14, 30, 46, 0.28); border: 1px solid rgba(255, 255, 255, 0.95);' : 'box-shadow: 0 4px 20px rgba(14, 34, 56, 0.05); border: 1px solid #DDE3EA;' }} max-width: 1100px; margin: 0 auto;">
+        <div class="hero-fade-3" style="background-color: #FFFFFF; border-radius: 14px; padding: 22px 24px; {{ $hasHeroBg ? 'box-shadow: 0 16px 45px rgba(14, 30, 46, 0.28); border: 1px solid rgba(255, 255, 255, 0.95);' : 'box-shadow: 0 4px 20px rgba(14, 34, 56, 0.05); border: 1px solid #DDE3EA;' }} max-width: 1100px; margin: 0 auto;">
             <form action="{{ route('explore') }}" method="GET" id="hero-search-form">
                 <input type="hidden" name="type" id="hero-type-input" value="Semua">
 
@@ -239,7 +239,7 @@
                 <div class="card-content">
                     <div class="card-location">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                        <span>{{ $prop['location_area'] }}, {{ $prop['location_city'] }}</span>
+                        <span>{{ $prop['location_display'] ?? (!empty($prop['location_area']) && !empty($prop['location_city']) && $prop['location_area'] !== $prop['location_city'] && stripos($prop['location_city'], $prop['location_area']) === false && stripos($prop['location_area'], $prop['location_city']) === false ? $prop['location_area'] . ', ' . $prop['location_city'] : ($prop['location_area'] ?: $prop['location_city'])) }}</span>
                     </div>
 
                     <h3 class="card-title">
@@ -247,7 +247,16 @@
                     </h3>
 
                     <div class="card-specs-row">
-                        @foreach($prop['specs_tags'] as $tag)
+                        @php
+                            $tags = !empty($prop['specs_tags']) ? $prop['specs_tags'] : [];
+                            if (empty($tags)) {
+                                if (!empty($prop['bedrooms'])) { $tags[] = $prop['bedrooms'] . ' Kamar Tidur'; }
+                                if (!empty($prop['land_size'])) { $tags[] = 'LT ' . $prop['land_size'] . 'm²'; }
+                                if (!empty($prop['building_size'])) { $tags[] = 'LB ' . $prop['building_size'] . 'm²'; }
+                                if (count($tags) < 3 && !empty($prop['bathrooms'])) { $tags[] = $prop['bathrooms'] . ' Kamar Mandi'; }
+                            }
+                        @endphp
+                        @foreach($tags as $tag)
                         <span class="spec-chip">{{ $tag }}</span>
                         @endforeach
                     </div>
@@ -294,7 +303,7 @@
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;" id="pillars-grid">
             
             <!-- Card 1 -->
-            <div style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(14, 34, 56, 0.03);">
+            <div class="pillar-card" style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(14, 34, 56, 0.03);">
                 <div>
                     <div style="width: 40px; height: 40px; border-radius: 8px; background: #EBF1F5; color: #0E1E2E; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><circle cx="16" cy="6" r="4"/></svg>
@@ -310,7 +319,7 @@
             </div>
 
             <!-- Card 2 -->
-            <div style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(14, 34, 56, 0.03);">
+            <div class="pillar-card" style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(14, 34, 56, 0.03);">
                 <div>
                     <div style="width: 40px; height: 40px; border-radius: 8px; background: #EBF1F5; color: #0E1E2E; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="m9 12 2 2 4-4"/></svg>
@@ -326,7 +335,7 @@
             </div>
 
             <!-- Card 3 -->
-            <div style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(14, 34, 56, 0.03);">
+            <div class="pillar-card" style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(14, 34, 56, 0.03);">
                 <div>
                     <div style="width: 40px; height: 40px; border-radius: 8px; background: #EBF1F5; color: #0E1E2E; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -342,7 +351,7 @@
             </div>
 
             <!-- Card 4 -->
-            <div style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(14, 34, 56, 0.03);">
+            <div class="pillar-card" style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(14, 34, 56, 0.03);">
                 <div>
                     <div style="width: 40px; height: 40px; border-radius: 8px; background: #EBF1F5; color: #0E1E2E; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
@@ -358,7 +367,7 @@
             </div>
 
             <!-- Card 5 -->
-            <div style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(14, 34, 56, 0.03);">
+            <div class="pillar-card" style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(14, 34, 56, 0.03);">
                 <div>
                     <div style="width: 40px; height: 40px; border-radius: 8px; background: #EBF1F5; color: #0E1E2E; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -374,7 +383,7 @@
             </div>
 
             <!-- Card 6 -->
-            <div style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(14, 34, 56, 0.03);">
+            <div class="pillar-card" style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(14, 34, 56, 0.03);">
                 <div>
                     <div style="width: 40px; height: 40px; border-radius: 8px; background: #EBF1F5; color: #0E1E2E; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-1-1l-3 3m-2-2l-4 4a2 2 0 0 0 0 2.83l3.17 3.17a2 2 0 0 0 2.83 0l4-4-2-2m-3 3l-1.5-1.5"/></svg>
@@ -416,7 +425,7 @@
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;" id="steps-grid">
             
             <!-- Step 1 -->
-            <div style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 22px 20px; position: relative;">
+            <div class="step-card" style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 22px 20px; position: relative;">
                 <div style="width: 32px; height: 32px; border-radius: 50%; background: #0E1E2E; color: #FFFFFF; font-weight: 800; font-size: 0.92rem; display: flex; align-items: center; justify-content: center; margin-bottom: 14px;">
                     1
                 </div>
@@ -427,7 +436,7 @@
             </div>
 
             <!-- Step 2 -->
-            <div style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 22px 20px; position: relative;">
+            <div class="step-card" style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 22px 20px; position: relative;">
                 <div style="width: 32px; height: 32px; border-radius: 50%; background: #0E1E2E; color: #FFFFFF; font-weight: 800; font-size: 0.92rem; display: flex; align-items: center; justify-content: center; margin-bottom: 14px;">
                     2
                 </div>
@@ -438,7 +447,7 @@
             </div>
 
             <!-- Step 3 -->
-            <div style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 22px 20px; position: relative;">
+            <div class="step-card" style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 22px 20px; position: relative;">
                 <div style="width: 32px; height: 32px; border-radius: 50%; background: #0E1E2E; color: #FFFFFF; font-weight: 800; font-size: 0.92rem; display: flex; align-items: center; justify-content: center; margin-bottom: 14px;">
                     3
                 </div>
@@ -449,7 +458,7 @@
             </div>
 
             <!-- Step 4 -->
-            <div style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 22px 20px; position: relative;">
+            <div class="step-card" style="background: #FFFFFF; border: 1px solid #DDE3EA; border-radius: 12px; padding: 22px 20px; position: relative;">
                 <div style="width: 32px; height: 32px; border-radius: 50%; background: #0E1E2E; color: #FFFFFF; font-weight: 800; font-size: 0.92rem; display: flex; align-items: center; justify-content: center; margin-bottom: 14px;">
                     4
                 </div>

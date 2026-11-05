@@ -16,6 +16,12 @@ use Tests\TestCase;
 class ExampleTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\Cache::flush();
+    }
     private function getAdminUser(): User
     {
         return User::firstOrCreate(
@@ -1379,6 +1385,8 @@ class ExampleTest extends TestCase
         // 2. Submit property update
         $prop = \App\Models\Property::first();
         $this->assertNotNull($prop);
+        $prop->created_at = now()->addMinute();
+        $prop->save();
         $encodedId = rawurlencode($prop->id);
 
         $updatePayload = [
@@ -2048,6 +2056,20 @@ class ExampleTest extends TestCase
         $this->assertNotNull($delAudit);
         $this->assertArrayNotHasKey('owner_phone', $delAudit->details ?? []);
         $this->assertArrayNotHasKey('owner_email', $delAudit->details ?? []);
+
+        // 6. Delete submission via /delete suffix route with DELETE method must also succeed smoothly
+        $subSuffix = Submission::create([
+            'id' => '#TP-TEST-' . rand(1000, 9999),
+            'title' => 'Villa Delete Suffix Route Test',
+            'owner_name' => 'Bpk. Suffix Route',
+            'owner_phone' => '081234567890',
+            'owner_email' => 'suffix@example.com',
+            'status' => 'pending',
+            'asking_price' => 'Rp 3.000.000.000',
+        ]);
+        $delSuffixRes = $this->actingAs($admin)->delete('/admin/listing-masuk/' . rawurlencode($subSuffix->id) . '/delete');
+        $delSuffixRes->assertRedirect(route('admin.submissions'));
+        $this->assertDatabaseMissing('submissions', ['id' => $subSuffix->id]);
     }
 
     /**
@@ -2620,7 +2642,492 @@ class ExampleTest extends TestCase
         $migration = require database_path('migrations/2026_11_04_000002_create_admin_notifications_table.php');
         $migration->up();
     }
+
+    /**
+     * Audit Fix Item 1: Non-existent property slug must return 404 for both populated DB and fallback
+     */
+    public function test_property_detail_not_found_returns_404_for_both_database_and_fallback(): void
+    {
+        // 1. Database populated state
+        Property::create([
+            'id' => '#KP-9999',
+            'slug' => 'villa-terisi-database-nyata',
+            'title' => 'Villa Terisi Database Nyata',
+            'price' => 25000000000,
+            'category' => 'Villa Mewah',
+            'location_city' => 'Badung',
+            'location_area' => 'Canggu',
+            'location_address' => 'Jl. Pantai Batu Bolong No. 1',
+            'image_main' => 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c',
+            'description' => 'Deskripsi properti database nyata.',
+            'status' => 'ACTIVE',
+        ]);
+
+        // Valid slug in database returns 200
+        $resValidDb = $this->get('/properti/villa-terisi-database-nyata');
+        $resValidDb->assertStatus(200);
+
+        // Non-existent slug with database populated must return 404 (NOT 200 with first property)
+        $resInvalidDb = $this->get('/properti/slug-yang-tidak-ada-sama-sekali');
+        $resInvalidDb->assertStatus(404);
+
+        // 2. Fallback mode (empty database or fallback store)
+        Property::query()->delete();
+        $this->assertEquals(0, Property::count());
+
+        // Valid fallback sample slug returns 200
+        $resValidFallback = $this->get('/properti/villa-cliffside-horizon-uluwatu');
+        $resValidFallback->assertStatus(200);
+
+        // Non-existent slug in fallback mode must return 404 (NOT 200 with first property)
+        $resInvalidFallback = $this->get('/properti/slug-yang-tidak-ada-di-fallback');
+        $resInvalidFallback->assertStatus(404);
+    }
+
+    /**
+     * Audit Fix Item 2: Explore sorting 'terbaru' has deterministic secondary tie-break by ID descending
+     */
+    public function test_explore_terbaru_sort_has_deterministic_secondary_id_tie_break(): void
+    {
+        Property::query()->delete();
+
+        $sameTime = '2026-06-01 10:00:00';
+        $dummyImage = 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c';
+        $dummyDesc = 'Deskripsi unit tie break.';
+
+        Property::create([
+            'id' => '#KP-101',
+            'slug' => 'villa-tie-101',
+            'title' => 'Villa Tie 101',
+            'price' => 10000000000,
+            'category' => 'Villa Mewah',
+            'location_city' => 'Badung',
+            'location_area' => 'Canggu',
+            'location_address' => 'Jl. Pantai No. 101',
+            'image_main' => $dummyImage,
+            'description' => $dummyDesc,
+            'status' => 'ACTIVE',
+            'created_at' => $sameTime,
+        ]);
+        Property::create([
+            'id' => '#KP-103',
+            'slug' => 'villa-tie-103',
+            'title' => 'Villa Tie 103',
+            'price' => 10000000000,
+            'category' => 'Villa Mewah',
+            'location_city' => 'Badung',
+            'location_area' => 'Canggu',
+            'location_address' => 'Jl. Pantai No. 103',
+            'image_main' => $dummyImage,
+            'description' => $dummyDesc,
+            'status' => 'ACTIVE',
+            'created_at' => $sameTime,
+        ]);
+        Property::create([
+            'id' => '#KP-102',
+            'slug' => 'villa-tie-102',
+            'title' => 'Villa Tie 102',
+            'price' => 10000000000,
+            'category' => 'Villa Mewah',
+            'location_city' => 'Badung',
+            'location_area' => 'Canggu',
+            'location_address' => 'Jl. Pantai No. 102',
+            'image_main' => $dummyImage,
+            'description' => $dummyDesc,
+            'status' => 'ACTIVE',
+            'created_at' => $sameTime,
+        ]);
+        Property::create([
+            'id' => '#KP-999',
+            'slug' => 'villa-newest-999',
+            'title' => 'Villa Newest 999',
+            'price' => 10000000000,
+            'category' => 'Villa Mewah',
+            'location_city' => 'Badung',
+            'location_area' => 'Canggu',
+            'location_address' => 'Jl. Pantai No. 999',
+            'image_main' => $dummyImage,
+            'description' => $dummyDesc,
+            'status' => 'ACTIVE',
+            'created_at' => '2026-06-02 10:00:00',
+        ]);
+
+        $res = $this->get('/explore?sort=terbaru');
+        $res->assertStatus(200);
+
+        /** @var \Illuminate\Pagination\LengthAwarePaginator $paginator */
+        $paginator = $res->viewData('properties');
+        $ids = collect($paginator->items())->pluck('id')->values()->all();
+
+        // Must place newest created_at first (#KP-999), then strictly tie-break by id DESC (#KP-103, #KP-102, #KP-101)
+        $this->assertEquals(['#KP-999', '#KP-103', '#KP-102', '#KP-101'], array_slice($ids, 0, 4));
+    }
+
+    /**
+     * Audit Fix Item 3: Rate limiting throttle on /inquiry and /titip-properti (11th request in 1 minute gets 429)
+     */
+    public function test_rate_limiting_throttle_eleventh_request_returns_429(): void
+    {
+        // 1. Test POST /inquiry: first 10 requests allowed
+        $inquiryPayload = [
+            'name' => 'Bpk. Rate Test',
+            'phone' => '081299998888',
+            'email' => 'rate@example.com',
+            'message' => 'Testing rate limiting throttle.',
+            'property_id' => '1',
+            'inquiry_type' => 'beli',
+        ];
+
+        for ($i = 1; $i <= 10; $i++) {
+            $res = $this->postJson('/inquiry', $inquiryPayload);
+            $this->assertNotEquals(429, $res->status(), "Inquiry request #{$i} should not be rate limited.");
+        }
+
+        // The 11th request must receive HTTP 429 Too Many Requests
+        $res11 = $this->postJson('/inquiry', $inquiryPayload);
+        $res11->assertStatus(429);
+
+        // 2. Test POST /titip-properti rate limiting (flush cache first to isolate counter)
+        \Illuminate\Support\Facades\Cache::flush();
+
+        $titipPayload = [
+            'owner_name' => 'Bpk. Rate Titip',
+            'owner_phone' => '081299997777',
+            'title' => 'Villa Throttle Test',
+            'category' => 'Villa Mewah',
+            'transaction_type' => 'Jual',
+            'price' => '15000000000',
+            'location_city' => 'Badung',
+            'location_area' => 'Canggu',
+            'bedrooms' => '3',
+            'bathrooms' => '3',
+            'land_size' => '300',
+            'building_size' => '250',
+        ];
+
+        for ($i = 1; $i <= 10; $i++) {
+            $resTitip = $this->postJson('/titip-properti', $titipPayload);
+            $this->assertNotEquals(429, $resTitip->status(), "Titip request #{$i} should not be rate limited.");
+        }
+
+        // The 11th request must receive HTTP 429 Too Many Requests
+        $resTitip11 = $this->postJson('/titip-properti', $titipPayload);
+        $resTitip11->assertStatus(429);
+    }
+
+    /**
+     * Item 3: Subtle animations and micro-interactions CSS & accessibility verification
+     */
+    public function test_subtle_animations_css_and_reduced_motion_integrity(): void
+    {
+        $css = file_get_contents(public_path('css/style.css'));
+
+        // 1. Verify keyframe animations exist
+        $this->assertStringContainsString('@keyframes heroFadeInUp', $css);
+        $this->assertStringContainsString('@keyframes scrollFadeInUp', $css);
+        $this->assertStringContainsString('@keyframes modalContentSlideUp', $css);
+        $this->assertStringContainsString('@keyframes toastSlideUp', $css);
+
+        // 2. Verify micro-interactions: button hover/active and card hover lift
+        $this->assertStringContainsString('.btn-primary:hover', $css);
+        $this->assertStringContainsString('transform: translateY(-1.5px)', $css);
+        $this->assertStringContainsString('transform: translateY(-2.5px)', $css);
+
+        // 3. Verify prefers-reduced-motion: reduce
+        $this->assertStringContainsString('@media (prefers-reduced-motion: reduce)', $css);
+        $this->assertStringContainsString('animation: none !important', $css);
+
+        // 4. Verify no nested CSS syntax in style.css
+        $this->assertDoesNotMatchRegularExpression('/^\s*&/m', $css, 'style.css must use flat CSS, no nested ampersands.');
+
+        // 5. Verify no external CDN or library links in layouts/app.blade.php
+        $layoutApp = file_get_contents(resource_path('views/layouts/app.blade.php'));
+        $this->assertDoesNotMatchRegularExpression('/https?:\/\/(cdnjs|unpkg|cdn\.jsdelivr|code\.jquery)/i', $layoutApp);
+
+        // 6. Verify admin layout has toast and modal animations and reduced-motion block
+        $adminLayout = file_get_contents(resource_path('views/layouts/admin.blade.php'));
+        $this->assertStringContainsString('@keyframes adminModalSlideUp', $adminLayout);
+        $this->assertStringContainsString('@keyframes toastSlideUp', $adminLayout);
+        $this->assertStringContainsString('@media (prefers-reduced-motion: reduce)', $adminLayout);
+    }
+
+    /**
+     * Item 3: Public pages return HTTP 200 and include proper subtle entrance attributes
+     */
+    public function test_public_pages_render_with_animation_attributes_and_status_200(): void
+    {
+        $this->seed(\Database\Seeders\PropertySeeder::class);
+
+        // 1. Home page
+        $homeRes = $this->get('/');
+        $homeRes->assertStatus(200);
+        $homeRes->assertSee('hero-fade-1', false);
+        $homeRes->assertSee('hero-fade-2', false);
+        $homeRes->assertSee('hero-fade-3', false);
+        $homeRes->assertSee('pillar-card', false);
+        $homeRes->assertSee('step-card', false);
+
+        // 2. Explore catalog
+        $exploreRes = $this->get('/explore');
+        $exploreRes->assertStatus(200);
+        $exploreRes->assertSee('property-card', false);
+
+        // 3. Detail property
+        $detailRes = $this->get('/properti/villa-cliffside-horizon-uluwatu');
+        $detailRes->assertStatus(200);
+        $detailRes->assertSee('id="propertyLightboxModal"', false);
+
+        // 4. Titip Properti
+        $titipRes = $this->get('/titip-properti');
+        $titipRes->assertStatus(200);
+        $titipRes->assertSee('modalContentSlideUp', false);
+
+        // 5. Tentang Kami
+        $aboutRes = $this->get('/tentang-kami');
+        $aboutRes->assertStatus(200);
+    }
+
+    /**
+     * Fix: Property card specifications (kamar tidur, luas, etc.) are always rendered in catalog even when specs_tags is null
+     */
+    public function test_catalog_property_specs_tags_rendered_even_when_database_column_is_null(): void
+    {
+        $this->seed(\Database\Seeders\PropertySeeder::class);
+
+        // Update first property to have specs_tags as null in DB
+        $prop = \App\Models\Property::first();
+        $prop->specs_tags = null;
+        $prop->bedrooms = 4;
+        $prop->land_size = 450;
+        $prop->building_size = 320;
+        $prop->bathrooms = 3;
+        $prop->save();
+
+        // 1. Service layer must automatically populate specs_tags
+        $transformed = \App\Services\KumalaDataHub::transformProperty($prop);
+        $this->assertNotEmpty($transformed['specs_tags']);
+        $this->assertContains('4 Kamar Tidur', $transformed['specs_tags']);
+        $this->assertContains('LT 450m²', $transformed['specs_tags']);
+        $this->assertContains('LB 320m²', $transformed['specs_tags']);
+
+        // 2. Home page catalog must render the chips
+        $homeRes = $this->get('/');
+        $homeRes->assertStatus(200);
+        $homeRes->assertSee($prop->title);
+        $homeRes->assertSee('4 Kamar Tidur');
+        $homeRes->assertSee('LT 450m²');
+        $homeRes->assertSee('LB 320m²');
+
+        // 3. Explore catalog page must render the chips
+        $exploreRes = $this->get('/explore?search=' . urlencode($prop->title));
+        $exploreRes->assertStatus(200);
+        $exploreRes->assertSee($prop->title);
+        $exploreRes->assertSee('4 Kamar Tidur');
+        $exploreRes->assertSee('LT 450m²');
+        $exploreRes->assertSee('LB 320m²');
+    }
+
+    /**
+     * Test MASALAH A: Transaction edit flow, validation, price formatting, and property status sync
+     */
+    public function test_admin_closing_transaction_edit_flow_and_validation(): void
+    {
+        $this->seed(\Database\Seeders\PropertySeeder::class);
+        $admin = $this->getAdminUser();
+
+        $prop = \App\Models\Property::first();
+        $this->assertNotNull($prop);
+
+        $tx = \App\Models\Transaction::create([
+            'id' => '#CLS-' . date('Y') . '-999',
+            'date' => date('d M Y'),
+            'property_id' => $prop->id,
+            'property_title' => $prop->title,
+            'property_slug' => $prop->slug,
+            'location' => 'Jakarta Selatan',
+            'trx_type' => 'TERJUAL - JUAL BELI',
+            'asking_price' => 'Rp 50.000.000.000',
+            'deal_price' => 'Rp 48.000.000.000',
+            'deal_val' => 48000000000,
+            'diff_pct' => '-4.0%',
+            'parties' => 'Penjual: Bpk A / Pembeli: Bpk B',
+            'commission_val' => 'Rp 1.200.000.000 (2.5%)',
+            'notary' => 'Notaris Rekanan Jaksel',
+            'status_doc' => 'AJB Selesai',
+            'days_on_market' => '30 Hari',
+        ]);
+
+        // 1. Check Edit button markup in table view
+        $viewRes = $this->actingAs($admin)->get('/admin/riwayat-transaksi');
+        $viewRes->assertStatus(200);
+        $viewRes->assertSee('data-tx=', false);
+        $viewRes->assertSee('openClosingModalFromBtn(this)', false);
+        $viewRes->assertSee($tx->id);
+
+        // 2. Submit update with raw string format price '4.500.000.000' and trx_type 'TERSEWA - 1 TAHUN'
+        $updatePayload = [
+            'trx_type' => 'TERSEWA - 1 TAHUN',
+            'deal_price' => '4.500.000.000',
+            'parties' => 'Penyewa: PT Alpha / Pemilik: Bpk A',
+            'notary' => 'Notaris Sutopo, S.H.',
+            'status_doc' => 'Perjanjian Sewa Selesai',
+            'property_id' => $prop->id,
+            '_method' => 'PUT',
+        ];
+
+        $updateRes = $this->actingAs($admin)->putJson('/admin/riwayat-transaksi/' . rawurlencode($tx->id) . '/update', $updatePayload);
+        $updateRes->assertStatus(200);
+        $updateRes->assertJson(['success' => true]);
+
+        // 3. Verify Database updated
+        $freshTx = \App\Models\Transaction::find($tx->id);
+        $this->assertEquals(4500000000, $freshTx->deal_val);
+        $this->assertEquals('Rp 4.500.000.000', $freshTx->deal_price);
+        $this->assertEquals('TERSEWA - 1 TAHUN', $freshTx->trx_type);
+        $this->assertEquals('Penyewa: PT Alpha / Pemilik: Bpk A', $freshTx->parties);
+
+        // 4. Verify Property status synced to RENTED
+        $freshProp = \App\Models\Property::find($prop->id);
+        $this->assertEquals('RENTED', $freshProp->status);
+
+        // 5. Test validation failure on deal_price = 0
+        $invalidPayload = array_merge($updatePayload, ['deal_price' => '0']);
+        $failRes = $this->actingAs($admin)->putJson('/admin/riwayat-transaksi/' . rawurlencode($tx->id) . '/update', $invalidPayload);
+        $failRes->assertStatus(422);
+        $failRes->assertJsonValidationErrors(['deal_price']);
+    }
+
+    /**
+     * Test MASALAH B: Submissions queue ordering (pending first, revision & rejected at bottom), grouping, and post-action active selection
+     */
+    public function test_admin_submissions_queue_ordering_and_grouping(): void
+    {
+        $admin = $this->getAdminUser();
+
+        // Clear existing submissions for isolated test
+        \App\Models\Submission::query()->delete();
+
+        // Create 2 pending, 1 revision, 1 rejected
+        $subPending1 = \App\Models\Submission::create([
+            'id' => '#TP-301',
+            'title' => 'Pending Villa Alpha',
+            'owner_name' => 'Pemilik 1',
+            'owner_phone' => '08123456781',
+            'owner_email' => 'pemilik1@example.com',
+            'asking_price' => 'Rp 5.000.000.000',
+            'asking_val' => 5000000000,
+            'category' => 'Rumah Mewah',
+            'trx_type' => 'Jual',
+            'location' => 'Jakarta Selatan',
+            'status' => 'pending',
+            'created_at' => now()->subMinutes(10),
+            'updated_at' => now()->subMinutes(10),
+        ]);
+
+        $subPending2 = \App\Models\Submission::create([
+            'id' => '#TP-302',
+            'title' => 'Pending Penthouse Beta',
+            'owner_name' => 'Pemilik 2',
+            'owner_phone' => '08123456782',
+            'owner_email' => 'pemilik2@example.com',
+            'asking_price' => 'Rp 8.000.000.000',
+            'asking_val' => 8000000000,
+            'category' => 'Apartemen & Penthouse',
+            'trx_type' => 'Jual',
+            'location' => 'Jakarta Pusat',
+            'status' => 'pending',
+            'created_at' => now()->subMinutes(5), // Newer than pending 1
+            'updated_at' => now()->subMinutes(5),
+        ]);
+
+        $subRevision = \App\Models\Submission::create([
+            'id' => '#TP-303',
+            'title' => 'Revision Mansion Gamma',
+            'owner_name' => 'Pemilik 3',
+            'owner_phone' => '08123456783',
+            'owner_email' => 'pemilik3@example.com',
+            'asking_price' => 'Rp 12.000.000.000',
+            'asking_val' => 12000000000,
+            'category' => 'Rumah Mewah',
+            'trx_type' => 'Jual',
+            'location' => 'Jakarta Barat',
+            'status' => 'revision',
+            'created_at' => now()->subMinutes(30),
+            'updated_at' => now()->subMinutes(2),
+        ]);
+
+        $subRejected = \App\Models\Submission::create([
+            'id' => '#TP-304',
+            'title' => 'Rejected Land Delta',
+            'owner_name' => 'Pemilik 4',
+            'owner_phone' => '08123456784',
+            'owner_email' => 'pemilik4@example.com',
+            'asking_price' => 'Rp 3.000.000.000',
+            'asking_val' => 3000000000,
+            'category' => 'Tanpa Kategori',
+            'trx_type' => 'Jual',
+            'location' => 'Bogor',
+            'status' => 'rejected',
+            'created_at' => now()->subMinutes(40),
+            'updated_at' => now()->subMinute(),
+        ]);
+
+        // 1. Initial GET /admin/listing-masuk
+        $res = $this->actingAs($admin)->get('/admin/listing-masuk');
+        $res->assertStatus(200);
+
+        // Group headers must be present
+        $res->assertSee('Menunggu Kurasi');
+        $res->assertSee('Menunggu Revisi Pemilik');
+        $res->assertSee('Ditolak');
+
+        // Order check: pending items appear first (TP-302 newer than TP-301), then revision (TP-303), then rejected (TP-304)
+        $res->assertSeeInOrder([
+            'Menunggu Kurasi',
+            '#TP-302',
+            '#TP-301',
+            'Menunggu Revisi Pemilik',
+            '#TP-303',
+            'Ditolak',
+            '#TP-304',
+        ]);
+
+        // Default active inspection deck selects top pending item (#TP-302)
+        $res->assertSee('id="deck-id" style="background: #0E1E2E; color: #FFFFFF; font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 4px; white-space: nowrap; display: inline-block;">#TP-302</span>', false);
+
+        // 2. Reject pending item #TP-302
+        $rejectRes = $this->actingAs($admin)->postJson('/admin/listing-masuk/' . rawurlencode('#TP-302') . '/status', [
+            'status' => 'rejected',
+            'notes' => 'Tidak lolos verifikasi berkas legal.',
+        ]);
+        $rejectRes->assertStatus(200);
+        $rejectRes->assertJson(['success' => true]);
+
+        // 3. GET /admin/listing-masuk again
+        $afterRejectRes = $this->actingAs($admin)->get('/admin/listing-masuk');
+        $afterRejectRes->assertStatus(200);
+
+        // Now #TP-301 is the only pending item, and #TP-302 has dropped down to the Ditolak group!
+        $afterRejectRes->assertSeeInOrder([
+            'Menunggu Kurasi',
+            '#TP-301',
+            'Menunggu Revisi Pemilik',
+            '#TP-303',
+            'Ditolak',
+            '#TP-302',
+            '#TP-304',
+        ]);
+
+        // Inspection deck now automatically focuses on the remaining top pending submission (#TP-301)
+        $afterRejectRes->assertSee('id="deck-id" style="background: #0E1E2E; color: #FFFFFF; font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 4px; white-space: nowrap; display: inline-block;">#TP-301</span>', false);
+
+        // 4. Opening direct notification link with ?id=#TP-302 retains selection of #TP-302 in the inspection deck
+        $directRes = $this->actingAs($admin)->get('/admin/listing-masuk?id=' . rawurlencode('#TP-302'));
+        $directRes->assertStatus(200);
+        $directRes->assertSee('id="deck-id" style="background: #0E1E2E; color: #FFFFFF; font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 4px; white-space: nowrap; display: inline-block;">#TP-302</span>', false);
+    }
 }
+
 
 
 

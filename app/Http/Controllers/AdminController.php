@@ -338,7 +338,51 @@ class AdminController extends Controller
             $submissionsQuery->where('status', '!=', 'approved');
         }
 
-        $submissions = $submissionsQuery->get()->map(function ($sub) {
+        $normalizeStatus = function ($st) {
+            $s = strtolower(trim((string)$st));
+            if (in_array($s, ['pending', 'menunggu kurasi', 'review', 'in_review', 'baru'])) return 'pending';
+            if (in_array($s, ['revision', 'revisi', 'menunggu revisi', 'menunggu revisi pemilik', 'need_revision'])) return 'revision';
+            if (in_array($s, ['rejected', 'ditolak', 'tolak'])) return 'rejected';
+            if (in_array($s, ['approved', 'disetujui', 'diterbitkan', 'aktif'])) return 'approved';
+            return $s ?: 'pending';
+        };
+
+        $sortSubmissions = function (array &$items) use ($normalizeStatus) {
+            $statusRank = [
+                'pending' => 1,
+                'revision' => 2,
+                'rejected' => 3,
+                'approved' => 4,
+            ];
+            usort($items, function ($a, $b) use ($statusRank, $normalizeStatus) {
+                $stA = $normalizeStatus($a['status'] ?? 'pending');
+                $stB = $normalizeStatus($b['status'] ?? 'pending');
+                $rankA = $statusRank[$stA] ?? 99;
+                $rankB = $statusRank[$stB] ?? 99;
+
+                if ($rankA !== $rankB) {
+                    return $rankA <=> $rankB;
+                }
+
+                if ($stA === 'pending') {
+                    $cA = $a['created_at'] ?? '';
+                    $cB = $b['created_at'] ?? '';
+                    if ($cA !== $cB) {
+                        return strcmp($cB, $cA);
+                    }
+                    return strcmp((string)($b['id'] ?? ''), (string)($a['id'] ?? ''));
+                } else {
+                    $uA = $a['updated_at'] ?? ($a['created_at'] ?? '');
+                    $uB = $b['updated_at'] ?? ($b['created_at'] ?? '');
+                    if ($uA !== $uB) {
+                        return strcmp($uB, $uA);
+                    }
+                    return strcmp((string)($b['id'] ?? ''), (string)($a['id'] ?? ''));
+                }
+            });
+        };
+
+        $submissions = $submissionsQuery->get()->map(function ($sub) use ($normalizeStatus) {
             $checklistMap = [
                 'identity' => true,
                 'maps' => true,
@@ -390,7 +434,9 @@ class AdminController extends Controller
                 'legal' => $sub->legal ?: 'SHM (Hak Milik)',
                 'ownership' => $sub->owner_status ?: 'Pemilik Langsung',
                 'time_ago' => $sub->created_at ? $sub->created_at->diffForHumans() : '45 menit lalu',
-                'status' => $sub->status,
+                'created_at' => $sub->created_at ? $sub->created_at->format('Y-m-d H:i:s') : date('Y-m-d H:i:s'),
+                'updated_at' => $sub->updated_at ? $sub->updated_at->format('Y-m-d H:i:s') : ($sub->created_at ? $sub->created_at->format('Y-m-d H:i:s') : date('Y-m-d H:i:s')),
+                'status' => $normalizeStatus($sub->status),
                 'priority' => $sub->priority ?: 'P2 - High Priority',
                 'photos_count' => (int) ($sub->photos_count ?: 6),
                 'photos' => is_array($sub->photos) ? $sub->photos : (!empty($sub->photos) ? (array) $sub->photos : []),
@@ -399,8 +445,11 @@ class AdminController extends Controller
             ];
         })->toArray();
 
+        $sortSubmissions($submissions);
+
         if (empty($submissions) && Submission::count() === 0) {
             $submissions = self::getDefaultSubmissions();
+            $sortSubmissions($submissions);
         }
 
         $selectedId = $request->query('id') ?: $request->query('selected');
@@ -416,7 +465,8 @@ class AdminController extends Controller
             }
         }
         if (!$selectedSubmission) {
-            $selectedSubmission = $submissions[0] ?? null;
+            $selectedSubmission = collect($submissions)->first(fn($s) => ($s['status'] ?? '') === 'pending')
+                ?? ($submissions[0] ?? null);
         }
 
         return view('admin.submissions', compact('queueCounts', 'submissions', 'selectedSubmission'));
@@ -619,6 +669,28 @@ class AdminController extends Controller
                 $count++;
             }
 
+            $bedInt = (int) preg_replace('/[^0-9]/', '', (string) $sub->bedrooms) ?: 3;
+            $bathInt = (int) preg_replace('/[^0-9]/', '', (string) $sub->bathrooms) ?: 2;
+            $landInt = (int) $sub->land_size;
+            $bldgInt = (int) $sub->building_size;
+
+            $specsTags = [
+                $bedInt . ' Kamar Tidur',
+            ];
+            if ($landInt > 0) {
+                $specsTags[] = 'LT ' . $landInt . 'm²';
+            }
+            if ($bldgInt > 0) {
+                $specsTags[] = 'LB ' . $bldgInt . 'm²';
+            }
+            if (count($specsTags) < 3 && $bathInt > 0) {
+                $specsTags[] = $bathInt . ' Kamar Mandi';
+            }
+
+            $locParts = array_map('trim', explode('-', $sub->location ?: ''));
+            $locCity = count($locParts) > 1 ? $locParts[0] : ($sub->location ?: 'Jakarta Selatan');
+            $locArea = count($locParts) > 1 ? $locParts[1] : ($sub->location ?: 'DKI Jakarta');
+
             $property = Property::create([
                 'id' => $newId,
                 'slug' => $slug,
@@ -630,17 +702,18 @@ class AdminController extends Controller
                 'price' => $sub->asking_val ?: (int) preg_replace('/[^0-9]/', '', (string)$sub->asking_price),
                 'price_formatted' => $sub->asking_price ?: ('Rp ' . number_format($sub->asking_val, 0, ',', '.')),
                 'price_notes' => 'Pajak & Biaya Notaris Dibagi Proposional',
-                'location_city' => $sub->location ?: 'Jakarta Selatan',
-                'location_area' => $sub->location ?: 'DKI Jakarta',
+                'location_city' => $locCity,
+                'location_area' => $locArea,
                 'location_address' => $sub->address ?: ($sub->location ?: 'Indonesia'),
                 'legal_status' => $sub->legal ?: 'SHM (Hak Milik)',
                 'verified' => true,
                 'featured' => false,
-                'land_size' => (int) $sub->land_size,
-                'building_size' => (int) $sub->building_size,
-                'bedrooms' => (int) preg_replace('/[^0-9]/', '', (string) $sub->bedrooms) ?: 3,
-                'bathrooms' => (int) preg_replace('/[^0-9]/', '', (string) $sub->bathrooms) ?: 2,
+                'land_size' => $landInt,
+                'building_size' => $bldgInt,
+                'bedrooms' => $bedInt,
+                'bathrooms' => $bathInt,
                 'electricity' => $sub->electricity ?: '3500 VA',
+                'specs_tags' => $specsTags,
                 'image_main' => !empty($sub->photos) && is_array($sub->photos) ? $sub->photos[0] : 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
                 'description' => $sub->notes ?: ('Properti eksklusif ' . $sub->title . ' dengan sertifikat ' . ($sub->legal ?: 'SHM') . ' dan spesifikasi premium.'),
                 'status' => 'ACTIVE',
@@ -1255,7 +1328,12 @@ class AdminController extends Controller
      */
     public function updateTransaction(Request $request, $id)
     {
-        $trx = Transaction::find($id);
+        $cleanId = urldecode($id);
+        $trx = Transaction::find($cleanId) 
+            ?? Transaction::find($id) 
+            ?? Transaction::where('id', '#' . ltrim($cleanId, '#'))->first()
+            ?? Transaction::where('id', ltrim($cleanId, '#'))->first();
+
         if (!$trx) {
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
@@ -1273,9 +1351,26 @@ class AdminController extends Controller
             'parties' => 'required|string|max:255',
             'notary' => 'required|string|max:255',
             'status_doc' => 'nullable|string|max:100',
+        ], [
+            'trx_type.required' => 'Jenis transaksi wajib dipilih.',
+            'deal_price.required' => 'Harga deal final wajib diisi.',
+            'parties.required' => 'Pihak transaksi wajib diisi.',
+            'notary.required' => 'Notaris rekanan wajib diisi.',
         ]);
 
-        $dealVal = (int) preg_replace('/[^0-9]/', '', $validated['deal_price']);
+        $dealVal = (int) preg_replace('/[^0-9]/', '', (string)$validated['deal_price']);
+        if ($dealVal <= 0) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal: Harga deal final harus berupa angka lebih besar dari 0.',
+                    'errors' => ['deal_price' => ['Harga deal final harus berupa angka lebih besar dari 0.']],
+                ], 422);
+            }
+            return back()->withErrors(['deal_price' => 'Harga deal final harus berupa angka lebih besar dari 0.'])->withInput();
+        }
+
+        $formattedDeal = 'Rp ' . number_format($dealVal, 0, ',', '.');
         $askingVal = (int) preg_replace('/[^0-9]/', '', (string)$trx->asking_price);
 
         $diffPct = $trx->diff_pct;
@@ -1285,7 +1380,7 @@ class AdminController extends Controller
         }
 
         $trx->trx_type = $validated['trx_type'];
-        $trx->deal_price = $validated['deal_price'];
+        $trx->deal_price = $formattedDeal;
         $trx->deal_val = $dealVal;
         $trx->diff_pct = $diffPct;
         $trx->parties = $validated['parties'];
@@ -1500,6 +1595,24 @@ class AdminController extends Controller
         $cat = Category::where('name', $validated['category'])->first();
         $reg = Region::where('city', $validated['location_city'])->orWhere('name', 'like', "%{$validated['location_city']}%")->first();
 
+        $bedInt = (int) ($validated['bedrooms'] ?? 3);
+        $bathInt = (int) ($validated['bathrooms'] ?? 2);
+        $landInt = (int) ($validated['land_size'] ?? 0);
+        $bldgInt = (int) ($validated['building_size'] ?? 0);
+
+        $specsTags = [
+            $bedInt . ' Kamar Tidur',
+        ];
+        if ($landInt > 0) {
+            $specsTags[] = 'LT ' . $landInt . 'm²';
+        }
+        if ($bldgInt > 0) {
+            $specsTags[] = 'LB ' . $bldgInt . 'm²';
+        }
+        if (count($specsTags) < 3 && $bathInt > 0) {
+            $specsTags[] = $bathInt . ' Kamar Mandi';
+        }
+
         $prop = Property::create([
             'id' => $newId,
             'slug' => $slug,
@@ -1519,13 +1632,14 @@ class AdminController extends Controller
             'legal_status' => $validated['legal_status'],
             'verified' => true,
             'featured' => $request->has('featured'),
-            'land_size' => (int) ($validated['land_size'] ?? 0),
-            'building_size' => (int) ($validated['building_size'] ?? 0),
-            'bedrooms' => (int) ($validated['bedrooms'] ?? 3),
-            'bathrooms' => (int) ($validated['bathrooms'] ?? 2),
+            'land_size' => $landInt,
+            'building_size' => $bldgInt,
+            'bedrooms' => $bedInt,
+            'bathrooms' => $bathInt,
             'floors' => (int) ($validated['floors'] ?? 1),
             'electricity' => $validated['electricity'] ?? '3500 VA',
             'orientation' => $validated['orientation'] ?? 'Utara',
+            'specs_tags' => $specsTags,
             'image_main' => $imageUrl,
             'description' => $validated['description'],
             'status' => $validated['status'] ?? 'ACTIVE',
@@ -1623,6 +1737,25 @@ class AdminController extends Controller
         } elseif (!empty($validated['image_main'])) {
             $prop->image_main = $validated['image_main'];
         }
+
+        $bedInt = (int) ($prop->bedrooms ?? 3);
+        $bathInt = (int) ($prop->bathrooms ?? 2);
+        $landInt = (int) ($prop->land_size ?? 0);
+        $bldgInt = (int) ($prop->building_size ?? 0);
+
+        $autoSpecs = [
+            $bedInt . ' Kamar Tidur',
+        ];
+        if ($landInt > 0) {
+            $autoSpecs[] = 'LT ' . $landInt . 'm²';
+        }
+        if ($bldgInt > 0) {
+            $autoSpecs[] = 'LB ' . $bldgInt . 'm²';
+        }
+        if (count($autoSpecs) < 3 && $bathInt > 0) {
+            $autoSpecs[] = $bathInt . ' Kamar Mandi';
+        }
+        $prop->specs_tags = $autoSpecs;
 
         $prop->save();
 
@@ -2184,6 +2317,8 @@ class AdminController extends Controller
                 'legal' => 'SHM (Hak Milik)',
                 'ownership' => 'Pemilik Langsung',
                 'time_ago' => '45 menit lalu',
+                'created_at' => date('Y-m-d H:i:s', strtotime('-45 minutes')),
+                'updated_at' => date('Y-m-d H:i:s', strtotime('-45 minutes')),
                 'status' => 'pending',
                 'priority' => 'P1 - Hot Asset',
                 'photos_count' => 6,

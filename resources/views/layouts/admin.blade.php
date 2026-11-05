@@ -346,10 +346,10 @@
         }
         .admin-notification-dropdown.open {
             display: block;
-            animation: fadeInAdminDrop 0.2s ease;
+            animation: fadeInAdminDrop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
         }
         @keyframes fadeInAdminDrop {
-            from { opacity: 0; transform: translateY(-6px); }
+            from { opacity: 0; transform: translateY(-8px); }
             to { opacity: 1; transform: translateY(0); }
         }
         .dropdown-header-box {
@@ -455,6 +455,41 @@
             word-break: break-word;
             box-sizing: border-box;
             line-height: 1.4;
+            animation: toastSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes toastSlideUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modal Entrance Animations (Admin Scoped Only) */
+        div[id*="Modal"][style*="position: fixed"],
+        div[id*="modal"][style*="position: fixed"] {
+            animation: adminModalFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        div[id*="Modal"][style*="position: fixed"] > div,
+        div[id*="modal"][style*="position: fixed"] > div {
+            animation: adminModalSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes adminModalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes adminModalSlideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .admin-notification-dropdown.open,
+            #toast-notification,
+            div[id*="Modal"][style*="position: fixed"],
+            div[id*="modal"][style*="position: fixed"],
+            div[id*="Modal"][style*="position: fixed"] > div,
+            div[id*="modal"][style*="position: fixed"] > div {
+                animation: none !important;
+                transition: none !important;
+            }
         }
 
         @media (max-width: 640px) {

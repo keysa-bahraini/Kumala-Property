@@ -235,6 +235,7 @@
             word-break: break-word;
             box-sizing: border-box;
             line-height: 1.4;
+            animation: toastSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
         }
         @media (max-width: 640px) {
             #toast-notification {
@@ -303,6 +304,82 @@
             @elseif(session('error'))
                 showToast(@json(session('error')), true);
             @endif
+
+            // Subtle Motion: Respect prefers-reduced-motion
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                return;
+            }
+
+            // Hero entrance animation cleanup (removes transform so no stacking context lingers)
+            const heroElements = document.querySelectorAll('.hero-fade-1, .hero-fade-2, .hero-fade-3');
+            if (heroElements.length > 0) {
+                setTimeout(() => {
+                    heroElements.forEach(el => {
+                        el.classList.remove('hero-fade-1', 'hero-fade-2', 'hero-fade-3');
+                    });
+                }, 850);
+            }
+
+            // Scroll reveal for cards and content blocks via IntersectionObserver
+            if (!('IntersectionObserver' in window)) {
+                return;
+            }
+
+            const candidates = document.querySelectorAll('.property-card, .pillar-card, .pilar-card, .step-card, .about-metric-card, .content-reveal-card');
+            if (candidates.length === 0) return;
+
+            const vh = window.innerHeight || document.documentElement.clientHeight;
+            const belowFold = [];
+
+            candidates.forEach(el => {
+                // Do not animate anything inside multi-step form or explore pagination
+                if (el.closest('#titip-multistep-form') || el.closest('.explore-pagination-wrap')) {
+                    return;
+                }
+                const rect = el.getBoundingClientRect();
+                // Strictly elements below the initial viewport fold get initialized
+                if (rect.top >= vh) {
+                    el.classList.add('scroll-reveal-init');
+                    belowFold.push(el);
+                }
+            });
+
+            if (belowFold.length === 0) return;
+
+            let lastRowTop = -1;
+            let rowIndex = 0;
+
+            const observer = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const target = entry.target;
+                        const top = Math.round(target.getBoundingClientRect().top);
+                        if (Math.abs(top - lastRowTop) > 30) {
+                            lastRowTop = top;
+                            rowIndex = 0;
+                        } else {
+                            rowIndex++;
+                        }
+
+                        const delay = Math.min(rowIndex * 50, 120); // max 60ms stagger per item in row
+                        target.style.animationDelay = `${delay}ms`;
+                        target.classList.add('scroll-reveal-in');
+
+                        const onEnd = () => {
+                            target.classList.remove('scroll-reveal-init', 'scroll-reveal-in');
+                            target.style.animationDelay = '';
+                            target.removeEventListener('animationend', onEnd);
+                        };
+                        target.addEventListener('animationend', onEnd);
+                        obs.unobserve(target);
+                    }
+                });
+            }, {
+                rootMargin: '0px 0px -40px 0px',
+                threshold: 0.1
+            });
+
+            belowFold.forEach(el => observer.observe(el));
         });
     </script>
 

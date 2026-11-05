@@ -431,7 +431,16 @@
                         <a href="{{ route('property.detail', $rel['slug']) }}">{{ $rel['title'] }}</a>
                     </h3>
                     <div class="card-specs-row">
-                        @foreach($rel['specs_tags'] as $tag)
+                        @php
+                            $tags = !empty($rel['specs_tags']) ? $rel['specs_tags'] : [];
+                            if (empty($tags)) {
+                                if (!empty($rel['bedrooms'])) { $tags[] = $rel['bedrooms'] . ' Kamar Tidur'; }
+                                if (!empty($rel['land_size'])) { $tags[] = 'LT ' . $rel['land_size'] . 'm²'; }
+                                if (!empty($rel['building_size'])) { $tags[] = 'LB ' . $rel['building_size'] . 'm²'; }
+                                if (count($tags) < 3 && !empty($rel['bathrooms'])) { $tags[] = $rel['bathrooms'] . ' Kamar Mandi'; }
+                            }
+                        @endphp
+                        @foreach($tags as $tag)
                         <span class="spec-chip">{{ $tag }}</span>
                         @endforeach
                     </div>
@@ -637,6 +646,9 @@ function handleInquirySubmit(e) {
         body: formData
     })
     .then(async res => {
+        if (res.status === 429) {
+            throw new Error('Terlalu banyak permintaan, coba lagi sebentar lagi.');
+        }
         const data = await res.json();
         if (!res.ok) {
             let errorMsg = data.message || 'Terjadi kesalahan pada data formulir.';
@@ -664,7 +676,6 @@ function handleInquirySubmit(e) {
         }
     })
     .catch(err => {
-        console.error(err);
         showToast(err.message || 'Terjadi gangguan jaringan. Silakan hubungi via WhatsApp hotline kami.', true);
         btn.disabled = false;
         btn.innerHTML = '<span>Kirim Ulang Pengajuan</span>';

@@ -92,7 +92,7 @@ class KumalaDataHub
                 return $item;
             }
         }
-        return $all[0] ?? null;
+        return null;
     }
 
     public static function findPropertyById(string $id): ?array
@@ -331,21 +331,65 @@ class KumalaDataHub
 
     public static function getSubmissions(?string $status = null): array
     {
+        $normalizeStatus = function ($st) {
+            $s = strtolower(trim((string)$st));
+            if (in_array($s, ['pending', 'menunggu kurasi', 'review', 'in_review', 'baru'])) return 'pending';
+            if (in_array($s, ['revision', 'revisi', 'menunggu revisi', 'menunggu revisi pemilik', 'need_revision'])) return 'revision';
+            if (in_array($s, ['rejected', 'ditolak', 'tolak'])) return 'rejected';
+            if (in_array($s, ['approved', 'disetujui', 'diterbitkan', 'aktif'])) return 'approved';
+            return $s ?: 'pending';
+        };
+
+        $sortSubmissions = function (array &$items) use ($normalizeStatus) {
+            $statusRank = [
+                'pending' => 1,
+                'revision' => 2,
+                'rejected' => 3,
+                'approved' => 4,
+            ];
+            usort($items, function ($a, $b) use ($statusRank, $normalizeStatus) {
+                $stA = $normalizeStatus($a['status'] ?? 'pending');
+                $stB = $normalizeStatus($b['status'] ?? 'pending');
+                $rankA = $statusRank[$stA] ?? 99;
+                $rankB = $statusRank[$stB] ?? 99;
+
+                if ($rankA !== $rankB) {
+                    return $rankA <=> $rankB;
+                }
+
+                if ($stA === 'pending') {
+                    $cA = $a['created_at'] ?? '';
+                    $cB = $b['created_at'] ?? '';
+                    if ($cA !== $cB) return strcmp($cB, $cA);
+                    return strcmp((string)($b['id'] ?? ''), (string)($a['id'] ?? ''));
+                } else {
+                    $uA = $a['updated_at'] ?? ($a['created_at'] ?? '');
+                    $uB = $b['updated_at'] ?? ($b['created_at'] ?? '');
+                    if ($uA !== $uB) return strcmp($uB, $uA);
+                    return strcmp((string)($b['id'] ?? ''), (string)($a['id'] ?? ''));
+                }
+            });
+        };
+
         try {
-            $query = Submission::orderBy('created_at', 'desc');
+            $query = Submission::query();
             if ($status && $status !== 'all') {
                 $query->where('status', $status);
             }
-            $submissions = $query->get();
-            return $submissions->map(fn($s) => self::transformSubmission($s))->toArray();
+            $submissions = $query->get()->map(fn($s) => self::transformSubmission($s))->toArray();
+            $sortSubmissions($submissions);
+            return $submissions;
         } catch (\Throwable $e) {
             Log::warning('KumalaDataHub::getSubmissions fallback: ' . $e->getMessage());
         }
 
         $all = self::loadFallbackData()['submissions'] ?? [];
         if ($status && $status !== 'all') {
-            return array_values(array_filter($all, fn($s) => ($s['status'] ?? '') === $status));
+            $filtered = array_values(array_filter($all, fn($s) => ($s['status'] ?? '') === $status));
+            $sortSubmissions($filtered);
+            return $filtered;
         }
+        $sortSubmissions($all);
         return $all;
     }
 
@@ -1274,7 +1318,36 @@ class KumalaDataHub
         }
 
         $specsTags = is_array($p->specs_tags) ? $p->specs_tags : (json_decode($p->specs_tags ?? '[]', true) ?: []);
+        if (empty($specsTags)) {
+            $bedVal = (int) ($p->bedrooms ?? 0);
+            $bathVal = (int) ($p->bathrooms ?? 0);
+            $landVal = (int) ($p->land_size ?? 0);
+            $bldgVal = (int) ($p->building_size ?? 0);
+
+            $autoTags = [];
+            if ($bedVal > 0) {
+                $autoTags[] = "{$bedVal} Kamar Tidur";
+            }
+            if ($landVal > 0) {
+                $autoTags[] = "LT {$landVal}m²";
+            }
+            if ($bldgVal > 0) {
+                $autoTags[] = "LB {$bldgVal}m²";
+            }
+            if (count($autoTags) < 3 && $bathVal > 0) {
+                $autoTags[] = "{$bathVal} Kamar Mandi";
+            }
+            $specsTags = $autoTags;
+        }
         $distancePoints = is_array($p->distance_points) ? $p->distance_points : (json_decode($p->distance_points ?? '[]', true) ?: []);
+
+        $area = trim($p->location_area ?? '');
+        $city = trim($p->location_city ?? '');
+        if ($area && $city && $area !== $city && stripos($city, $area) === false && stripos($area, $city) === false) {
+            $locationDisplay = "{$area}, {$city}";
+        } else {
+            $locationDisplay = $area ?: $city;
+        }
 
         return [
             'id' => $p->id,
@@ -1289,6 +1362,7 @@ class KumalaDataHub
             'price_notes' => $p->price_notes ?: 'Legalitas Lengkap • Siap Transaksi',
             'location_city' => $p->location_city,
             'location_area' => $p->location_area,
+            'location_display' => $locationDisplay,
             'location_address' => $p->location_address,
             'legal_status' => $p->legal_status ?: 'SHM (Hak Milik)',
             'verified' => (bool)$p->verified,
@@ -1360,6 +1434,7 @@ class KumalaDataHub
             'checklist' => $checklist,
             'notes' => $s->notes,
             'created_at' => $s->created_at ? $s->created_at->format('Y-m-d H:i:s') : date('Y-m-d H:i:s'),
+            'updated_at' => $s->updated_at ? $s->updated_at->format('Y-m-d H:i:s') : ($s->created_at ? $s->created_at->format('Y-m-d H:i:s') : date('Y-m-d H:i:s')),
         ];
     }
 

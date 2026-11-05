@@ -118,7 +118,7 @@
                                         ? route('property.detail', $tx['property_slug']) 
                                         : (!empty($tx['property_id']) ? route('explore', ['q' => $tx['property_id']]) : route('explore'));
                                 @endphp
-                                <button type="button" class="btn-icon-subtle" title="Edit Transaksi" onclick='openClosingModal("edit", @js($editTxData))'>
+                                <button type="button" class="btn-icon-subtle" title="Edit Transaksi" data-tx="{{ json_encode($editTxData, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) }}" onclick="openClosingModalFromBtn(this)">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                                 </button>
                                 <a href="{{ $publicPropUrl }}" target="_blank" rel="noopener noreferrer" class="btn-icon-subtle" title="Buka Halaman Publik">
@@ -157,6 +157,20 @@
             </div>
             <form id="formClosing" action="{{ route('admin.transactions.store') }}" method="POST" style="display: flex; flex-direction: column; gap: 14px;">
                 @csrf
+                <input type="hidden" name="_method" id="closingFormMethod" value="POST">
+                <input type="hidden" name="property_id" id="closingPropertyIdHidden" value="" disabled>
+
+                <div id="closingModalErrorBox" style="{{ $errors->any() ? 'display: block;' : 'display: none;' }} background: #FEF2F2; border: 1px solid #F87171; border-radius: 8px; padding: 10px 14px; margin-bottom: 4px;">
+                    <div style="font-size: 0.8rem; font-weight: 700; color: #991B1B; margin-bottom: 2px;">Periksa kembali isian:</div>
+                    <ul id="closingModalErrorList" style="margin: 0; padding-left: 18px; font-size: 0.78rem; color: #B91C1C;">
+                        @if($errors->any())
+                            @foreach($errors->all() as $err)
+                                <li>{{ $err }}</li>
+                            @endforeach
+                        @endif
+                    </ul>
+                </div>
+
                 <div id="closingPropSelectGroup">
                     <label style="display: block; font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Pilih Properti Aktif</label>
                     <select name="property_id" id="closingPropertySelect" required style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; background: #F8FAFC;">
@@ -275,41 +289,80 @@
 
 @section('scripts')
 <script>
+function openClosingModalFromBtn(btn) {
+    try {
+        const raw = btn.getAttribute('data-tx');
+        const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        openClosingModal('edit', data);
+    } catch (e) {
+        console.error('Failed to parse tx data:', e);
+    }
+}
+
 function openClosingModal(mode = 'create', data = null) {
     const modal = document.getElementById('modalClosing');
     const form = document.getElementById('formClosing');
     const title = document.getElementById('modalClosingTitle');
     const submitBtn = document.getElementById('btnSubmitClosing');
+    const formMethod = document.getElementById('closingFormMethod');
     const selectGroup = document.getElementById('closingPropSelectGroup');
     const displayGroup = document.getElementById('closingPropDisplayGroup');
     const propSelect = document.getElementById('closingPropertySelect');
     const propDisplay = document.getElementById('closingPropertyDisplay');
+    const propIdHidden = document.getElementById('closingPropertyIdHidden');
     const trxType = document.getElementById('closingTrxType');
     const dealPrice = document.getElementById('closingDealPrice');
     const parties = document.getElementById('closingParties');
     const notary = document.getElementById('closingNotary');
+    const errorBox = document.getElementById('closingModalErrorBox');
+    const errorList = document.getElementById('closingModalErrorList');
 
     if (!modal) return;
 
+    if (errorBox) errorBox.style.display = 'none';
+    if (errorList) errorList.innerHTML = '';
+
     if (mode === 'create') {
         if (title) title.textContent = 'Catat Closing Transaksi';
-        if (submitBtn) submitBtn.textContent = 'Simpan & Bukukan Closing';
+        if (submitBtn) {
+            submitBtn.textContent = 'Simpan & Bukukan Closing';
+            submitBtn.disabled = false;
+        }
+        if (formMethod) formMethod.value = 'POST';
         if (form) {
             form.action = "{{ route('admin.transactions.store') }}";
             form.reset();
         }
         if (selectGroup) selectGroup.style.display = 'block';
         if (displayGroup) displayGroup.style.display = 'none';
-        if (propSelect) propSelect.required = true;
+        if (propSelect) {
+            propSelect.disabled = false;
+            propSelect.required = true;
+        }
+        if (propIdHidden) {
+            propIdHidden.disabled = true;
+            propIdHidden.value = '';
+        }
     } else if (mode === 'edit' && data) {
         if (title) title.textContent = 'Edit Closing ' + (data.id || '');
-        if (submitBtn) submitBtn.textContent = 'Simpan Perubahan';
+        if (submitBtn) {
+            submitBtn.textContent = 'Simpan Perubahan';
+            submitBtn.disabled = false;
+        }
+        if (formMethod) formMethod.value = 'PUT';
         if (form) {
             form.action = "/admin/riwayat-transaksi/" + encodeURIComponent(data.id) + "/update";
         }
         if (selectGroup) selectGroup.style.display = 'none';
         if (displayGroup) displayGroup.style.display = 'block';
-        if (propSelect) propSelect.required = false;
+        if (propSelect) {
+            propSelect.disabled = true;
+            propSelect.required = false;
+        }
+        if (propIdHidden) {
+            propIdHidden.disabled = false;
+            propIdHidden.value = data.property_id || '';
+        }
         if (propDisplay) propDisplay.value = (data.property_id ? data.property_id + ' - ' : '') + (data.property_title || '');
         if (trxType) trxType.value = data.trx_type || 'TERJUAL - JUAL BELI';
         if (dealPrice) dealPrice.value = data.deal_price || '';
@@ -324,5 +377,92 @@ function closeClosingModal() {
     const modal = document.getElementById('modalClosing');
     if (modal) modal.style.display = 'none';
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('formClosing');
+    if (!form) return;
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const submitBtn = document.getElementById('btnSubmitClosing');
+        const origBtnText = submitBtn ? submitBtn.textContent : 'Simpan';
+        const errorBox = document.getElementById('closingModalErrorBox');
+        const errorList = document.getElementById('closingModalErrorList');
+
+        if (errorBox) errorBox.style.display = 'none';
+        if (errorList) errorList.innerHTML = '';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Menyimpan...';
+        }
+
+        try {
+            const formData = new FormData(form);
+            const token = document.querySelector('input[name="_token"]')?.value || '';
+
+            const res = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': token
+                },
+                body: formData
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (res.ok && data.success) {
+                if (typeof showToast === 'function') {
+                    showToast(data.message || 'Transaksi berhasil disimpan!');
+                }
+                closeClosingModal();
+                setTimeout(() => {
+                    window.location.reload();
+                }, 600);
+            } else {
+                let errors = [];
+                if (data.errors) {
+                    for (const k in data.errors) {
+                        errors = errors.concat(data.errors[k]);
+                    }
+                } else if (data.message) {
+                    errors.push(data.message);
+                } else {
+                    errors.push('Terjadi kesalahan saat menyimpan transaksi. Silakan periksa isian.');
+                }
+
+                if (errorList) {
+                    errorList.innerHTML = errors.map(err => '<li>' + err + '</li>').join('');
+                }
+                if (errorBox) {
+                    errorBox.style.display = 'block';
+                }
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = origBtnText;
+                }
+            }
+        } catch (err) {
+            console.error(err);
+            if (errorList) {
+                errorList.innerHTML = '<li>Gagal mengirim formulir. Periksa koneksi jaringan.</li>';
+            }
+            if (errorBox) {
+                errorBox.style.display = 'block';
+            }
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = origBtnText;
+            }
+        }
+    });
+
+    @if($errors->any())
+        const modal = document.getElementById('modalClosing');
+        if (modal) modal.style.display = 'flex';
+    @endif
+});
 </script>
 @endsection

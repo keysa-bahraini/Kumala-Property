@@ -78,7 +78,31 @@ class PropertyDataService
             'garage' => $p->garage,
             'year_built' => $p->year_built,
             'furnishing' => $p->furnishing,
-            'specs_tags' => is_array($p->specs_tags) ? $p->specs_tags : (json_decode($p->specs_tags ?? '[]', true) ?: []),
+            'specs_tags' => (function() use ($p) {
+                $tags = is_array($p->specs_tags) ? $p->specs_tags : (json_decode($p->specs_tags ?? '[]', true) ?: []);
+                if (empty($tags)) {
+                    $bedVal = (int) ($p->bedrooms ?? 0);
+                    $bathVal = (int) ($p->bathrooms ?? 0);
+                    $landVal = (int) ($p->land_size ?? 0);
+                    $bldgVal = (int) ($p->building_size ?? 0);
+
+                    $autoTags = [];
+                    if ($bedVal > 0) {
+                        $autoTags[] = "{$bedVal} Kamar Tidur";
+                    }
+                    if ($landVal > 0) {
+                        $autoTags[] = "LT {$landVal}m²";
+                    }
+                    if ($bldgVal > 0) {
+                        $autoTags[] = "LB {$bldgVal}m²";
+                    }
+                    if (count($autoTags) < 3 && $bathVal > 0) {
+                        $autoTags[] = "{$bathVal} Kamar Mandi";
+                    }
+                    $tags = $autoTags;
+                }
+                return $tags;
+            })(),
             'image_main' => $p->image_main,
             'images' => $images,
             'description' => $p->description,

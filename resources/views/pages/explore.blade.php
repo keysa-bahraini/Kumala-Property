@@ -207,7 +207,7 @@
             <div class="card-content">
                 <div class="card-location">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                    <span>{{ $prop['location_area'] }}, {{ $prop['location_city'] }}</span>
+                    <span>{{ $prop['location_display'] ?? (!empty($prop['location_area']) && !empty($prop['location_city']) && $prop['location_area'] !== $prop['location_city'] && stripos($prop['location_city'], $prop['location_area']) === false && stripos($prop['location_area'], $prop['location_city']) === false ? $prop['location_area'] . ', ' . $prop['location_city'] : ($prop['location_area'] ?: $prop['location_city'])) }}</span>
                 </div>
 
                 <h3 class="card-title">
@@ -215,7 +215,16 @@
                 </h3>
 
                 <div class="card-specs-row">
-                    @foreach($prop['specs_tags'] as $tag)
+                    @php
+                        $tags = !empty($prop['specs_tags']) ? $prop['specs_tags'] : [];
+                        if (empty($tags)) {
+                            if (!empty($prop['bedrooms'])) { $tags[] = $prop['bedrooms'] . ' Kamar Tidur'; }
+                            if (!empty($prop['land_size'])) { $tags[] = 'LT ' . $prop['land_size'] . 'm²'; }
+                            if (!empty($prop['building_size'])) { $tags[] = 'LB ' . $prop['building_size'] . 'm²'; }
+                            if (count($tags) < 3 && !empty($prop['bathrooms'])) { $tags[] = $prop['bathrooms'] . ' Kamar Mandi'; }
+                        }
+                    @endphp
+                    @foreach($tags as $tag)
                     <span class="spec-chip">{{ $tag }}</span>
                     @endforeach
                 </div>

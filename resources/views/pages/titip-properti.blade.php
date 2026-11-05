@@ -1378,6 +1378,9 @@ function handleTitipSubmit(e) {
         body: formData
     })
     .then(async res => {
+        if (res.status === 429) {
+            throw new Error('Terlalu banyak permintaan, coba lagi sebentar lagi.');
+        }
         const data = await res.json();
         if (!res.ok) {
             let errorMsg = data.message || 'Terjadi kesalahan validasi data.';
@@ -1418,14 +1421,13 @@ function handleTitipSubmit(e) {
         }
     })
     .catch(err => {
-        console.error(err);
         if (typeof showToast === 'function') {
             showToast(err.message || 'Kendala koneksi. Silakan periksa kelengkapan formulir Anda.');
         } else {
             alert(err.message || 'Kendala koneksi. Silakan periksa kelengkapan formulir Anda.');
         }
         btn.disabled = false;
-        btn.innerHTML = `<span>Kirim Data Properti untuk Review</span>`;
+        btn.innerHTML = `<span>Kirim Data Properti untuk Review</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>`;
     });
 }
 
@@ -1436,7 +1438,7 @@ function closeSuccessModal() {
 
 <!-- Modal Konfirmasi Sukses Titip Properti -->
 <div id="modal-titip-success" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(14, 30, 46, 0.75); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 16px; box-sizing: border-box;">
-    <div style="background: #FFFFFF; border-radius: 16px; max-width: 460px; width: 100%; max-height: calc(100vh - 32px); overflow-y: auto; padding: 28px 22px; box-shadow: 0 20px 40px rgba(0,0,0,0.25); text-align: center; border: 1px solid #E2E8F0; position: relative; box-sizing: border-box; animation: fadeInScale 0.3s ease;">
+    <div style="background: #FFFFFF; border-radius: 16px; max-width: 460px; width: 100%; max-height: calc(100vh - 32px); overflow-y: auto; padding: 28px 22px; box-shadow: 0 20px 40px rgba(0,0,0,0.25); text-align: center; border: 1px solid #E2E8F0; position: relative; box-sizing: border-box; animation: modalContentSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);">
         <div style="width: 52px; height: 52px; border-radius: 50%; background: #E6FBF5; color: #00B488; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
         </div>

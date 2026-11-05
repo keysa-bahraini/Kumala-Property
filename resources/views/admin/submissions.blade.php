@@ -39,15 +39,15 @@
         <a href="{{ route('admin.submissions') }}" class="sub-tab-btn {{ (!request()->filled('status') || request('status') === 'active' || request('status') === 'all') ? 'active' : '' }}" style="text-decoration: none;">
             Semua Antrean Aktif <span id="badge-all" style="background: rgba(255,255,255,0.2); padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['all'] ?? 0 }}</span>
         </a>
-        <a href="{{ route('admin.submissions', ['status' => 'pending']) }}" class="sub-tab-btn {{ request('status') === 'pending' ? 'active' : '' }}" style="text-decoration: none;">
-            <span style="width: 6px; height: 6px; border-radius: 50%; background: #D97706; display: inline-block; margin-right: 6px;"></span>
-            Menunggu Review <span id="badge-pending" style="background: #FEF3C7; color: #D97706; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['pending'] ?? 0 }}</span>
+        <a href="{{ route('admin.submissions', ['status' => 'approved']) }}" class="sub-tab-btn {{ request('status') === 'approved' ? 'active' : '' }}" style="text-decoration: none;">
+            Disetujui &amp; Diterbitkan <span id="badge-approved" style="background: #E6FBF5; color: #059669; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['approved'] ?? 0 }}</span>
         </a>
         <a href="{{ route('admin.submissions', ['status' => 'revision']) }}" class="sub-tab-btn {{ request('status') === 'revision' ? 'active' : '' }}" style="text-decoration: none;">
             Perlu Revisi Pemilik <span id="badge-revision" style="background: #F1F5F9; color: #64748B; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['revision'] ?? 0 }}</span>
         </a>
-        <a href="{{ route('admin.submissions', ['status' => 'approved']) }}" class="sub-tab-btn {{ request('status') === 'approved' ? 'active' : '' }}" style="text-decoration: none;">
-            Disetujui &amp; Diterbitkan <span id="badge-approved" style="background: #E6FBF5; color: #059669; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['approved'] ?? 0 }}</span>
+        <a href="{{ route('admin.submissions', ['status' => 'pending']) }}" class="sub-tab-btn {{ request('status') === 'pending' ? 'active' : '' }}" style="text-decoration: none;">
+            <span style="width: 6px; height: 6px; border-radius: 50%; background: #D97706; display: inline-block; margin-right: 6px;"></span>
+            Menunggu Review <span id="badge-pending" style="background: #FEF3C7; color: #D97706; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['pending'] ?? 0 }}</span>
         </a>
         <a href="{{ route('admin.submissions', ['status' => 'rejected']) }}" class="sub-tab-btn {{ request('status') === 'rejected' ? 'active' : '' }}" style="text-decoration: none;">
             Ditolak <span id="badge-rejected" style="background: #F1F5F9; color: #64748B; padding: 1px 6px; border-radius: 10px; margin-left: 4px;">{{ $queueCounts['rejected'] ?? 0 }}</span>
@@ -55,6 +55,9 @@
     </div>
 
     <!-- Antrian Horizontal Cards Row -->
+    @php
+        $initSub = $selectedSubmission ?? ($submissions[0] ?? null);
+    @endphp
     <div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.74rem; flex-wrap: wrap; gap: 6px;">
             <div style="font-weight: 800; color: #64748B; letter-spacing: 0.6px; text-transform: uppercase;">
@@ -64,52 +67,97 @@
         </div>
 
         <div class="submissions-queue-grid" id="queue-grid">
-            @forelse($submissions as $index => $sub)
             @php
-                $statusPillClass = 'queue-pill-yellow';
-                $statusText = 'Review';
-                if (($sub['status'] ?? '') === 'approved') {
-                    $statusPillClass = 'queue-pill-green';
-                    $statusText = 'Disetujui';
-                } elseif (($sub['status'] ?? '') === 'rejected') {
-                    $statusPillClass = 'queue-pill-gray';
-                    $statusText = 'Ditolak';
-                } elseif (($sub['status'] ?? '') === 'revision') {
-                    $statusPillClass = 'queue-pill-red';
-                    $statusText = 'Revisi';
+                $groups = [
+                    'pending' => [
+                        'title' => 'Menunggu Kurasi',
+                        'dot' => '#F59E0B',
+                        'items' => collect($submissions)->filter(fn($s) => ($s['status'] ?? '') === 'pending')->values()->all()
+                    ],
+                    'revision' => [
+                        'title' => 'Menunggu Revisi Pemilik',
+                        'dot' => '#E11D48',
+                        'items' => collect($submissions)->filter(fn($s) => ($s['status'] ?? '') === 'revision')->values()->all()
+                    ],
+                    'rejected' => [
+                        'title' => 'Ditolak',
+                        'dot' => '#64748B',
+                        'items' => collect($submissions)->filter(fn($s) => ($s['status'] ?? '') === 'rejected')->values()->all()
+                    ],
+                ];
+                $otherItems = collect($submissions)->filter(fn($s) => !in_array($s['status'] ?? '', ['pending', 'revision', 'rejected']))->values()->all();
+                if (!empty($otherItems)) {
+                    $groups['approved'] = [
+                        'title' => 'Disetujui',
+                        'dot' => '#10B981',
+                        'items' => $otherItems
+                    ];
                 }
+                $totalRendered = 0;
             @endphp
-            <div class="queue-card {{ $index === 0 ? 'active' : '' }}" 
-                 data-status="{{ $sub['status'] ?? 'pending' }}" 
-                 data-sub-id="{{ $sub['id'] }}"
-                 onclick="selectSubmissionById('{{ $sub['id'] }}', this)">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <strong style="color: #0E1E2E; font-size: 0.78rem;">{{ $sub['id'] }}</strong>
-                    <span class="{{ $statusPillClass }}">&bull; {{ $statusText }}</span>
+
+            @foreach($groups as $grpKey => $grp)
+                @if(!empty($grp['items']))
+                    <div class="queue-group-header" style="grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; padding: {{ $loop->first ? '2px 4px' : '10px 4px 2px 4px' }}; border-bottom: 1px solid #E2E8F0; margin-top: {{ $loop->first ? '0' : '6px' }}; margin-bottom: 4px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: {{ $grp['dot'] }};"></span>
+                            <span style="font-size: 0.72rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;">{{ $grp['title'] }}</span>
+                        </div>
+                        <span style="font-size: 0.7rem; font-weight: 600; color: #64748B; background: #F1F5F9; padding: 2px 8px; border-radius: 10px;">{{ count($grp['items']) }} berkas</span>
+                    </div>
+
+                    @foreach($grp['items'] as $sub)
+                        @php
+                            $totalRendered++;
+                            $statusPillClass = 'queue-pill-yellow';
+                            $statusText = 'Review';
+                            $isMuted = false;
+                            if (($sub['status'] ?? '') === 'approved') {
+                                $statusPillClass = 'queue-pill-green';
+                                $statusText = 'Disetujui';
+                            } elseif (($sub['status'] ?? '') === 'rejected') {
+                                $statusPillClass = 'queue-pill-gray';
+                                $statusText = 'Ditolak';
+                                $isMuted = true;
+                            } elseif (($sub['status'] ?? '') === 'revision') {
+                                $statusPillClass = 'queue-pill-red';
+                                $statusText = 'Revisi';
+                                $isMuted = true;
+                            }
+                            $isActive = !empty($initSub) && (($sub['id'] ?? '') === ($initSub['id'] ?? ''));
+                        @endphp
+                        <div class="queue-card {{ $isActive ? 'active' : '' }} {{ $isMuted ? 'queue-card-muted' : '' }}" 
+                             data-status="{{ $sub['status'] ?? 'pending' }}" 
+                             data-sub-id="{{ $sub['id'] }}"
+                             onclick="selectSubmissionById('{{ $sub['id'] }}', this)">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <strong style="color: #0E1E2E; font-size: 0.78rem;">{{ $sub['id'] }}</strong>
+                                <span class="{{ $statusPillClass }}">&bull; {{ $statusText }}</span>
+                            </div>
+                            <h4 style="font-size: 0.88rem; font-weight: 800; color: #0E1E2E; margin: 0 0 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                {{ $sub['title'] }}
+                            </h4>
+                            <div style="font-size: 0.74rem; color: #64748B; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                {{ $sub['location'] }}
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: #64748B; padding-top: 6px; border-top: 1px solid #F1F5F9;">
+                                <span style="font-weight: 600; color: #334155;">{{ $sub['owner'] }}</span>
+                                <strong style="color: #0E1E2E;">{{ $sub['time_ago'] ?? 'Baru saja' }}</strong>
+                            </div>
+                        </div>
+                    @endforeach
+                @endif
+            @endforeach
+
+            @if($totalRendered === 0)
+                <div style="grid-column: 1 / -1; padding: 24px; text-align: center; background: #fff; border-radius: 8px; border: 1px dashed #CBD5E1; color: #64748B; font-size: 0.85rem;">
+                    Belum ada pengajuan titip properti yang masuk. Formulir di halaman publik dapat digunakan untuk menguji integrasi.
                 </div>
-                <h4 style="font-size: 0.88rem; font-weight: 800; color: #0E1E2E; margin: 0 0 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                    {{ $sub['title'] }}
-                </h4>
-                <div style="font-size: 0.74rem; color: #64748B; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                    {{ $sub['location'] }}
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: #64748B; padding-top: 6px; border-top: 1px solid #F1F5F9;">
-                    <span style="font-weight: 600; color: #334155;">{{ $sub['owner'] }}</span>
-                    <strong style="color: #0E1E2E;">{{ $sub['time_ago'] ?? 'Baru saja' }}</strong>
-                </div>
-            </div>
-            @empty
-            <div style="grid-column: 1 / -1; padding: 24px; text-align: center; background: #fff; border-radius: 8px; border: 1px dashed #CBD5E1; color: #64748B; font-size: 0.85rem;">
-                Belum ada pengajuan titip properti yang masuk. Formulir di halaman publik dapat digunakan untuk menguji integrasi.
-            </div>
-            @endforelse
+            @endif
         </div>
     </div>
 
     <!-- Main Inspection Deck -->
-    @php
-        $initSub = $selectedSubmission ?? ($submissions[0] ?? null);
-    @endphp
     @if($initSub)
     <div id="deck-wrapper" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 24px 28px; box-shadow: 0 1px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 20px;">
         
@@ -546,6 +594,18 @@
 .queue-card.active {
     border-color: #00838F;
     box-shadow: 0 0 0 2px rgba(0, 131, 143, 0.2);
+}
+
+.queue-card-muted {
+    opacity: 0.85;
+    background: #F8FAFC;
+}
+.queue-card-muted:hover {
+    opacity: 1;
+}
+.queue-card-muted.active {
+    opacity: 1;
+    background: #FFFFFF;
 }
 
 .queue-pill-yellow {
@@ -997,7 +1057,7 @@ function selectSubmission(sub, el) {
 
     const deleteForm = document.getElementById('deck-action-delete-form');
     if (deleteForm) {
-        deleteForm.action = `/admin/listing-masuk/${encodeURIComponent(sub.id)}/delete`;
+        deleteForm.action = `/admin/listing-masuk/${encodeURIComponent(sub.id)}`;
     }
 }
 
@@ -1188,6 +1248,17 @@ function handleRevisionSubmission() {
     updateStatusDirect(activeSubData.id, 'revision', notes, waTab);
 }
 
+function reloadQueueClean() {
+    try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('id');
+        url.searchParams.delete('selected');
+        window.location.href = url.pathname + (url.search ? url.search : '');
+    } catch (e) {
+        window.location.href = '/admin/listing-masuk';
+    }
+}
+
 function updateStatusDirect(id, status, notes, waTab = null) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '{{ csrf_token() }}';
 
@@ -1221,13 +1292,13 @@ function updateStatusDirect(id, status, notes, waTab = null) {
                     waTab.location.href = data.wa_url;
                     showToast(data.message || 'Permintaan revisi dicatat. Lanjutkan kirim lewat WhatsApp.');
                     setTimeout(() => {
-                        window.location.reload();
+                        reloadQueueClean();
                     }, 1200);
                 } else {
                     // Popup diblokir oleh peramban (misal di Safari/iOS)
                     showToast(data.message || 'Permintaan revisi dicatat.', false, data.wa_url, '[Kirim via WhatsApp]');
                     setTimeout(() => {
-                        window.location.reload();
+                        reloadQueueClean();
                     }, 8000);
                 }
             } else {
@@ -1237,7 +1308,7 @@ function updateStatusDirect(id, status, notes, waTab = null) {
                 }
                 showToast(data.message || 'Catatan revisi tersimpan, namun nomor WhatsApp pemilik tidak valid sehingga chat tidak dapat dibuka.', true);
                 setTimeout(() => {
-                    window.location.reload();
+                    reloadQueueClean();
                 }, 1500);
             }
         } else {
@@ -1246,7 +1317,7 @@ function updateStatusDirect(id, status, notes, waTab = null) {
             }
             showToast(`Status pengajuan ${id} berhasil diperbarui menjadi ${status.toUpperCase()}.`);
             setTimeout(() => {
-                window.location.reload();
+                reloadQueueClean();
             }, 1000);
         }
     })
